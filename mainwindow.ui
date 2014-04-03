@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1027</width>
+    <height>559</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QGraphicsView" name="graphicsView">
+    <property name="geometry">
+     <rect>
+      <x>26</x>
+      <y>90</y>
+      <width>481</width>
+      <height>381</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>94</y>
+      <width>451</width>
+      <height>371</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>0</y>
+      <width>111</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Connect to the camera WiFi.&lt;/p&gt;&lt;p&gt;Only the default connection of the computer can be used.&lt;/p&gt;&lt;p&gt;The camera must be in Remote Mode and act as an Hot Spot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="title">
+     <string>Camera WiFi</string>
+    </property>
+    <widget class="QPushButton" name="startRecModePushButton">
+     <property name="geometry">
+      <rect>
+       <x>-1</x>
+       <y>20</y>
+       <width>114</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Connect</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="stopRecModePushButton">
+     <property name="geometry">
+      <rect>
+       <x>-1</x>
+       <y>50</y>
+       <width>114</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Disconnect</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>0</y>
+      <width>281</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Timelapse</string>
+    </property>
+    <widget class="QPushButton" name="startTimerPushButton">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>71</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Start</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="stopTimerPushButton">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>50</y>
+       <width>71</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Stop</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>28</y>
+       <width>62</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Interval:</string>
+     </property>
+    </widget>
+    <widget class="QTimeEdit" name="intervalTimeEdit">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>24</y>
+       <width>71</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="displayFormat">
+      <string>ss:zzz</string>
+     </property>
+     <property name="time">
+      <time>
+       <hour>0</hour>
+       <minute>0</minute>
+       <second>1</second>
+      </time>
+     </property>
+    </widget>
+    <widget class="QTimeEdit" name="durationTimeEdit">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>50</y>
+       <width>118</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="displayFormat">
+      <string>HH:mm:ss</string>
+     </property>
+     <property name="time">
+      <time>
+       <hour>0</hour>
+       <minute>1</minute>
+       <second>0</second>
+      </time>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>78</x>
+       <y>55</y>
+       <width>62</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Duration: </string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_3">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>0</y>
+      <width>71</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string extracomment="MJepeg Stream is stored in Preview Folder.\n You can use VLC Media Player to open the Stream">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The MJepeg Stream is stored in the Preview Folder. &lt;/p&gt;&lt;p&gt;You can use the VLC Media Player to open the Stream&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="title">
+     <string>Live View</string>
+    </property>
+    <widget class="QPushButton" name="startLiveViewPushButton">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>71</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Start</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="stopLiveViewPushButton">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>50</y>
+       <width>71</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Stop</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_4">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>0</y>
+      <width>101</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable Preview Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="title">
+     <string>Preview Picture</string>
+    </property>
+    <widget class="QPushButton" name="chooseFolderPushButton">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>47</y>
+       <width>81</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose the folder where  the preview pictures are stored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Folder</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="loadPreviewPicCheckBox">
+     <property name="geometry">
+      <rect>
+       <x>6</x>
+       <y>27</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load the Preview Pictures&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Load</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_5">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>0</y>
+      <width>81</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Take Picture</string>
+    </property>
+    <widget class="QPushButton" name="takePicturePushButton">
+     <property name="geometry">
+      <rect>
+       <x>4</x>
+       <y>25</y>
+       <width>71</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&gt;</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1027</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
