@@ -34,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->loadPreviewPicCheckBox,SIGNAL(clicked(bool)),
             remote,SLOT(setLoadPreviewPic(bool)));
 
+    ui->urlLineEdit->setText("http://192.168.122.1/sony/camera");
+    ui->portLineEdit->setText("8080");
+
 
 }
 
@@ -83,6 +86,16 @@ void MainWindow::on_durationTimeEdit_timeChanged(const QTime &time){
 void MainWindow::on_chooseFolderPushButton_clicked(){
     previewPath = QFileDialog::getExistingDirectory();
 }
+
+void MainWindow::on_urlLineEdit_textChanged(QString url){
+    remote->setUrl(url);
+
+}
+
+void MainWindow::on_portLineEdit_textChanged(QString port){
+    remote->setPort(port);
+}
+
 
 void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
     QByteArray bytes = reply->readAll();

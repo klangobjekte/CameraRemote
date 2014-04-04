@@ -1,6 +1,7 @@
 #ifndef REMOTE_H
 #define REMOTE_H
 #include <QObject>
+#include <QUrl>
 
 class QNetworkAccessManager;
 class QNetworkRequest;
@@ -8,6 +9,7 @@ class QNetworkReply;
 class QGraphicsView;
 class QGraphicsScene;
 class QLabel;
+//class QUrl;
 /*
 "getVersions",
 "getMethodTypes",
@@ -84,9 +86,13 @@ public:
 
 signals:
     void publishLoadPreview(QNetworkReply* reply,QString previePicName);
+    void publishUrl(QString);
+    void publishPort(QString);
 
 public slots:
     void setLoadPreviewPic(bool loadpreviewpic);
+    void setUrl(QString urlstring);
+    void setPort(QString portstring);
 
 private slots:
     void replyFinished(QNetworkReply* reply);
@@ -101,6 +107,7 @@ private:
 
     QString previePicName;
     bool _loadpreviewpic;
+    QUrl url;
 };
 
 #endif // REMOTE_H

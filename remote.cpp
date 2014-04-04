@@ -3,7 +3,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QUrl>
+//#include <QUrl>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -17,6 +17,10 @@
 Remote::Remote(QObject *parent) :
     QObject(parent)
 {
+    //QUrl url("http://192.168.122.1/sony/camera");
+    //url.setPort(8080
+    url.setUrl("http://192.168.122.1/sony/camera");
+    url.setPort(8080);
     _loadpreviewpic = true;
     QNetworkConfigurationManager mgr;
     QList<QNetworkConfiguration> activeConfigs = mgr.allConfigurations(QNetworkConfiguration::Active);
@@ -174,8 +178,8 @@ void Remote::getEvent(){
 
 
 QNetworkRequest Remote::construcRequest(QByteArray postDataSize){
-    QUrl url("http://192.168.122.1/sony/camera");
-    url.setPort(8080);
+    //QUrl url("http://192.168.122.1/sony/camera");
+    //url.setPort(8080);
     QNetworkRequest request(url);
     request.setRawHeader("","HTTP/1.1");
     request.setHeader(QNetworkRequest::ContentTypeHeader,"application/xml");
@@ -184,6 +188,23 @@ QNetworkRequest Remote::construcRequest(QByteArray postDataSize){
     //qDebug() << request.rawHeaderList();
     return request;
 }
+
+void Remote::setUrl(QString urlstring){
+    qDebug() << "url: " << urlstring;
+    if(!urlstring.isEmpty()){
+        url.setUrl(urlstring);
+        //emit publishUrl(urlstring);
+    }
+}
+
+void Remote::setPort(QString portstring){
+    if(!portstring.isEmpty()){
+        url.setPort(portstring.toInt());
+    }
+    qDebug() << "port: " << portstring;
+
+}
+
 
 void Remote::replyFinished(QNetworkReply* reply){
     QByteArray bts = reply->readAll();

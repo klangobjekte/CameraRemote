@@ -37,6 +37,10 @@ private slots:
     void on_durationTimeEdit_timeChanged(const QTime &time);
     void on_intervalTimeEdit_timeChanged(const QTime &time);
     void on_chooseFolderPushButton_clicked();
+    void on_urlLineEdit_textChanged(QString url);
+    void on_portLineEdit_textChanged(QString port);
+
+
     void drawPreview(QNetworkReply *reply,QString previePicName);
 
 private:
