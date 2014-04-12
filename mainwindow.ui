@@ -42,7 +42,7 @@
      <rect>
       <x>30</x>
       <y>0</y>
-      <width>111</width>
+      <width>411</width>
       <height>80</height>
      </rect>
     </property>
@@ -78,11 +78,64 @@
       <string>Disconnect</string>
      </property>
     </widget>
+    <widget class="QLabel" name="protLabel">
+     <property name="geometry">
+      <rect>
+       <x>118</x>
+       <y>50</y>
+       <width>31</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Port</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="portLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>50</y>
+       <width>241</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="urlLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>30</y>
+       <width>241</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="urlLabel">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>30</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>URL</string>
+     </property>
+    </widget>
+    <zorder>startRecModePushButton</zorder>
+    <zorder>stopRecModePushButton</zorder>
+    <zorder>loadPreviewPicCheckBox</zorder>
+    <zorder>protLabel</zorder>
+    <zorder>portLineEdit</zorder>
+    <zorder>urlLineEdit</zorder>
+    <zorder>urlLabel</zorder>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>740</x>
       <y>0</y>
       <width>281</width>
       <height>80</height>
@@ -187,7 +240,7 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>350</x>
+      <x>660</x>
       <y>0</y>
       <width>71</width>
       <height>80</height>
@@ -229,7 +282,7 @@
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>240</x>
+      <x>550</x>
       <y>0</y>
       <width>101</width>
       <height>80</height>
@@ -277,7 +330,7 @@
    <widget class="QGroupBox" name="groupBox_5">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>460</x>
       <y>0</y>
       <width>81</width>
       <height>80</height>

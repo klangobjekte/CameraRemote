@@ -9,7 +9,10 @@
 #include <QJsonArray>
 #include <QVariantMap>
 #include <QDebug>
-
+#include <QTcpServer>
+#include <QTimer>
+#include <QFile>
+#include <QMessageBox>
 
 
 
@@ -17,6 +20,9 @@
 Remote::Remote(QObject *parent) :
     QObject(parent)
 {
+    offset = 0;
+    start=0;
+    end=0;
     //QUrl url("http://192.168.122.1/sony/camera");
     //url.setPort(8080
     url.setUrl("http://192.168.122.1/sony/camera");
@@ -25,6 +31,11 @@ Remote::Remote(QObject *parent) :
     QNetworkConfigurationManager mgr;
     QList<QNetworkConfiguration> activeConfigs = mgr.allConfigurations(QNetworkConfiguration::Active);
     QNetworkConfiguration useConfig;
+
+    timer = new QTimer;
+    timer->setInterval(80);
+
+    connect(timer,SIGNAL(timeout()), this,SLOT(refreshLiveView()));
 
     if (activeConfigs.count() > 0){
         Q_ASSERT(mgr.isOnline());
@@ -38,16 +49,20 @@ Remote::Remote(QObject *parent) :
     {
         Q_ASSERT(!mgr.isOnline());
     }
-    picmanager = new QNetworkAccessManager();
-    picmanager->setConfiguration(useConfig);
-    connect(picmanager, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(loadPreview(QNetworkReply*)));
 
     manager = new QNetworkAccessManager;
     manager->setConfiguration(useConfig);
     qDebug() << "currentconnection: "<< manager->configuration().name();
     connect(manager, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(replyFinished(QNetworkReply*)));
+
+    picmanager = new QNetworkAccessManager();
+    picmanager->setConfiguration(useConfig);
+    connect(picmanager, SIGNAL(finished(QNetworkReply*)),
+            this, SLOT(loadPreview(QNetworkReply*)));
+
+    liveViewManager = new QNetworkAccessManager;
+    liveViewManager->setConfiguration(useConfig);
 
     getApplicationInfo();
     getAvailableApiList();
@@ -110,6 +125,11 @@ void Remote::startLiveView(){
     QByteArray postDataSize = QByteArray::number(jSonString.size());
     QNetworkRequest request = construcRequest(postDataSize);
     manager->post(request,jSonString);
+    timer->start();
+    inputStream.clear();
+    offset = 0;
+    start=0;
+    end=0;
 }
 
 void Remote::stopLiveView(){
@@ -117,6 +137,7 @@ void Remote::stopLiveView(){
     QByteArray postDataSize = QByteArray::number(jSonString.size());
     QNetworkRequest request = construcRequest(postDataSize);
     manager->post(request,jSonString);
+    timer->stop();
 }
 
 
@@ -207,9 +228,10 @@ void Remote::setPort(QString portstring){
 
 
 void Remote::replyFinished(QNetworkReply* reply){
+    //socket->connectToHost("http://192.168.122.1",8080);
     QByteArray bts = reply->readAll();
     QString str(bts);
-    qDebug() << reply->url()<< str << reply->errorString();
+    qDebug() << "replyFinished Url:" << reply->url()<< "reply String: "<< str << "reply Error String: "<< reply->errorString();
 
     QJsonDocument jdocument = QJsonDocument::fromJson(str.toUtf8());
     QJsonObject jobject = jdocument.object();
@@ -224,19 +246,106 @@ void Remote::replyFinished(QNetworkReply* reply){
         if(entry.isValid()){
             stringlist = entry.toStringList();
             foreach (QString sentry, stringlist) {
-                qDebug() << "result: " << sentry;
-                if(_loadpreviewpic){
+                qDebug() << "replyFinished result: " << sentry;
+                if(!(sentry.contains("liveview"))&&_loadpreviewpic){
                     buildPreviewPicName(sentry);
                     picmanager->get(QNetworkRequest(QUrl(sentry)));
+                }
+                if(sentry.contains("liveview")){
+                        liveViewRequest = sentry;
+                        //liveViewRequest = "http://192.168.122.1:8080/liveview/liveviewstream.JPG?%211234%21http%2dget%3a%2a%3aimage%2fjpeg%3a%2a%21%21%21%21%21";
+                        streamReply = liveViewManager->get(QNetworkRequest(QUrl(liveViewRequest)));
+                        connect(streamReply, SIGNAL(readyRead()), this, SLOT(slotReadyRead()));
                 }
             }
         }
     }
 }
 
+void Remote::slotReadyRead(){
+    //QByteArray bts = streamReply->readAll();
+    inputStream.append(streamReply->readAll());
+
+#ifdef __STORESTREAM
+        QFile file("test.mjpeg");
+        if (!file.open(QIODevice::WriteOnly)) {
+
+            }
+        else{
+        QDataStream out(&file);
+
+        out.writeRawData(inputStream,inputStream.size());
+        //out << inputStream;
+        file.close();
+        }
+#endif
+}
+
+
+
+void Remote::refreshLiveView(){
+    //qDebug() << "\n++++++++++++++++++++++++++++++++++++++";
+    //qDebug() << "refreshLiveView";
+    //qDebug()<< "offset" << offset << "start: " << start << "end: " << end;
+    QByteArray array;
+    int jpegSize = 34048;
+#ifdef  __USE_SATANDARD_HEADER
+    int commonHeaderLength = 1 + 1 + 2 + 4;
+    int payloadHeaderLength = 4 + 3 + 1 + 4 + 1 + 115;
+    int paddingsize = 0;
+    QByteArray commonHeader;
+    QByteArray payloadHeader;
+
+    for(int i=0;i<commonHeaderLength;i++)
+        commonHeader[i] = inputStream[i];
+
+    for(int i=0;i<payloadHeaderLength;i++)
+        payloadHeader[i] = inputStream[i+commonHeaderLength];
+
+    for(int i=0;i < jpegSize; i++){
+        //array.append(inputStream.at(i));
+        int y = i+commonHeaderLength+payloadHeaderLength;
+        array[i] = inputStream[y];
+    }
+#endif
+
+    bool found = false;
+    while(!found && offset<inputStream.length() ){
+        if(inputStream.at(offset) == -1  && inputStream.at(offset+1) == -40){
+            start = offset;
+            found = true;
+        }
+        offset++;
+    }
+    found = false;
+    while(!found && offset<inputStream.length()){
+        if(inputStream.at(offset) == -1 && inputStream.at(offset+1) == -39){
+            end = offset;
+            found = true;
+        }
+        offset++;
+    }
+
+        jpegSize = end-start;
+        for(int i=0,y=start;i < jpegSize; i++,y++){
+            array[i] = inputStream.at(y);
+        }
+        emit publishLiveViewBytes(array);
+        if(offset > (jpegSize*16)){
+            inputStream.clear();
+            offset = 0;
+            start = 0;
+            end = 0;
+            //qDebug() << "Buffer Cleared";
+        }
+}
+
+
 void Remote::loadPreview(QNetworkReply *reply){
     emit publishLoadPreview(reply,previePicName);
 }
+
+
 
 void Remote::setLoadPreviewPic(bool loadpreviewpic){
     _loadpreviewpic = loadpreviewpic;
@@ -249,5 +358,13 @@ void Remote::buildPreviewPicName(QString url){
     if(tmppicname == "/liveviewstream")
         tmppicname.append(".mjpeg");
     previePicName = tmppicname;
-    qDebug() << "pos: " <<pos << previePicName;
+    qDebug() << "buildPreviewPicName: " <<pos << previePicName;
 }
+
+QString Remote::buildLiveViewStreamRequest(QString url){
+    QString requestString;
+
+    return requestString;
+}
+
+

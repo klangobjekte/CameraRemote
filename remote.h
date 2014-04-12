@@ -9,6 +9,9 @@ class QNetworkReply;
 class QGraphicsView;
 class QGraphicsScene;
 class QLabel;
+class QTcpSocket;
+class QTcpServer;
+class QTimer;
 //class QUrl;
 /*
 "getVersions",
@@ -88,6 +91,8 @@ signals:
     void publishLoadPreview(QNetworkReply* reply,QString previePicName);
     void publishUrl(QString);
     void publishPort(QString);
+    void publishStartLiveView(QNetworkReply* reply,QString previePicName);
+    void publishLiveViewBytes(QByteArray bytes);
 
 public slots:
     void setLoadPreviewPic(bool loadpreviewpic);
@@ -97,17 +102,28 @@ public slots:
 private slots:
     void replyFinished(QNetworkReply* reply);
     void loadPreview(QNetworkReply* reply);
+    void slotReadyRead();
+    void refreshLiveView();
 
 private:
     QNetworkAccessManager *picmanager;
     QNetworkAccessManager *manager;
+    QNetworkAccessManager *liveViewManager;
     QNetworkRequest construcRequest(QByteArray postDataSize);
-
+    QNetworkReply *streamReply;
+    QTimer *timer;
+    QByteArray inputStream;
+    QByteArray imageArray;
     void buildPreviewPicName(QString url);
+    QString buildLiveViewStreamRequest(QString url);
 
+    QString liveViewRequest;
     QString previePicName;
     bool _loadpreviewpic;
     QUrl url;
+    int offset;
+    uint64_t start;
+    uint64_t end;
 };
 
 #endif // REMOTE_H

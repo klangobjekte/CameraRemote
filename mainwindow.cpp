@@ -21,6 +21,10 @@ MainWindow::MainWindow(QWidget *parent) :
     remote = new Remote(this);
     connect(remote, SIGNAL(publishLoadPreview(QNetworkReply*,QString)),
             this, SLOT(drawPreview(QNetworkReply*,QString)));
+
+    connect(remote,SIGNAL(publishLiveViewBytes(QByteArray)),
+            this,SLOT(buildLiveStreamView(QByteArray)));
+
     timelapse = new Timelapse;
     connect(timelapse,SIGNAL(publishTakePicture()),
             this,SLOT(on_takePicturePushButton_clicked()));
@@ -98,6 +102,7 @@ void MainWindow::on_portLineEdit_textChanged(QString port){
 
 
 void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
+    qDebug() << "drawPreview";
     QByteArray bytes = reply->readAll();
     QImage img;
     img.loadFromData(bytes);
@@ -107,7 +112,7 @@ void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
     QPixmap pixmap = QPixmap::fromImage(img);
     scene->addPixmap(pixmap);
     ui->graphicsView->setScene(scene);
-    ui->label->setPixmap(QPixmap::fromImage(img));
+    //ui->label->setPixmap(QPixmap::fromImage(img));
     savePreviewFile(bytes,previePicName);
 
 }
@@ -132,3 +137,31 @@ void MainWindow::savePreviewFile(QByteArray bytes,QString previePicName){
 }
 
 
+
+void MainWindow::buildLiveStreamView(QByteArray bytes){
+    //qDebug() << "buildLiveStreamView";
+#ifdef __STORE__SINGLE_PREVIEW_PICS
+    static int number = 0;
+    QFile file("testpic"+QString::number(number)+".jpeg");
+    if (!file.open(QIODevice::WriteOnly)) {
+        //return ;
+
+    }
+    else{
+        QDataStream out(&file);
+        //out.setVersion(QDataStream::Qt_4_3);
+        out.writeRawData(bytes,bytes.size());
+        //out << bytes;
+        file.close();
+    }
+    number++;
+    qDebug() << "number: " << number;
+#endif
+        QImage img;
+        img.loadFromData(bytes);
+        QSize size = img.size();
+        QSize newSize = size/2;
+        img = img.scaled(newSize);
+        QPixmap pixmap = QPixmap::fromImage(img);
+        ui->label->setPixmap(QPixmap::fromImage(img));
+}
