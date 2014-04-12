@@ -101,7 +101,7 @@ public slots:
 
 private slots:
     void replyFinished(QNetworkReply* reply);
-    void loadPreview(QNetworkReply* reply);
+    void onPicmanagerFinished(QNetworkReply* reply);
     void slotReadyRead();
     void refreshLiveView();
 
@@ -115,7 +115,7 @@ private:
     QByteArray inputStream;
     QByteArray imageArray;
     void buildPreviewPicName(QString url);
-    QString buildLiveViewStreamRequest(QString url);
+
 
     QString liveViewRequest;
     QString previePicName;

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1027</width>
+    <width>1329</width>
     <height>559</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <rect>
       <x>26</x>
       <y>90</y>
-      <width>481</width>
+      <width>611</width>
       <height>381</height>
      </rect>
     </property>
@@ -27,9 +27,9 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>94</y>
-      <width>451</width>
+      <x>650</x>
+      <y>90</y>
+      <width>631</width>
       <height>371</height>
      </rect>
     </property>
@@ -50,7 +50,7 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Connect to the camera WiFi.&lt;/p&gt;&lt;p&gt;Only the default connection of the computer can be used.&lt;/p&gt;&lt;p&gt;The camera must be in Remote Mode and act as an Hot Spot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="title">
-     <string>Camera WiFi</string>
+     <string>Connection</string>
     </property>
     <widget class="QPushButton" name="startRecModePushButton">
      <property name="geometry">
@@ -124,13 +124,6 @@
       <string>URL</string>
      </property>
     </widget>
-    <zorder>startRecModePushButton</zorder>
-    <zorder>stopRecModePushButton</zorder>
-    <zorder>loadPreviewPicCheckBox</zorder>
-    <zorder>protLabel</zorder>
-    <zorder>portLineEdit</zorder>
-    <zorder>urlLineEdit</zorder>
-    <zorder>urlLabel</zorder>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
@@ -359,7 +352,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1027</width>
+     <width>1329</width>
      <height>22</height>
     </rect>
    </property>

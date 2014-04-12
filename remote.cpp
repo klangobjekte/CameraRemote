@@ -59,7 +59,7 @@ Remote::Remote(QObject *parent) :
     picmanager = new QNetworkAccessManager();
     picmanager->setConfiguration(useConfig);
     connect(picmanager, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(loadPreview(QNetworkReply*)));
+            this, SLOT(onPicmanagerFinished(QNetworkReply*)));
 
     liveViewManager = new QNetworkAccessManager;
     liveViewManager->setConfiguration(useConfig);
@@ -228,7 +228,7 @@ void Remote::setPort(QString portstring){
 
 
 void Remote::replyFinished(QNetworkReply* reply){
-    //socket->connectToHost("http://192.168.122.1",8080);
+
     QByteArray bts = reply->readAll();
     QString str(bts);
     qDebug() << "replyFinished Url:" << reply->url()<< "reply String: "<< str << "reply Error String: "<< reply->errorString();
@@ -310,38 +310,42 @@ void Remote::refreshLiveView(){
 #endif
 
     bool found = false;
-    while(!found && offset<inputStream.length() ){
-        if(inputStream.at(offset) == -1  && inputStream.at(offset+1) == -40){
-            start = offset;
-            found = true;
+    if(!inputStream.isEmpty()){
+        while(!found && offset<inputStream.length()-1 ){
+            if(inputStream.at(offset) == -1  && inputStream.at(offset+1) == -40){
+                start = offset;
+                found = true;
+            }
+            offset++;
         }
-        offset++;
+        found = false;
+        while(!found && offset<inputStream.length()-1){
+            if(inputStream.at(offset) == -1 && inputStream.at(offset+1) == -39){
+                end = offset;
+                found = true;
+            }
+            offset++;
+        }
+        if(found){
+            jpegSize = end-start;
+            for(int i=0,y=start;i < jpegSize; i++,y++){
+                array[i] = inputStream.at(y);
+            }
+            emit publishLiveViewBytes(array);
+            if(offset > (jpegSize*16)){
+                inputStream.clear();
+                offset = 0;
+                start = 0;
+                end = 0;
+                //qDebug() << "Buffer Cleared";
+            }
+        }
     }
-    found = false;
-    while(!found && offset<inputStream.length()){
-        if(inputStream.at(offset) == -1 && inputStream.at(offset+1) == -39){
-            end = offset;
-            found = true;
-        }
-        offset++;
-    }
-
-        jpegSize = end-start;
-        for(int i=0,y=start;i < jpegSize; i++,y++){
-            array[i] = inputStream.at(y);
-        }
-        emit publishLiveViewBytes(array);
-        if(offset > (jpegSize*16)){
-            inputStream.clear();
-            offset = 0;
-            start = 0;
-            end = 0;
-            //qDebug() << "Buffer Cleared";
-        }
 }
 
 
-void Remote::loadPreview(QNetworkReply *reply){
+void Remote::onPicmanagerFinished(QNetworkReply *reply){
+    if(reply->bytesAvailable())
     emit publishLoadPreview(reply,previePicName);
 }
 
@@ -361,10 +365,5 @@ void Remote::buildPreviewPicName(QString url){
     qDebug() << "buildPreviewPicName: " <<pos << previePicName;
 }
 
-QString Remote::buildLiveViewStreamRequest(QString url){
-    QString requestString;
-
-    return requestString;
-}
 
 

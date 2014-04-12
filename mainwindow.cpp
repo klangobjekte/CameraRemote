@@ -160,7 +160,7 @@ void MainWindow::buildLiveStreamView(QByteArray bytes){
         QImage img;
         img.loadFromData(bytes);
         QSize size = img.size();
-        QSize newSize = size/2;
+        QSize newSize = size;
         img = img.scaled(newSize);
         QPixmap pixmap = QPixmap::fromImage(img);
         ui->label->setPixmap(QPixmap::fromImage(img));
