@@ -17,11 +17,13 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     remote.cpp \
     ssdpclient.cpp \
-    timelapse.cpp
+    timelapse.cpp \
+    networkconnection.cpp
 
 HEADERS  += mainwindow.h \
     remote.h \
     ssdpclient.h \
-    timelapse.h
+    timelapse.h \
+    networkconnection.h
 
 FORMS    += mainwindow.ui

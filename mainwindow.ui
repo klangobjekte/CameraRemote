@@ -6,58 +6,45 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1329</width>
-    <height>559</height>
+    <width>653</width>
+    <height>885</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QGraphicsView" name="graphicsView">
+   <widget class="QGraphicsView" name="previewGraphicsView">
     <property name="geometry">
      <rect>
-      <x>26</x>
-      <y>90</y>
-      <width>611</width>
-      <height>381</height>
+      <x>10</x>
+      <y>470</y>
+      <width>501</width>
+      <height>331</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>650</x>
-      <y>90</y>
-      <width>631</width>
-      <height>371</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
     </property>
    </widget>
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>0</y>
-      <width>411</width>
-      <height>80</height>
+      <x>10</x>
+      <y>3</y>
+      <width>501</width>
+      <height>61</height>
      </rect>
     </property>
     <property name="toolTip">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Connect to the camera WiFi.&lt;/p&gt;&lt;p&gt;Only the default connection of the computer can be used.&lt;/p&gt;&lt;p&gt;The camera must be in Remote Mode and act as an Hot Spot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="title">
-     <string>Connection</string>
+     <string/>
     </property>
     <widget class="QPushButton" name="startRecModePushButton">
      <property name="geometry">
       <rect>
-       <x>-1</x>
-       <y>20</y>
-       <width>114</width>
+       <x>410</x>
+       <y>4</y>
+       <width>91</width>
        <height>32</height>
       </rect>
      </property>
@@ -68,9 +55,9 @@
     <widget class="QPushButton" name="stopRecModePushButton">
      <property name="geometry">
       <rect>
-       <x>-1</x>
-       <y>50</y>
-       <width>114</width>
+       <x>410</x>
+       <y>28</y>
+       <width>91</width>
        <height>32</height>
       </rect>
      </property>
@@ -81,21 +68,21 @@
     <widget class="QLabel" name="protLabel">
      <property name="geometry">
       <rect>
-       <x>118</x>
-       <y>50</y>
+       <x>138</x>
+       <y>35</y>
        <width>31</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Port</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
     <widget class="QLineEdit" name="portLineEdit">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>50</y>
+       <x>170</x>
+       <y>33</y>
        <width>241</width>
        <height>21</height>
       </rect>
@@ -104,8 +91,8 @@
     <widget class="QLineEdit" name="urlLineEdit">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>30</y>
+       <x>170</x>
+       <y>7</y>
        <width>241</width>
        <height>21</height>
       </rect>
@@ -114,24 +101,34 @@
     <widget class="QLabel" name="urlLabel">
      <property name="geometry">
       <rect>
-       <x>120</x>
-       <y>30</y>
+       <x>140</x>
+       <y>9</y>
        <width>21</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>URL</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;URL&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="configurationComboBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>29</y>
+       <width>111</width>
+       <height>26</height>
+      </rect>
      </property>
     </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>740</x>
-      <y>0</y>
-      <width>281</width>
-      <height>80</height>
+      <x>520</x>
+      <y>130</y>
+      <width>121</width>
+      <height>211</height>
      </rect>
     </property>
     <property name="title">
@@ -142,7 +139,7 @@
       <rect>
        <x>0</x>
        <y>20</y>
-       <width>71</width>
+       <width>91</width>
        <height>32</height>
       </rect>
      </property>
@@ -155,7 +152,7 @@
       <rect>
        <x>0</x>
        <y>50</y>
-       <width>71</width>
+       <width>91</width>
        <height>32</height>
       </rect>
      </property>
@@ -166,22 +163,22 @@
     <widget class="QLabel" name="label_2">
      <property name="geometry">
       <rect>
-       <x>80</x>
-       <y>28</y>
+       <x>8</x>
+       <y>109</y>
        <width>62</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Interval:</string>
+      <string>Interval</string>
      </property>
     </widget>
     <widget class="QTimeEdit" name="intervalTimeEdit">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>24</y>
-       <width>71</width>
+       <x>7</x>
+       <y>80</y>
+       <width>91</width>
        <height>24</height>
       </rect>
      </property>
@@ -199,9 +196,9 @@
     <widget class="QTimeEdit" name="durationTimeEdit">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>50</y>
-       <width>118</width>
+       <x>8</x>
+       <y>140</y>
+       <width>91</width>
        <height>24</height>
       </rect>
      </property>
@@ -219,24 +216,24 @@
     <widget class="QLabel" name="label_3">
      <property name="geometry">
       <rect>
-       <x>78</x>
-       <y>55</y>
+       <x>9</x>
+       <y>170</y>
        <width>62</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Duration: </string>
+      <string>Duration</string>
      </property>
     </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>660</x>
-      <y>0</y>
-      <width>71</width>
-      <height>80</height>
+      <x>520</x>
+      <y>357</y>
+      <width>121</width>
+      <height>102</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -249,8 +246,8 @@
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>20</y>
-       <width>71</width>
+       <y>25</y>
+       <width>101</width>
        <height>32</height>
       </rect>
      </property>
@@ -262,8 +259,8 @@
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>50</y>
-       <width>71</width>
+       <y>60</y>
+       <width>101</width>
        <height>32</height>
       </rect>
      </property>
@@ -275,10 +272,10 @@
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>0</y>
-      <width>101</width>
-      <height>80</height>
+      <x>520</x>
+      <y>470</y>
+      <width>121</width>
+      <height>81</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -323,21 +320,21 @@
    <widget class="QGroupBox" name="groupBox_5">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>0</y>
-      <width>81</width>
-      <height>80</height>
+      <x>520</x>
+      <y>4</y>
+      <width>121</width>
+      <height>61</height>
      </rect>
     </property>
     <property name="title">
-     <string>Take Picture</string>
+     <string/>
     </property>
     <widget class="QPushButton" name="takePicturePushButton">
      <property name="geometry">
       <rect>
-       <x>4</x>
-       <y>25</y>
-       <width>71</width>
+       <x>10</x>
+       <y>6</y>
+       <width>101</width>
        <height>51</height>
       </rect>
      </property>
@@ -346,13 +343,158 @@
      </property>
     </widget>
    </widget>
+   <widget class="QGroupBox" name="groupBox_6">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>631</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QComboBox" name="isoSpeedRateComboBox">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>5</y>
+       <width>71</width>
+       <height>26</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="shutterSpeedComboBox">
+     <property name="geometry">
+      <rect>
+       <x>337</x>
+       <y>5</y>
+       <width>71</width>
+       <height>26</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>16</x>
+       <y>31</y>
+       <width>131</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::WheelFocus</enum>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;White Balance&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>256</x>
+       <y>31</y>
+       <width>62</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Aperture&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>343</x>
+       <y>31</y>
+       <width>62</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Shutter&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_7">
+     <property name="geometry">
+      <rect>
+       <x>174</x>
+       <y>31</y>
+       <width>62</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Iso&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="fNumberComboBox">
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>5</y>
+       <width>71</width>
+       <height>26</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="whiteBalanceComboBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>5</y>
+       <width>141</width>
+       <height>26</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGraphicsView" name="LiveviewGraphicsView">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>130</y>
+      <width>501</width>
+      <height>331</height>
+     </rect>
+    </property>
+   </widget>
+   <zorder>previewGraphicsView</zorder>
+   <zorder>groupBox</zorder>
+   <zorder>groupBox_2</zorder>
+   <zorder>groupBox_3</zorder>
+   <zorder>groupBox_4</zorder>
+   <zorder>groupBox_5</zorder>
+   <zorder>groupBox_6</zorder>
+   <zorder>LiveviewGraphicsView</zorder>
+   <zorder>loadPreviewPicCheckBox</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1329</width>
+     <width>653</width>
      <height>22</height>
     </rect>
    </property>

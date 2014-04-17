@@ -9,6 +9,7 @@ class Timelapse : public QObject
         Q_OBJECT
 public:
     explicit Timelapse(QObject *parent = 0);
+    ~Timelapse();
     void setInterval(const QTime &time);
     void setDuration(const QTime &time);
     void start();

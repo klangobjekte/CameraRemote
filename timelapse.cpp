@@ -12,6 +12,12 @@ Timelapse::Timelapse(QObject *parent) :
     connect(timer,SIGNAL(timeout()), this,SLOT(timeOut()));
 }
 
+Timelapse::~Timelapse(){
+    stop();
+    delete timer;
+    delete time;
+}
+
 void Timelapse::setInterval(const QTime &time){
     int interval = time.second()*1000+time.msec();
     qDebug() << "Timelapse setInterval: " << time.second()  << time.msec() << interval;

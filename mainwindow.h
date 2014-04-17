@@ -1,7 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include <QMainWindow>
+#include <QUrl>
 
+class NetworkConnection;
 class Timelapse;
 class Remote;
 class QNetworkAccessManager;
@@ -9,6 +11,7 @@ class QNetworkReply;
 class QGraphicsView;
 class QGraphicsScene;
 class QLabel;
+//class QUrl;
 
 namespace Ui {
 class MainWindow;
@@ -27,6 +30,8 @@ public slots:
 
 
 private slots:
+    void closeEvent(QCloseEvent *event);
+    void on_configurationComboBox_currentIndexChanged(QString text);
     void on_startRecModePushButton_clicked();
     void on_stopRecModePushButton_clicked();
     void on_takePicturePushButton_clicked();
@@ -39,16 +44,29 @@ private slots:
     void on_chooseFolderPushButton_clicked();
     void on_urlLineEdit_textChanged(QString url);
     void on_portLineEdit_textChanged(QString port);
+    void on_isoSpeedRateComboBox_currentTextChanged(QString text);
+    void on_shutterSpeedComboBox_currentTextChanged(QString text);
+    void on_fNumberComboBox_currentTextChanged(QString text);
+    void on_whiteBalanceComboBox_currentTextChanged(QString text);
+
+    void addIsoSpeedRateComboBoxItems(QStringList items);
+    void addfNumberComboBoxItems(QStringList items);
+    void addwhiteBalanceComboBoxItems(QStringList items);
+    void addshutterSpeedComboBox_2Items(QStringList items);
+
+
     void drawPreview(QNetworkReply *reply,QString previePicName);
-    void buildLiveStreamView(QByteArray data);
+    void drawLiveView(QByteArray data);
 
 private:
     Ui::MainWindow *ui;
+    NetworkConnection *networkConnection;
     Remote *remote;
     Timelapse *timelapse;
-    QLabel *label;
-    QGraphicsScene *scene;
-    QGraphicsView * view;
+    //QLabel *label;
+    QGraphicsScene *previewScene;
+    QGraphicsScene *liveviewScene;
+    //QGraphicsView * view;
     QString previewPath;
 
     void savePreviewFile(QByteArray bytes,QString previePicName);
