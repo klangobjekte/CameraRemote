@@ -7,6 +7,7 @@
 #include <QNetworkReply>
 //#include <QUrl>
 #include <QDebug>
+#include <QSettings>
 #include "networkconnection.h"
 #include "remote.h"
 #include "timelapse.h"
@@ -19,8 +20,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+
     //! [Create Object Connection to WiFi]
     networkConnection = new NetworkConnection;
+
+
     connect(networkConnection,SIGNAL(publishUrl(QString)),
             ui->urlLineEdit,SLOT(setText(QString)));
     connect(networkConnection,SIGNAL(publishPort(QString)),
@@ -28,7 +32,9 @@ MainWindow::MainWindow(QWidget *parent) :
     networkConnection->setUrl("http://192.168.122.1");
     QString port;
     networkConnection->setPort(port.setNum(8080));
-    ui->configurationComboBox->insertItems(0,networkConnection->getAvailableNetWorks());
+
+
+
 
     //! [Create Object QGraphicsScene for Preview]
     previewScene = new QGraphicsScene;
@@ -77,6 +83,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->loadPreviewPicCheckBox,SIGNAL(clicked(bool)),
             remote,SLOT(setLoadPreviewPic(bool)));
 
+    readSettings();
+    QStringList availableNetworks = networkConnection->getAvailableNetWorks();
+    qDebug() << "availableNetworks: " << availableNetworks;
+    ui->configurationComboBox->addItems(availableNetworks);
+
 
 }
 
@@ -92,6 +103,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    writeSettings();
     qDebug() << "Leave Application";
     remote->stopLiveview();
     remote->stopRecMode();
@@ -105,13 +117,13 @@ void MainWindow::on_configurationComboBox_currentIndexChanged(QString text){
 
 void MainWindow::on_startRecModePushButton_clicked(){
     remote->startRecMode();
-    remote->startLiveview();
+    //remote->startLiveview();
+    //remote->getEvent("false");
+    //remote->getAvailableApiList();
 }
 
 void MainWindow::on_stopRecModePushButton_clicked(){
     remote->stopRecMode();
-    remote->stopLiveview();
-    //ui->label->clear();
     liveviewScene->clear();
 }
 
@@ -121,11 +133,13 @@ void MainWindow::on_takePicturePushButton_clicked(){
 }
 
 void MainWindow::on_startLiveViewPushButton_clicked(){
+    remote->getAvailableLiveviewSize(remote->getMethods().value("getAvailableLiveviewSize"));
     remote->startLiveview();
 }
 
 void MainWindow::on_stopLiveViewPushButton_clicked(){
     remote->stopLiveview();
+    liveviewScene->clear();
 }
 
 void MainWindow::on_startTimerPushButton_clicked(){
@@ -160,9 +174,7 @@ void MainWindow::on_portLineEdit_textChanged(QString port){
 }
 
 
-void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
-    ui->isoSpeedRateComboBox->addItems(items);
-}
+
 
 void MainWindow::on_isoSpeedRateComboBox_currentTextChanged(QString text){
     static bool init_on_isoSpeedRateComboBox_currentTextChanged = true;
@@ -209,15 +221,23 @@ void MainWindow::on_whiteBalanceComboBox_currentTextChanged(QString text){
     init_on_whiteBalanceComboBox_currentTextChanged = false;
 }
 
+void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
+    ui->isoSpeedRateComboBox->clear();
+    ui->isoSpeedRateComboBox->addItems(items);
+}
+
 void MainWindow::addfNumberComboBoxItems(QStringList items){
+    ui->fNumberComboBox->clear();
     ui->fNumberComboBox->addItems(items);
 }
 
 void MainWindow::addshutterSpeedComboBox_2Items(QStringList items){
+    ui->shutterSpeedComboBox->clear();
     ui->shutterSpeedComboBox->addItems(items);
 }
 
 void MainWindow::addwhiteBalanceComboBoxItems(QStringList items){
+    ui->whiteBalanceComboBox->clear();
     ui->whiteBalanceComboBox->addItems(items);
 }
 
@@ -230,6 +250,7 @@ void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
     QSize newSize = size/5;
     img = img.scaled(newSize);
     QPixmap pixmap = QPixmap::fromImage(img);
+    previewScene->clear();
     previewScene->addPixmap(pixmap);
     ui->previewGraphicsView->setScene(previewScene);
     //ui->label->setPixmap(QPixmap::fromImage(img));
@@ -278,10 +299,73 @@ void MainWindow::drawLiveView(QByteArray bytes){
         QImage img;
         img.loadFromData(bytes);
         QSize size = img.size();
-        QSize newSize = size/2;
+        QSize newSize = size/1.30;
+        //QSize newSize = size;
         img = img.scaled(newSize);
         QPixmap pixmap = QPixmap::fromImage(img);
+        liveviewScene->clear();
         liveviewScene->addPixmap(pixmap);
         //ui->label->setPixmap(QPixmap::fromImage(img));
         ui->LiveviewGraphicsView->setScene(liveviewScene);
 }
+
+
+
+//!  +++++++++++++++++++++++++ [ SETTINGS ] +++++++++++++++++++++++++++
+
+void MainWindow::readSettings()
+{
+
+    //QSettings settings;
+    QSettings settings("KlangObjekte.", "CameraRemote");
+    networkConnection->setUrl(settings.value("url",QString("192.168.122.1")).toString());
+    networkConnection->setPort(settings.value("port",8080).toString());
+
+    QColor wColor = settings.value("waveformColor",QColor(200, 200, 200)).value< QColor >();
+    QColor bColor = settings.value("backgroundColor",QColor(85, 85, 127)).value< QColor >();
+    QPoint pos = settings.value("pos", QPoint(200,200)).toPoint();
+    QSize size = settings.value("size", QSize(300, 200)).toSize();
+    //! gibt geometry einProblem mit den Toolbars??
+    //restoreGeometry(settings.value("geometry").toByteArray());
+    //other->move(x() +40,y() +40);
+    restoreState(settings.value("state").toByteArray());
+    /*
+    if(pos.x() == 200){
+        pos.setX(pos.x()+binPositionOffset);
+        pos.setY(pos.y()+binPositionOffset);
+        binPositionOffset += 40;
+        move(pos);
+    }
+    else{
+        move(pos);
+    }
+    */
+    //move(x() +40,y() +40);
+    resize(size);
+
+
+
+}
+
+void MainWindow::writeSettings()
+{
+
+    //qDebug() << "write Settings: " << windowName;
+
+    QSettings settings("KlangObjekte.", "CameraRemote");
+    //QSettings settings;
+    //! [] Main
+    settings.setValue("url",networkConnection->getUrl().path());
+    settings.setValue("port",networkConnection->getUrl().port());
+    settings.setValue("pos", pos());
+    settings.setValue("size", size());
+    //! gibt geometry einProblem mit den Toolbars??
+    //settings.setValue("geometry", saveGeometry());
+    //! die Breite und Position der DockWindows!!
+    //! wenn sie nicht gefloated sind!!
+    settings.setValue("state", saveState());
+
+
+}
+
+

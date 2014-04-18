@@ -95,12 +95,12 @@ public:
     void getVersions(int id = 5);
     void getMethodTypes(int id = 6);
     void getApplicationInfo(int id = 7);
-    void getAvailableApiList(int id = 8);
-    void getEvent(QByteArray param, int id = 9);
+
+
 
     void actTakePicture(int id = 10);
 
-    void startRecMode(int id = 11);
+
     void stopRecMode(int id = 12);
 
     void startLiveview(int id = 13);
@@ -184,7 +184,10 @@ signals:
     void publishCurrentWhiteBalanceModes(QString result);
 
 public slots:
+    void getAvailableApiList(int id = 8);
+    void getEvent(QByteArray param = QByteArray("false"), int id = 9);
     void setLoadPreviewPic(bool loadpreviewpic);
+    void startRecMode(int id = 11);
 
 
 
@@ -197,6 +200,7 @@ private slots:
 private:
     void buildPreviewPicName(QString url);
 
+    NetworkConnection *_networkConnection;
     QNetworkAccessManager *picmanager;
     QNetworkAccessManager *manager;
     QNetworkAccessManager *liveViewManager;
@@ -204,6 +208,8 @@ private:
     QNetworkRequest constructAccessControlRequest(QByteArray postDataSize);
     QNetworkReply *streamReply;
     QTimer *timer;
+    QTimer *getEventTimer;
+    QTimer *startRecordModeTimer;
     QByteArray inputStream;
     QByteArray imageArray;
 

@@ -23,6 +23,7 @@
 Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     QObject(parent)
 {
+    _networkConnection = networkConnection;
     offset = 0;
     start=0;
     end=0;
@@ -33,6 +34,21 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     timer = new QTimer;
     timer->setInterval(80);
     connect(timer,SIGNAL(timeout()), this,SLOT(buildLiveViewPic()));
+
+    getEventTimer = new QTimer;
+    getEventTimer->setInterval(7000);
+    getEventTimer->setSingleShot(true);
+    connect(getEventTimer,SIGNAL(timeout()),
+            this,SLOT(getEvent()));
+    //connect(getEventTimer,SIGNAL(timeout()),
+    //        this,SLOT(getAvailableApiList()));
+
+    startRecordModeTimer = new QTimer;
+    startRecordModeTimer->setInterval(2000);
+    startRecordModeTimer->setSingleShot(true);
+    connect(startRecordModeTimer,SIGNAL(timeout()),
+            this,SLOT(startRecMode()));
+
 
     manager = new QNetworkAccessManager;
     manager->setConfiguration(networkConnection->getActiveConfiguration());
@@ -46,7 +62,7 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
 
     liveViewManager = new QNetworkAccessManager;
     liveViewManager->setConfiguration(networkConnection->getActiveConfiguration());
-    startRecMode();
+
 
     //! init the static methoods - map
     methods["actEnableMethods"] = 1;
@@ -64,7 +80,7 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     methods["startMovieRec"] = 16;
     methods["stopMovieRec"] = 17;
 
-
+    initActEnabelMethods();
 }
 
 Remote::~Remote(){
@@ -81,19 +97,7 @@ QMap<QString,int> Remote::getMethods(){
 }
 
 void Remote::initialCommands(){
-    //getMethodTypes();
-    //getApplicationInfo();
-    getAvailableApiList();
-    getEvent("true");
-    //startRecMode();
-    //startLiveView();
-    //getAvailableWhiteBalance(methods.value("getAvailableWhiteBalance"));
-    //getAvailableIsoSpeedRate(methods.value("getAvailableIsoSpeedRate"));
-    //getAvailablePostviewImageSize();
-    //getSupportedShootMode();
-    //getShootMode();
-    //getAvailableShootMode();
-    //getFNumber();
+
 }
 
 
@@ -167,21 +171,138 @@ QNetworkRequest Remote::construcCameraRequest(QByteArray postDataSize){
 void Remote::onManagerFinished(QNetworkReply* reply){
     QByteArray bts = reply->readAll();
     QString str(bts);
-    qDebug() << "onManagerFinished:" << reply->url()<< "response: "<< str << "Error: "<< reply->errorString();
     static bool once = true;
+    static bool cameraReady = false;
+    static bool connected = false;
+    static int buildid = 20;
     QJsonDocument jdocument = QJsonDocument::fromJson(str.toUtf8());
     QJsonObject jobject = jdocument.object();
     QJsonValue jResult = jobject.value(QString("result"));
     QJsonValue jid = jobject.value(QString("id"));
-    //qDebug()<< "document.isEmpty(): "<< endl << jdocument.isEmpty() << "jobject.isEmpty(): " << jobject.isEmpty();
-    //qDebug()<<"QJsonValue of "result": " << jResult << "type: " << jResult.type();
-    //qDebug()<< "QJsonValue of id: " << jid << "type: " << jid.type();
-    QJsonArray resultJarray = jResult.toArray();
+    QJsonValue jError = jobject.value(QString("Error"));
     double id = jid.toDouble();
+    qDebug() << "\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                "\nonManagerFinished response: "<< methods.key(id) << " "<< str << "Error: "<< reply->errorString();
+    if(jobject.value(QString("Error")) == QString("Network unreachable")){
+        initActEnabelMethods();
+    }
+
+    //qDebug()<<"\nQJsonValue of jResult: "<< jResult << jResult.type();
+    //qDebug()<< "\nQJsonValue of jid: " << jid << jid.type();
+    //qDebug()<< "\nQJsonValue of qstring: " << qstring;
+
+    QJsonArray resultJarray = jResult.toArray();
+    qDebug() << "\nQJsonArray resultJarray: " << resultJarray<< "size: " << resultJarray.size() << "\n";
+
     QVariantList results = resultJarray.toVariantList();
-    //qDebug() << "QJsonArray results: " << results;
+    //qDebug() << "\nQVariantList results: " << results;
     //qDebug() << "QJsonArray id: " << id;
     QStringList sresults;
+
+
+    if(methods.value("getAvailableWhiteBalance") == id){
+        for(int i = 0; i< jResult.toArray().size();i++){
+            if(jResult.toArray().at(i).isArray()){
+                QJsonArray array = jResult.toArray().at(i).toArray();
+                qDebug() << "HAHA: "<<  jResult.toArray().at(i) << "size: " << array.size();
+                QStringList wbCandidates;
+                QStringList tmpCandidates;
+                for(int y = 0; y<array.size();y++){
+                    QJsonObject jobject3 = array[y].toObject();
+                    //qDebug() << jobject3;
+                    wbCandidates.append(jobject3.value("whiteBalanceMode").toString());
+                }
+                emit publishAvailableWhiteBalanceModes(wbCandidates);
+            }
+        }
+    }
+
+    for(int i =0;i<resultJarray.size();i++){
+        QJsonObject jobject2 = resultJarray[i].toObject();
+        //qDebug() << "jobject2" << jobject2.toVariantMap() << "i: " << i ;
+        //qDebug() << "jobject2.keys()" << jobject2.keys();
+        if(jobject2.keys().contains(QString("cameraStatus"))){
+            if(jobject2.value(QString("cameraStatus")) == QString("NotReady")){
+                qDebug() << "Camera NotReady";
+                //getEvent("false");
+                cameraReady = false;
+            }
+        }
+        if(jobject2.keys().contains(QString("fNumberCandidates"))){
+             QVariantList vlist = jobject2.value("fNumberCandidates").toArray().toVariantList();
+             QStringList slist;
+             foreach (QVariant var, vlist) {
+                 slist.append(var.toString());
+             }
+             qDebug() << "fNumberCandidates: " << slist;
+             emit publishAvailableFNumber(slist);
+        }
+        if(jobject2.keys().contains(QString("currentFNumber"))){
+             qDebug() << "currentFNumber: " << jobject2.value("currentFNumber").toString();
+             emit publishCurrentFNumber(jobject2.value("currentFNumber").toString());
+        }
+        if(jobject2.keys().contains(QString("shutterSpeedCandidates"))){
+
+             QVariantList vlist = jobject2.value("shutterSpeedCandidates").toArray().toVariantList();
+             QStringList slist;
+             foreach (QVariant var, vlist) {
+                 slist.append(var.toString());
+             }
+             qDebug() << "shutterSpeedCandidates: " << slist;
+             emit publishAvailableShutterSpeed(slist);
+        }
+        if(jobject2.keys().contains(QString("currentShutterSpeed"))){
+             qDebug() << "currentShutterSpeed: " << jobject2.value("currentShutterSpeed").toString();
+             emit publishCurrentShutterSpeed(jobject2.value("currentShutterSpeed").toString());
+        }
+
+        if(jobject2.keys().contains(QString("isoSpeedRateCandidates"))){
+             QVariantList vlist = jobject2.value("isoSpeedRateCandidates").toArray().toVariantList();
+             QStringList slist;
+             foreach (QVariant var, vlist) {
+                 slist.append(var.toString());
+             }
+             qDebug() << "isoSpeedRateCandidates: " << slist;
+             emit publishAvailableIsoSpeedRates(slist);
+        }
+        if(jobject2.keys().contains(QString("currentIsoSpeedRate"))){
+             qDebug() << "currentIsoSpeedRate: " << jobject2.value("currentIsoSpeedRate").toString();
+             emit publishCurrentIsoSpeedRates(jobject2.value("currentIsoSpeedRate").toString());
+        }
+
+
+
+        if(jobject2.keys().contains(QString("names"))){
+             QVariantList vlist = jobject2.value("names").toArray().toVariantList();
+             foreach (QVariant var, vlist) {
+                 if(!methods.keys().contains(var.toString())){
+                     methods[var.toString()] = buildid;
+                     buildid++;
+                 }
+                 qDebug() << "names: " << var.toString() << "id: "<<  methods.value(var.toString());
+             }
+        }
+
+        if(jobject2.keys().contains(QString("currentWhiteBalanceMode"))){
+            getAvailableWhiteBalance(methods.value("getAvailableWhiteBalance"));
+            qDebug() << "currentWhiteBalanceMode: " << jobject2.value("currentWhiteBalanceMode").toString();
+            emit publishCurrentWhiteBalanceModes(jobject2.value("currentWhiteBalanceMode").toString());
+        }
+
+        if(jobject2.keys().contains(QString("whiteBalanceMode"))){
+            for (QJsonObject::iterator it = jobject2.begin(); it != jobject2.end(); ++it){
+                qDebug() << "whiteBalanceMode: " << it.value();
+            }
+            emit publishCurrentWhiteBalanceModes(jobject2.value("whiteBalanceMode").toString());
+        }
+    }
+
+
+
+
+
+
+
     foreach (QVariant result, results) {
         //qDebug() << "Variant: result: "  << result;
         if(result.isValid()){
@@ -189,12 +310,17 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             switch(result.type()){
             case QVariant::Double:
                 //! Recognize startRecMode
-                if(methods.value("startRecMode") == id)
-                    startLiveview();
+                if(methods.value("startRecMode") == id){
+                    //getAvailableApiList();
+                    //initActEnabelMethods();
+                    //startLiveview();
+                    qDebug() <<" ++++++++++ startRecMode finished";
+                    getEventTimer->start();
+                    connected = true;
+                }
                 break;
             case QVariant::List:
                 sresults = result.toStringList();
-                static int buildid = 20;
                 if(methods.value("actTakePicture") == id &&_loadpreviewpic){
                     foreach (QString sresult, sresults) {
                         buildPreviewPicName(sresult);
@@ -210,51 +336,21 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                         }
                         qDebug() << "result: " << sresult << "id: "<<  methods.value(sresult);
                     }
-                    getAvailableWhiteBalance(methods.value("getAvailableWhiteBalance"));
-                    getAvailableIsoSpeedRate(methods.value("getAvailableIsoSpeedRate"));
-                    getAvailableFNumber(methods.value("getAvailableFNumber"));
-                    getAvailableShutterSpeed(methods.value("getAvailableShutterSpeed"));
-                }
-                if(methods.value("getAvailableFNumber")==id){
-                    emit publishAvailableFNumber(result.toStringList());
-                    //qDebug() << this->parent()->children();
-                }
-                if(methods.value("getAvailableIsoSpeedRate")==id){
-
-                    emit publishAvailableIsoSpeedRates(result.toStringList());
-                }
-                if(methods.value("getAvailableShutterSpeed")==id){
-                    emit publishAvailableShutterSpeed(result.toStringList());
                 }
 
-                if(methods.value("getAvailableWhiteBalance")==id){
-                    emit publishAvailableWhiteBalanceModes(result.toStringList());
-                }
 
 
                 break;
             case QVariant::String:
                 if(methods.value("startLiveview")  == id){
+
                         liveViewRequest = result.toString();
                         //liveViewRequest = "http://192.168.122.1:8080/liveview/liveviewstream.JPG?%211234%21http%2dget%3a%2a%3aimage%2fjpeg%3a%2a%21%21%21%21%21";
                         streamReply = liveViewManager->get(QNetworkRequest(QUrl(liveViewRequest)));
                         connect(streamReply, SIGNAL(readyRead()), this, SLOT(onLiveViewManagerReadyRead()));
-                        initActEnabelMethods();
-                }
-                if(methods.value("getAvailableFNumber")==id){
-                    emit publishCurrentFNumber(result.toString());
-                }
+                        //getAvailableApiList();
+                        //getEventTimer->start();
 
-                if(methods.value("getAvailableIsoSpeedRate")==id){
-                    emit publishCurrentIsoSpeedRates(result.toString());
-                }
-
-                if(methods.value("getAvailableShutterSpeed")==id){
-                    emit publishCurrentShutterSpeed(result.toString());
-                }
-
-                if(methods.value("getAvailableWhiteBalance")==id){
-                    emit publishCurrentWhiteBalanceModes(result.toString());
                 }
 
 
@@ -268,11 +364,11 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                     QByteArray encoded = QCryptographicHash::hash(KEYDG, QCryptographicHash::Sha256);
                     if(id==1){
                         actEnabelMethods(encoded.toBase64());
-                        once = false;
+                        //once = false;
                     }
-                    //if(KEYDG == "90adc8515a40558968fe8318b5b023fdd48d3828a2dda8905f3b93a3cd8e58dc")
-                      if(id==2)
-                        initialCommands();
+                    if(id==2){
+                        startRecMode();
+                    }
                 }
                 break;
             }
@@ -400,6 +496,7 @@ void Remote::getAvailableApiList(int id){
 }
 
 void Remote::getEvent(QByteArray param,int id){
+    //while(true)
     commandFabrikMethod("getEvent",id,param);
 }
 

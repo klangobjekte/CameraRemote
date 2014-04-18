@@ -70,6 +70,8 @@ private:
     QString previewPath;
 
     void savePreviewFile(QByteArray bytes,QString previePicName);
+    void readSettings();
+    void writeSettings();
 };
 
 #endif // MAINWINDOW_H

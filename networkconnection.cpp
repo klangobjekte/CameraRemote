@@ -9,14 +9,14 @@ NetworkConnection::NetworkConnection()
 
     //QNetworkConfigurationManager networkConfigurationManager;
     networkConfigurationManager = new QNetworkConfigurationManager;
-    QList<QNetworkConfiguration> activeConfigs = networkConfigurationManager->allConfigurations(QNetworkConfiguration::Active);
-
+    QList<QNetworkConfiguration> activeConfigs = networkConfigurationManager->allConfigurations();
+    qDebug() << "activeConfigs.count()"  << activeConfigs.count();
 
     if (activeConfigs.count() > 0){
         Q_ASSERT(networkConfigurationManager->isOnline());
         foreach (QNetworkConfiguration config, activeConfigs) {
             qDebug()<< config.bearerTypeName() << config.name();
-            availableNetworks.append(config.name());
+            _availableNetworks.append(config.name());
             if(config.name() == "en1")
                activeConfiguration =  config;
         }
@@ -57,7 +57,7 @@ void NetworkConnection::setPort(QString portstring){
 
 
 QStringList NetworkConnection::getAvailableNetWorks(){
-    return availableNetworks;
+    return _availableNetworks;
 }
 
 QNetworkConfiguration NetworkConnection::getActiveConfiguration(){

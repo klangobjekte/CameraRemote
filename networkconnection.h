@@ -31,7 +31,7 @@ private slots:
 private:
     QNetworkConfigurationManager *networkConfigurationManager;
     QNetworkConfiguration activeConfiguration;
-    QStringList availableNetworks;
+    QStringList _availableNetworks;
     QString _networkName;
     QUrl url;
 
