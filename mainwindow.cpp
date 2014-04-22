@@ -11,6 +11,7 @@
 #include "networkconnection.h"
 #include "remote.h"
 #include "timelapse.h"
+#include "cameraremotedefinitions.h"
 
 
 
@@ -19,6 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->portLineEdit->setVisible(false);
+    ui->protLabel->setVisible(false);
 
 
     //! [Create Object Connection to WiFi]
@@ -29,11 +32,9 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->urlLineEdit,SLOT(setText(QString)));
     connect(networkConnection,SIGNAL(publishPort(QString)),
             ui->portLineEdit,SLOT(setText(QString)));
-    networkConnection->setUrl("http://192.168.122.1");
-    QString port;
-    networkConnection->setPort(port.setNum(8080));
-
-
+    connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
+            this,SLOT(onCameraStatusChanged(int,QString)));
+    networkConnection->init();
 
 
     //! [Create Object QGraphicsScene for Preview]
@@ -60,6 +61,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(remote,SIGNAL(publishAvailableWhiteBalanceModes(QStringList)),
         this,SLOT(addwhiteBalanceComboBoxItems(QStringList)));
 
+    connect(remote,SIGNAL(publishAvailableExposureModes(QStringList)),
+            this,SLOT(addexposureModeComboBoxItems(QStringList)));
+
+
     connect(remote,SIGNAL(publishCurrentIsoSpeedRates(QString)),
             ui->isoSpeedRateComboBox,SLOT(setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentShutterSpeed(QString)),
@@ -68,6 +73,12 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->fNumberComboBox,SLOT(setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentWhiteBalanceModes(QString)),
             ui->whiteBalanceComboBox,SLOT(setCurrentText(QString)));
+    connect(remote,SIGNAL(publishCurrentExposureMode(QString)),
+            ui->exposureModeComboBox,SLOT(setCurrentText(QString)));
+
+
+    connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
+            remote,SLOT(setConnectionStatus(int,QString)));
 
     //! [Create Object Timelapse Control]
     timelapse = new Timelapse;
@@ -80,13 +91,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->intervalTimeEdit->setTime(defaultinterval);
     timelapse->setDuration(defaultduration);
     timelapse->setInterval(defaultinterval);
-    connect(ui->loadPreviewPicCheckBox,SIGNAL(clicked(bool)),
-            remote,SLOT(setLoadPreviewPic(bool)));
+
+
+    connect(ui->loadPreviewPicCheckBox,SIGNAL(stateChanged(int)),
+            remote,SLOT(setLoadPreviewPic(int)));
+    ui->loadPreviewPicCheckBox->setChecked(true);
 
     readSettings();
     QStringList availableNetworks = networkConnection->getAvailableNetWorks();
     qDebug() << "availableNetworks: " << availableNetworks;
     ui->configurationComboBox->addItems(availableNetworks);
+    //remote->initialCommands();
+    remote->initialCommands();
+
+
+
+    //statusBar()->showMessage("Statusbar");
 
 
 }
@@ -97,12 +117,14 @@ MainWindow::~MainWindow()
     delete remote;
     delete previewScene;
     delete liveviewScene;
-    delete networkConnection;
+
     delete ui;
+    delete networkConnection;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    Q_UNUSED(event);
     writeSettings();
     qDebug() << "Leave Application";
     remote->stopLiveview();
@@ -110,21 +132,52 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 
+void MainWindow::onCameraStatusChanged(int status,QString message){
+    QString temp4("Connected: ");
+    QString temp6("Camera Detected: ");
+    switch(status){
+    case _CONNECTIONSTATE_DISCONNECTED:
+        statusBar()->showMessage(tr("Disconnected"));
+        break;
+    case _CONNECTIONSTATE_WATING:
+        statusBar()->showMessage(tr("Listening..."));
+        break;
+    case _CONNECTIONSTATE_CONNECTING:
+        statusBar()->showMessage(tr("Connecting..."));
+        break;
+    case _CONNECTIONSTATE_CONNECTET:
+        temp4.append(friendlyName);
+        statusBar()->showMessage(temp4);
+        break;
+    case _CONNECTIONSTATE_SSDP_ALIVE_RECEIVED:
+        if(!remote->getConnectionStatus())
+            statusBar()->showMessage(tr("Device Detected"));
+        break;
+    case _CONNECTIONSTATE_CAMERA_DETECTED:
+        if(!remote->getConnectionStatus()){
+            friendlyName = message;
+            temp6.append(friendlyName);
+            statusBar()->showMessage(temp6);
+            //remote->startDevice();
+        }
+        break;
+    }
+}
 
 void MainWindow::on_configurationComboBox_currentIndexChanged(QString text){
     networkConnection->setActiveNetwork(text);
 }
 
 void MainWindow::on_startRecModePushButton_clicked(){
+    remote->initActEnabelMethods();
     remote->startRecMode();
-    //remote->startLiveview();
-    //remote->getEvent("false");
-    //remote->getAvailableApiList();
 }
 
 void MainWindow::on_stopRecModePushButton_clicked(){
+    remote->stopLiveview();
     remote->stopRecMode();
     liveviewScene->clear();
+    previewScene->clear();
 }
 
 void MainWindow::on_takePicturePushButton_clicked(){
@@ -162,19 +215,16 @@ void MainWindow::on_chooseFolderPushButton_clicked(){
     previewPath = QFileDialog::getExistingDirectory();
 }
 
-void MainWindow::on_urlLineEdit_textChanged(QString url){
+void MainWindow::on_urlLineEdit_textEdited(QString url){
     networkConnection->setUrl(url);
     //remote->setUrl(url);
 
 }
 
-void MainWindow::on_portLineEdit_textChanged(QString port){
+void MainWindow::on_portLineEdit_textEdited(QString port){
     networkConnection->setPort(port);
-    ui->urlLineEdit->setText(networkConnection->getUrl().toString());
+    //ui->urlLineEdit->setText(networkConnection->getUrl().toString());
 }
-
-
-
 
 void MainWindow::on_isoSpeedRateComboBox_currentTextChanged(QString text){
     static bool init_on_isoSpeedRateComboBox_currentTextChanged = true;
@@ -214,11 +264,24 @@ void MainWindow::on_whiteBalanceComboBox_currentTextChanged(QString text){
     static bool init_on_whiteBalanceComboBox_currentTextChanged = true;
     QByteArray index;
     index.append("\"");
+    //index.append("Auto");
     index.append(text);
     index.append("\"");
     if(!init_on_whiteBalanceComboBox_currentTextChanged)
         remote->commandFabrikMethod("setWhiteBalance",remote->getMethods().value("setWhiteBalance"),index);
     init_on_whiteBalanceComboBox_currentTextChanged = false;
+}
+
+void MainWindow::on_exposureModeComboBox_currentTextChanged(QString text){
+    static bool init_on_fNumberComboBox_currentTextChanged = true;
+    QByteArray param;
+    param.append("\"");
+    param.append(text);
+    param.append("\"");
+    if(!init_on_fNumberComboBox_currentTextChanged)
+        remote->commandFabrikMethod("setExposureMode",remote->getMethods().value("setExposureMode"),param);
+    init_on_fNumberComboBox_currentTextChanged = false;
+
 }
 
 void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
@@ -239,6 +302,11 @@ void MainWindow::addshutterSpeedComboBox_2Items(QStringList items){
 void MainWindow::addwhiteBalanceComboBoxItems(QStringList items){
     ui->whiteBalanceComboBox->clear();
     ui->whiteBalanceComboBox->addItems(items);
+}
+
+void MainWindow::addexposureModeComboBoxItems(QStringList items){
+    ui->exposureModeComboBox->clear();
+    ui->exposureModeComboBox->addItems(items);
 }
 
 void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
@@ -316,31 +384,21 @@ void MainWindow::drawLiveView(QByteArray bytes){
 void MainWindow::readSettings()
 {
 
-    //QSettings settings;
-    QSettings settings("KlangObjekte.", "CameraRemote");
-    networkConnection->setUrl(settings.value("url",QString("192.168.122.1")).toString());
-    networkConnection->setPort(settings.value("port",8080).toString());
 
-    QColor wColor = settings.value("waveformColor",QColor(200, 200, 200)).value< QColor >();
-    QColor bColor = settings.value("backgroundColor",QColor(85, 85, 127)).value< QColor >();
+    QSettings settings("KlangObjekte.", "CameraRemote");
+    networkConnection->setUrl(settings.value("url",QString("http://127.0.0.1")).toString());
+    networkConnection->setPort(settings.value("port",8080).toString());
+    friendlyName = settings.value("friendlyName",QString()).toString();
+    previewPath = settings.value("previewPath").toString();
+    ui->loadPreviewPicCheckBox->setChecked(settings.value("loadpreviePic",true).toBool());
+
+
     QPoint pos = settings.value("pos", QPoint(200,200)).toPoint();
     QSize size = settings.value("size", QSize(300, 200)).toSize();
     //! gibt geometry einProblem mit den Toolbars??
     //restoreGeometry(settings.value("geometry").toByteArray());
-    //other->move(x() +40,y() +40);
+
     restoreState(settings.value("state").toByteArray());
-    /*
-    if(pos.x() == 200){
-        pos.setX(pos.x()+binPositionOffset);
-        pos.setY(pos.y()+binPositionOffset);
-        binPositionOffset += 40;
-        move(pos);
-    }
-    else{
-        move(pos);
-    }
-    */
-    //move(x() +40,y() +40);
     resize(size);
 
 
@@ -349,14 +407,13 @@ void MainWindow::readSettings()
 
 void MainWindow::writeSettings()
 {
-
-    //qDebug() << "write Settings: " << windowName;
-
     QSettings settings("KlangObjekte.", "CameraRemote");
-    //QSettings settings;
-    //! [] Main
-    settings.setValue("url",networkConnection->getUrl().path());
+
+    settings.setValue("previewPath",previewPath);
+    settings.setValue("loadpreviePic",ui->loadPreviewPicCheckBox->isChecked());
+    settings.setValue("url",networkConnection->getUrl().toString());
     settings.setValue("port",networkConnection->getUrl().port());
+    settings.setValue("friendlyName",friendlyName);
     settings.setValue("pos", pos());
     settings.setValue("size", size());
     //! gibt geometry einProblem mit den Toolbars??

@@ -4,6 +4,7 @@
 #include <QUrl>
 #include <QStringList>
 #include <QMap>
+#include "cameraremotedefinitions.h"
 
 
 class QNetworkAccessManager;
@@ -83,7 +84,7 @@ public:
     explicit Remote(NetworkConnection *networkConnection, QObject *parent = 0);
     ~Remote();
 
-
+    bool getConnectionStatus();
     void initialCommands();
     void initActEnabelMethods();
     void actEnabelMethods(QByteArray key);
@@ -177,16 +178,21 @@ signals:
     void publishAvailableFNumber(QStringList fNumber);
     void publishAvailableShutterSpeed(QStringList shutterSpeed);
     void publishAvailableWhiteBalanceModes(QStringList whiteBalanceModes);
+    void publishAvailableExposureModes(QStringList exposureModes);
 
     void publishCurrentFNumber(QString result);
     void publishCurrentIsoSpeedRates(QString result);
     void publishCurrentShutterSpeed(QString result);
     void publishCurrentWhiteBalanceModes(QString result);
+    void publishCurrentExposureMode(QString result);
+    //void publishConnectionStatus(int status = _CONNECTIONSTATE_DISCONNECTED, QString message = QString());
 
 public slots:
+    void setConnectionStatus(int status = _CONNECTIONSTATE_DISCONNECTED, QString message = QString());
+    void startDevice();
     void getAvailableApiList(int id = 8);
     void getEvent(QByteArray param = QByteArray("false"), int id = 9);
-    void setLoadPreviewPic(bool loadpreviewpic);
+    void setLoadPreviewPic(int state);
     void startRecMode(int id = 11);
 
 
@@ -209,12 +215,14 @@ private:
     QNetworkReply *streamReply;
     QTimer *timer;
     QTimer *getEventTimer;
+    QTimer *periodicGetEventTimer;
     QTimer *startRecordModeTimer;
     QByteArray inputStream;
     QByteArray imageArray;
+    QString currentWhiteBalanceMode;
 
     QMap<QString,int> methods;
-    QUrl url;
+    //QUrl url;
     QString liveViewRequest;
     QString previePicName;
     bool _loadpreviewpic;
@@ -222,6 +230,8 @@ private:
     int offset;
     uint64_t start;
     uint64_t end;
+    bool connected;
+    bool connecting;
 };
 
 #endif // REMOTE_H

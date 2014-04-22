@@ -18,12 +18,15 @@ SOURCES += main.cpp\
     remote.cpp \
     ssdpclient.cpp \
     timelapse.cpp \
-    networkconnection.cpp
+    networkconnection.cpp \
+    controllstation.cpp
 
 HEADERS  += mainwindow.h \
     remote.h \
     ssdpclient.h \
     timelapse.h \
-    networkconnection.h
+    networkconnection.h \
+    cameraremotedefinitions.h \
+    controllstation.h
 
 FORMS    += mainwindow.ui

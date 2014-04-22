@@ -26,6 +26,7 @@ public:
     ~MainWindow();
 
 public slots:
+    void onCameraStatusChanged(int status,QString message = QString());
 
 
 
@@ -42,18 +43,19 @@ private slots:
     void on_durationTimeEdit_timeChanged(const QTime &time);
     void on_intervalTimeEdit_timeChanged(const QTime &time);
     void on_chooseFolderPushButton_clicked();
-    void on_urlLineEdit_textChanged(QString url);
-    void on_portLineEdit_textChanged(QString port);
+    void on_urlLineEdit_textEdited(QString url);
+    void on_portLineEdit_textEdited(QString port);
     void on_isoSpeedRateComboBox_currentTextChanged(QString text);
     void on_shutterSpeedComboBox_currentTextChanged(QString text);
     void on_fNumberComboBox_currentTextChanged(QString text);
     void on_whiteBalanceComboBox_currentTextChanged(QString text);
+    void on_exposureModeComboBox_currentTextChanged(QString text);
 
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
     void addwhiteBalanceComboBoxItems(QStringList items);
     void addshutterSpeedComboBox_2Items(QStringList items);
-
+    void addexposureModeComboBoxItems(QStringList items);
 
     void drawPreview(QNetworkReply *reply,QString previePicName);
     void drawLiveView(QByteArray data);
@@ -68,6 +70,7 @@ private:
     QGraphicsScene *liveviewScene;
     //QGraphicsView * view;
     QString previewPath;
+    QString friendlyName;
 
     void savePreviewFile(QByteArray bytes,QString previePicName);
     void readSettings();
