@@ -61,6 +61,16 @@ private slots:
     void addZoomComboBoxItems(QStringList items);
 
 
+    void isoSpeedRateComboBox_setCurrentText(QString text);
+    void shutterSpeedComboBox_setCurrentText(QString text);
+    void fNumberComboBox_setCurrentText(QString text);
+    void whiteBalanceComboBox_setCurrentText(QString text);
+    void exposureModeComboBox_setCurrentText(QString text);
+    void startLiveViewPushButton_setChecked(bool status);
+    void selfTimerComboBox_setCurrentText(QString text);
+    void postViewImageSizeComboBox_setCurrentText(QString text);
+
+
 
     void drawPreview(QNetworkReply *reply,QString previePicName);
     void drawLiveView(QByteArray data);

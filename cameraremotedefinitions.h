@@ -10,7 +10,9 @@ public:
 
 inline NullDebug nullDebug() { return NullDebug(); }
 
-
+//static QString qsspath = ":/qss/";
+//static QString qsspath = ":/";
+//static QString qsspath = "./qss/";
 
 enum _CONNECTIONSTATE{
     _CONNECTIONSTATE_ERROR,

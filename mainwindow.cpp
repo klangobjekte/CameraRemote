@@ -12,6 +12,7 @@
 #include "remote.h"
 #include "timelapse.h"
 #include "cameraremotedefinitions.h"
+#include "QGraphicsOpacityEffect"
 
 
 
@@ -22,6 +23,38 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->portLineEdit->setVisible(false);
     ui->protLabel->setVisible(false);
+
+
+
+    QGraphicsOpacityEffect * whiteBalanceComboBoxeffect = new QGraphicsOpacityEffect(ui->whiteBalanceComboBox);
+    QGraphicsOpacityEffect * fNumberComboBoxeffect = new QGraphicsOpacityEffect(ui->fNumberComboBox);
+    QGraphicsOpacityEffect * shutterSpeedComboBoxeffect = new QGraphicsOpacityEffect(ui->shutterSpeedComboBox);
+    QGraphicsOpacityEffect * isoSpeedRateComboBoxeffect = new QGraphicsOpacityEffect(ui->isoSpeedRateComboBox);
+    QGraphicsOpacityEffect * exposureModeComboBoxeffect = new QGraphicsOpacityEffect(ui->exposureModeComboBox);
+    QGraphicsOpacityEffect * postViewImageSizeComboBoxeffect = new QGraphicsOpacityEffect(ui->postViewImageSizeComboBox);
+    QGraphicsOpacityEffect * selfTimerComboBoxeffect = new QGraphicsOpacityEffect(ui->selfTimerComboBox);
+    QGraphicsOpacityEffect * zoomComboBoxeffect = new QGraphicsOpacityEffect(ui->zoomComboBox);
+
+
+    float opacity = 0.5;
+    whiteBalanceComboBoxeffect->setOpacity(opacity);
+    fNumberComboBoxeffect->setOpacity(opacity);
+    shutterSpeedComboBoxeffect->setOpacity(opacity);
+    isoSpeedRateComboBoxeffect->setOpacity(opacity);
+    exposureModeComboBoxeffect->setOpacity(opacity);
+    postViewImageSizeComboBoxeffect->setOpacity(opacity);
+    selfTimerComboBoxeffect->setOpacity(opacity);
+    zoomComboBoxeffect->setOpacity(opacity);
+
+    ui->whiteBalanceComboBox->setGraphicsEffect(whiteBalanceComboBoxeffect);
+    ui->fNumberComboBox->setGraphicsEffect(fNumberComboBoxeffect);
+    ui->shutterSpeedComboBox->setGraphicsEffect(shutterSpeedComboBoxeffect);
+    ui->isoSpeedRateComboBox->setGraphicsEffect(isoSpeedRateComboBoxeffect);
+    ui->exposureModeComboBox->setGraphicsEffect(exposureModeComboBoxeffect);
+    ui->postViewImageSizeComboBox->setGraphicsEffect(postViewImageSizeComboBoxeffect);
+    ui->selfTimerComboBox->setGraphicsEffect(selfTimerComboBoxeffect);
+    ui->zoomComboBox->setGraphicsEffect(zoomComboBoxeffect);
+
 
 
     //! [Create Object Connection to WiFi]
@@ -113,14 +146,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QStringList availableNetworks = networkConnection->getAvailableNetWorks();
     qDebug() << "availableNetworks: " << availableNetworks;
     ui->configurationComboBox->addItems(availableNetworks);
-    //remote->initialCommands();
-    remote->initialCommands();
 
-
-
-    //statusBar()->showMessage("Statusbar");
-
-
+    remote->setDevice(friendlyName);
+    remote->initialEvent();
 }
 
 MainWindow::~MainWindow()
@@ -186,7 +214,6 @@ void MainWindow::onCameraStatusChanged(int status,QString message){
             friendlyName = message;
             temp6.append(friendlyName);
             statusBar()->showMessage(temp6);
-            //remote->startDevice();
         }
         break;
     }
@@ -212,7 +239,6 @@ void MainWindow::on_startRecModePushButton_clicked(bool checked){
 }
 
 void MainWindow::on_takePicturePushButton_clicked(){
-    static int number = 1;
     remote->actTakePicture();
 }
 
@@ -286,9 +312,11 @@ void MainWindow::on_fNumberComboBox_activated(QString text){
 void MainWindow::on_whiteBalanceComboBox_activated(QString text){
     QByteArray index;
     index.append("\"");
-    //index.append("Auto");
     index.append(text);
-    index.append("\"");
+    index.append("\",");
+    index.append("true");
+    index.append(",");
+    index.append("0");
     remote->commandFabrikMethod("setWhiteBalance",remote->getMethods().value("setWhiteBalance"),index);
 }
 
@@ -312,7 +340,6 @@ void MainWindow::on_zoomComboBox_activated(QString text){
 void MainWindow::on_selfTimerComboBox_activated(QString text){
 
     int para = text.toInt();
-    const char parachar = para;
     QByteArray param;
     //param.append("\"");
     param.append(text);
@@ -335,47 +362,103 @@ void MainWindow::on_postViewImageSizeComboBox_activated(QString text){
 
 
 void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
-    ui->isoSpeedRateComboBox->clear();
-    ui->isoSpeedRateComboBox->addItems(items);
+    foreach (QString item, items) {
+        if(ui->isoSpeedRateComboBox->findText(item) == -1){
+            ui->isoSpeedRateComboBox->addItem(item);
+        }
+    }
 }
 
 void MainWindow::addfNumberComboBoxItems(QStringList items){
-    ui->fNumberComboBox->clear();
-    ui->fNumberComboBox->addItems(items);
+    foreach (QString item, items) {
+        if(ui->fNumberComboBox->findText(item) == -1){
+            ui->fNumberComboBox->addItem(item);
+        }
+    }
 }
 
 void MainWindow::addshutterSpeedComboBox_2Items(QStringList items){
-    ui->shutterSpeedComboBox->clear();
-    ui->shutterSpeedComboBox->addItems(items);
+    foreach (QString item, items) {
+        if(ui->shutterSpeedComboBox->findText(item) == -1){
+            ui->shutterSpeedComboBox->addItem(item);
+        }
+    }
 }
 
 void MainWindow::addwhiteBalanceComboBoxItems(QStringList items){
-    ui->whiteBalanceComboBox->clear();
-    ui->whiteBalanceComboBox->addItems(items);
+    foreach (QString item, items) {
+        if(ui->whiteBalanceComboBox->findText(item) == -1){
+            ui->whiteBalanceComboBox->addItem(item);
+        }
+    }
 }
 
 void MainWindow::addexposureModeComboBoxItems(QStringList items){
-    ui->exposureModeComboBox->clear();
-    ui->exposureModeComboBox->addItems(items);
+    foreach (QString item, items) {
+        if(ui->exposureModeComboBox->findText(item) == -1){
+            ui->exposureModeComboBox->addItem(item);
+        }
+    }
 }
 
 void MainWindow::addSelfTimerComboBoxItems(QStringList items){
-    ui->selfTimerComboBox->clear();
-    ui->selfTimerComboBox->addItems(items);
-
+    foreach (QString item, items) {
+        if(ui->selfTimerComboBox->findText(item) == -1){
+            ui->selfTimerComboBox->addItem(item);
+        }
+    }
 }
 
 void MainWindow::addZoomComboBoxItems(QStringList items){
-    ui->zoomComboBox->clear();
-    ui->zoomComboBox->addItems(items);
-
+    foreach (QString item, items) {
+        if(ui->zoomComboBox->findText(item) == -1){
+            ui->zoomComboBox->addItem(item);
+        }
+    }
 }
 
 void MainWindow::addPostViewImageSizeComboBoxItems(QStringList items){
-    ui->postViewImageSizeComboBox->clear();
-    ui->postViewImageSizeComboBox->addItems(items);
+    foreach (QString item, items) {
+        if(ui->postViewImageSizeComboBox->findText(item) == -1){
+            ui->postViewImageSizeComboBox->addItem(item);
+        }
+    }
 }
 
+
+void MainWindow::isoSpeedRateComboBox_setCurrentText(QString text){
+    //ui->isoSpeedRateComboBox
+
+}
+
+void MainWindow::shutterSpeedComboBox_setCurrentText(QString text){
+    //ui->shutterSpeedComboBox
+
+}
+
+void MainWindow::fNumberComboBox_setCurrentText(QString text){
+    //ui->fNumberComboBox
+}
+
+void MainWindow::whiteBalanceComboBox_setCurrentText(QString text){
+    //ui->whiteBalanceComboBox
+}
+
+void MainWindow::exposureModeComboBox_setCurrentText(QString text){
+    //ui->exposureModeComboBox
+}
+
+void MainWindow::startLiveViewPushButton_setChecked(bool status){
+    //ui->startLiveViewPushButton
+}
+
+void MainWindow::selfTimerComboBox_setCurrentText(QString text){
+    //ui->selfTimerComboBox
+}
+
+void MainWindow::postViewImageSizeComboBox_setCurrentText(QString text){
+    //ui->postViewImageSizeComboBox
+}
 
 
 
