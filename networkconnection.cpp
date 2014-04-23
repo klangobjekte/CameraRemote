@@ -245,7 +245,7 @@ void NetworkConnection::parseXml()
 
 
 void NetworkConnection::setUrl(QString urlstring){
-    qDebug() << "NetworkConnection::setUrl: " << urlstring;
+    //qDebug() << "NetworkConnection::setUrl: " << urlstring;
     QUrl localUrl;
     if(!urlstring.isEmpty()){
         localUrl.setUrl(urlstring);
