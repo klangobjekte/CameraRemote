@@ -94,6 +94,7 @@ void NetworkConnection::setActiveNetwork(QString networkName){
 }
 
 void NetworkConnection::notifyConnectionStatus(int status,QString message){
+    //qDebug() << "NetworkConnection::notifyConnectionStatus" << status;
     emit publishConnectionStatus(status,message);
 }
 

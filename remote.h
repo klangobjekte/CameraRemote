@@ -86,7 +86,7 @@ public:
 
     bool getConnectionStatus();
     void initialCommands();
-    void initActEnabelMethods();
+
     void actEnabelMethods(QByteArray key);
     void commandFabrikMethod(QByteArray command, int id, QByteArray params = QByteArray());
 
@@ -167,6 +167,7 @@ public:
     void getSupportedWhiteBalance(int id = 59);
     void getAvailableWhiteBalance(int id = 60);
     void getSupportedFlashMode(int id = 61);
+    void setLiveViewStartToManual();
 
 signals:
     void publishLoadPreview(QNetworkReply* reply,QString previePicName);
@@ -185,9 +186,26 @@ signals:
     void publishCurrentShutterSpeed(QString result);
     void publishCurrentWhiteBalanceModes(QString result);
     void publishCurrentExposureMode(QString result);
-    //void publishConnectionStatus(int status = _CONNECTIONSTATE_DISCONNECTED, QString message = QString());
+    void publishLiveViewStatus(bool status);
+
+    void publishAvailablePostviewImageSizeCandidates(QStringList result);
+    void publishCurrentPostviewImageSize(QString result);
+    void publishAvailablselfTimerCandidates(QStringList result);
+    void publishCurrentSelfTimer(QString result);
+    void publishAvailableShootModeCandidates(QStringList result);
+    void publishCurrentShootMode(QString result);
+    void publishAvailableExposureCompensation(QStringList result);
+    void publishCurrentExposureCompensation(QString result);
+    void publishAvailableFlashModeCandidates(QStringList result);
+    void publishCurrentFlashMode(QString result);
+    void publishCurrentProgramShift(bool result);
+    void publishCurrentTouchCoordinates(QStringList resutl);
+    void publishTouchAFPositionSet(bool result);
+
+
 
 public slots:
+    void initActEnabelMethods();
     void setConnectionStatus(int status = _CONNECTIONSTATE_DISCONNECTED, QString message = QString());
     void startDevice();
     void getAvailableApiList(int id = 8);
@@ -217,6 +235,7 @@ private:
     QTimer *getEventTimer;
     QTimer *periodicGetEventTimer;
     QTimer *startRecordModeTimer;
+    QTimer *initActEnabelMethodsTimer;
     QByteArray inputStream;
     QByteArray imageArray;
     QString currentWhiteBalanceMode;
@@ -226,6 +245,8 @@ private:
     QString liveViewRequest;
     QString previePicName;
     bool _loadpreviewpic;
+    bool manualLiveViewStart;
+    bool liveViewStreamAlive;
 
     int offset;
     uint64_t start;

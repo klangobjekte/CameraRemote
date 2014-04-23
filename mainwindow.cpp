@@ -64,6 +64,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(remote,SIGNAL(publishAvailableExposureModes(QStringList)),
             this,SLOT(addexposureModeComboBoxItems(QStringList)));
 
+    connect(remote,SIGNAL(publishAvailablePostviewImageSizeCandidates(QStringList)),
+            this,SLOT(addPostViewImageSizeComboBoxItems(QStringList)));
+    connect(remote,SIGNAL(publishAvailablselfTimerCandidates(QStringList)),
+            this,SLOT(addSelfTimerComboBoxItems(QStringList)));
+
+
 
     connect(remote,SIGNAL(publishCurrentIsoSpeedRates(QString)),
             ui->isoSpeedRateComboBox,SLOT(setCurrentText(QString)));
@@ -75,6 +81,12 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->whiteBalanceComboBox,SLOT(setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentExposureMode(QString)),
             ui->exposureModeComboBox,SLOT(setCurrentText(QString)));
+    connect(remote,SIGNAL(publishLiveViewStatus(bool)),
+            ui->startLiveViewPushButton,SLOT(setChecked(bool)));
+    connect(remote,SIGNAL(publishCurrentSelfTimer(QString)),
+            ui->selfTimerComboBox,SLOT(setCurrentText(QString)));
+    connect(remote,SIGNAL(publishCurrentPostviewImageSize(QString)),
+            ui->postViewImageSizeComboBox,SLOT(setCurrentText(QString)));
 
 
     connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
@@ -138,9 +150,23 @@ void MainWindow::onCameraStatusChanged(int status,QString message){
     switch(status){
     case _CONNECTIONSTATE_DISCONNECTED:
         statusBar()->showMessage(tr("Disconnected"));
+        ui->fNumberComboBox->clear();
+        ui->shutterSpeedComboBox->clear();
+        ui->whiteBalanceComboBox->clear();
+        ui->isoSpeedRateComboBox->clear();
+        ui->exposureModeComboBox->clear();
+        ui->startLiveViewPushButton->setChecked(false);
+        ui->startRecModePushButton->setChecked(false);
         break;
     case _CONNECTIONSTATE_WATING:
         statusBar()->showMessage(tr("Listening..."));
+        ui->fNumberComboBox->clear();
+        ui->shutterSpeedComboBox->clear();
+        ui->whiteBalanceComboBox->clear();
+        ui->isoSpeedRateComboBox->clear();
+        ui->exposureModeComboBox->clear();
+        ui->startLiveViewPushButton->setChecked(false);
+        ui->startRecModePushButton->setChecked(false);
         break;
     case _CONNECTIONSTATE_CONNECTING:
         statusBar()->showMessage(tr("Connecting..."));
@@ -148,6 +174,8 @@ void MainWindow::onCameraStatusChanged(int status,QString message){
     case _CONNECTIONSTATE_CONNECTET:
         temp4.append(friendlyName);
         statusBar()->showMessage(temp4);
+        ui->startRecModePushButton->setChecked(true);
+        ui->startRecModePushButton->setText("Disconnect");
         break;
     case _CONNECTIONSTATE_SSDP_ALIVE_RECEIVED:
         if(!remote->getConnectionStatus())
@@ -168,16 +196,19 @@ void MainWindow::on_configurationComboBox_currentIndexChanged(QString text){
     networkConnection->setActiveNetwork(text);
 }
 
-void MainWindow::on_startRecModePushButton_clicked(){
-    remote->initActEnabelMethods();
-    remote->startRecMode();
-}
-
-void MainWindow::on_stopRecModePushButton_clicked(){
-    remote->stopLiveview();
-    remote->stopRecMode();
-    liveviewScene->clear();
-    previewScene->clear();
+void MainWindow::on_startRecModePushButton_clicked(bool checked){
+    if(checked){
+        remote->initActEnabelMethods();
+        //remote->startRecMode();
+        ui->startRecModePushButton->setText("Disconnect");
+    }
+    else{
+        remote->stopLiveview();
+        remote->stopRecMode();
+        liveviewScene->clear();
+        previewScene->clear();
+        ui->startRecModePushButton->setText("Connect");
+    }
 }
 
 void MainWindow::on_takePicturePushButton_clicked(){
@@ -185,22 +216,23 @@ void MainWindow::on_takePicturePushButton_clicked(){
     remote->actTakePicture();
 }
 
-void MainWindow::on_startLiveViewPushButton_clicked(){
-    remote->getAvailableLiveviewSize(remote->getMethods().value("getAvailableLiveviewSize"));
-    remote->startLiveview();
+void MainWindow::on_startLiveViewPushButton_clicked(bool checked){
+    if(checked){
+        remote->getAvailableLiveviewSize(remote->getMethods().value("getAvailableLiveviewSize"));
+        remote->startLiveview();
+    }
+    else{
+        remote->stopLiveview();
+        liveviewScene->clear();
+        remote->setLiveViewStartToManual();
+    }
 }
 
-void MainWindow::on_stopLiveViewPushButton_clicked(){
-    remote->stopLiveview();
-    liveviewScene->clear();
-}
-
-void MainWindow::on_startTimerPushButton_clicked(){
-    timelapse->start();
-}
-
-void MainWindow::on_stopTimerPushButton_clicked(){
-    timelapse->stop();
+void MainWindow::on_startTimerPushButton_clicked(bool checked){
+    if(checked)
+        timelapse->start();
+    else
+        timelapse->stop();
 }
 
 void MainWindow::on_intervalTimeEdit_timeChanged(const QTime &time){
@@ -226,63 +258,81 @@ void MainWindow::on_portLineEdit_textEdited(QString port){
     //ui->urlLineEdit->setText(networkConnection->getUrl().toString());
 }
 
-void MainWindow::on_isoSpeedRateComboBox_currentTextChanged(QString text){
-    static bool init_on_isoSpeedRateComboBox_currentTextChanged = true;
+void MainWindow::on_isoSpeedRateComboBox_activated(QString text){
     QByteArray index;
     index.append("\"");
     index.append(text);
     index.append("\"");
-    if(!init_on_isoSpeedRateComboBox_currentTextChanged)
-        remote->commandFabrikMethod("setIsoSpeedRate",remote->getMethods().value("setIsoSpeedRate"),index);
-    init_on_isoSpeedRateComboBox_currentTextChanged = false;
+    remote->commandFabrikMethod("setIsoSpeedRate",remote->getMethods().value("setIsoSpeedRate"),index);
 }
 
-void MainWindow::on_shutterSpeedComboBox_currentTextChanged(QString text){
-    static bool on_shutterSpeedComboBox_currentTextChanged = true;
+void MainWindow::on_shutterSpeedComboBox_activated(QString text){
     text.remove("\"");
     QByteArray index;
     index.append("\"");
     index.append(text);
     index.append("\"");
-    if(!on_shutterSpeedComboBox_currentTextChanged)
-        remote->commandFabrikMethod("setShutterSpeed",remote->getMethods().value("setShutterSpeed"),index);
-    on_shutterSpeedComboBox_currentTextChanged = false;
+    remote->commandFabrikMethod("setShutterSpeed",remote->getMethods().value("setShutterSpeed"),index);
 }
 
-void MainWindow::on_fNumberComboBox_currentTextChanged(QString text){
-    static bool init_on_fNumberComboBox_currentTextChanged = true;
+void MainWindow::on_fNumberComboBox_activated(QString text){
     QByteArray param;
     param.append("\"");
     param.append(text);
     param.append("\"");
-    if(!init_on_fNumberComboBox_currentTextChanged)
-        remote->commandFabrikMethod("setFNumber",remote->getMethods().value("setFNumber"),param);
-    init_on_fNumberComboBox_currentTextChanged = false;
+    remote->commandFabrikMethod("setFNumber",remote->getMethods().value("setFNumber"),param);
 }
 
-void MainWindow::on_whiteBalanceComboBox_currentTextChanged(QString text){
-    static bool init_on_whiteBalanceComboBox_currentTextChanged = true;
+void MainWindow::on_whiteBalanceComboBox_activated(QString text){
     QByteArray index;
     index.append("\"");
     //index.append("Auto");
     index.append(text);
     index.append("\"");
-    if(!init_on_whiteBalanceComboBox_currentTextChanged)
-        remote->commandFabrikMethod("setWhiteBalance",remote->getMethods().value("setWhiteBalance"),index);
-    init_on_whiteBalanceComboBox_currentTextChanged = false;
+    remote->commandFabrikMethod("setWhiteBalance",remote->getMethods().value("setWhiteBalance"),index);
 }
 
-void MainWindow::on_exposureModeComboBox_currentTextChanged(QString text){
-    static bool init_on_fNumberComboBox_currentTextChanged = true;
+void MainWindow::on_exposureModeComboBox_activated(QString text){
     QByteArray param;
     param.append("\"");
     param.append(text);
     param.append("\"");
-    if(!init_on_fNumberComboBox_currentTextChanged)
-        remote->commandFabrikMethod("setExposureMode",remote->getMethods().value("setExposureMode"),param);
-    init_on_fNumberComboBox_currentTextChanged = false;
+    remote->commandFabrikMethod("setExposureMode",remote->getMethods().value("setExposureMode"),param);
+}
+
+void MainWindow::on_zoomComboBox_activated(QString text){
+    QByteArray param;
+    param.append("\"");
+    param.append(text);
+    param.append("\"");
+    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
 
 }
+
+void MainWindow::on_selfTimerComboBox_activated(QString text){
+
+    int para = text.toInt();
+    const char parachar = para;
+    QByteArray param;
+    //param.append("\"");
+    param.append(text);
+    //param.append("\"");
+    //param.append(parachar);
+    //param = para;
+    remote->commandFabrikMethod("setSelfTimer",remote->getMethods().value("setSelfTimer"),param);
+
+}
+
+void MainWindow::on_postViewImageSizeComboBox_activated(QString text){
+    QByteArray param;
+    param.append("\"");
+    param.append(text);
+    param.append("\"");
+    remote->commandFabrikMethod("setPostviewImageSize",remote->getMethods().value("setPostviewImageSize"),param);
+
+}
+
+
 
 void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
     ui->isoSpeedRateComboBox->clear();
@@ -308,6 +358,26 @@ void MainWindow::addexposureModeComboBoxItems(QStringList items){
     ui->exposureModeComboBox->clear();
     ui->exposureModeComboBox->addItems(items);
 }
+
+void MainWindow::addSelfTimerComboBoxItems(QStringList items){
+    ui->selfTimerComboBox->clear();
+    ui->selfTimerComboBox->addItems(items);
+
+}
+
+void MainWindow::addZoomComboBoxItems(QStringList items){
+    ui->zoomComboBox->clear();
+    ui->zoomComboBox->addItems(items);
+
+}
+
+void MainWindow::addPostViewImageSizeComboBoxItems(QStringList items){
+    ui->postViewImageSizeComboBox->clear();
+    ui->postViewImageSizeComboBox->addItems(items);
+}
+
+
+
 
 void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
     //qDebug() << "drawPreview";
@@ -400,6 +470,9 @@ void MainWindow::readSettings()
 
     restoreState(settings.value("state").toByteArray());
     resize(size);
+    move(pos);
+    //this->pos().setX(pos.x());
+    //this->pos().setY(pos.y());
 
 
 

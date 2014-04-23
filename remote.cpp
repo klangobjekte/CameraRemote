@@ -13,11 +13,16 @@
 #include <QTimer>
 #include <QFile>
 #include <QSslKey>
-//#include <QMessageAuthenticationCode>
+
 #include <QCryptographicHash>
 #include "networkconnection.h"
 
-
+//#define LOG_RESULT
+#ifdef LOG_RESULT
+#   define LOG_RESULT_DEBUG qDebug()
+#else
+#   define LOG_RESULT_DEBUG nullDebug()
+#endif
 
 
 Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
@@ -26,6 +31,8 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
 
     connected = false;
     connecting = false;
+    manualLiveViewStart = false;
+    liveViewStreamAlive = false;
     _networkConnection = networkConnection;
     offset = 0;
     start=0;
@@ -40,7 +47,7 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     connect(timer,SIGNAL(timeout()), this,SLOT(buildLiveViewPic()));
 
     periodicGetEventTimer = new QTimer;
-    periodicGetEventTimer->setInterval(10000);
+    periodicGetEventTimer->setInterval(5000);
     connect(periodicGetEventTimer,SIGNAL(timeout()),
             this,SLOT(getEvent()));
 
@@ -55,6 +62,11 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     startRecordModeTimer->setSingleShot(true);
     connect(startRecordModeTimer,SIGNAL(timeout()),
             this,SLOT(startRecMode()));
+
+    initActEnabelMethodsTimer = new QTimer;
+    initActEnabelMethodsTimer->setInterval(1000);
+    connect(initActEnabelMethodsTimer,SIGNAL(timeout()),
+            this,SLOT(initActEnabelMethods()));
 
 
     manager = new QNetworkAccessManager;
@@ -92,6 +104,9 @@ Remote::~Remote(){
     stopLiveview();
     stopRecMode();
     delete timer;
+    delete periodicGetEventTimer;
+    delete getEventTimer;
+    delete startRecordModeTimer;
     delete liveViewManager;
     delete picmanager;
     delete manager;
@@ -179,6 +194,7 @@ void Remote::commandFabrikMethod(QByteArray command, int id, QByteArray params){
     QByteArray idNum;
     jSonString.append(idNum.setNum(id));
     jSonString.append("}");
+    qDebug() << "commandFabrikMethod request: "<< params << " " << jSonString << "\n";
     QByteArray postDataSize = QByteArray::number(jSonString.size());
     QNetworkRequest request = construcCameraRequest(postDataSize);
     manager->post(request,jSonString);
@@ -226,42 +242,79 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     QJsonValue jResult = jobject.value(QString("result"));
     QJsonValue jid = jobject.value(QString("id"));
     QJsonValue jtype = jobject.value(QString("type"));
-    QJsonValue jError = jobject.value(QString("Error"));
+    QJsonValue jError = jobject.value(QString("error"));
+
+    LOG_RESULT_DEBUG << "jError "<< jError;
+    QJsonArray jErrorArray = jError.toArray();
+    //qDebug() << "jErrorArray size: " << jErrorArray.size();
+    for(int i = 0; i<jErrorArray.size();i++){
+
+    }
 
 
     double id = jid.toDouble();
-    qDebug() << "\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-                "\nonManagerFinished response: "<< reply->url()<< methods.key(id) << " "<< str << "Error: "<< reply->errorString() << "\n";
-    if(!jError.isUndefined()){
-        qDebug() << "+++++++++++++++++++++++++++++++ ERROR ++++++++++++++++++++++++++++++++++++++++";
-        connected = false;
-        connecting = false;
-    }
+    /*
+    qDebug() << "\n\n+++++++++++++++++++++++++++++++  onManagerFinished:   +++++++++++++++++++++++++++++++++\n"
+                << methods.key(id) << reply->url() << "\n"<< str
+                << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-    if(jobject.value(QString("Error")) == QString("Network unreachable")){
-        initActEnabelMethods();
+*/
+    if(!jError.isUndefined()){
+        //qDebug() << "+++++++++++++++++++++++++++++++ ERROR ++++++++++++++++++++++++++++++++++++++++";
+        //connected = false;
+        //connecting = false;
+    }
+    if(reply->errorString() == QString("Unknown error")){
+        // everything is fine
+    }
+    else
+        qDebug() << methods.key(id)<<" " <<"REPLY ERROR: " << reply->errorString();
+
+
+    if(reply->errorString() == QString("Network unreachable")){
+        qDebug() << methods.key(id) <<"CATCH ERROR: Network unreachable";
+        //initActEnabelMethods();
+        initActEnabelMethodsTimer->start();
         connected = false;
         connecting = false;
-        _networkConnection->notifyConnectionStatus();
+        _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_WATING);
     }
-    else if(jobject.value(QString("Error")) == QString("Not Available Now")){
-        qDebug() << "Catch Error Not Available Now";
+    if(jErrorArray.at(1) == QString("Not Available Now")){
+        qDebug() << methods.key(id) <<"CATCH ERROR: Not Available Now";
         //connected = false;
         connecting = false;
     }
-    else if(jobject.value(QString("Error")) == QString("Socket operation timed out")){
-        qDebug() << "Catch Error Socket operation timed out";
+    if(jErrorArray.at(1) == QString("illegal request")){
+        qDebug() << methods.key(id) <<"CATCH ERROR: illegal request";
+        //connected = false;
+        //connecting = false;
+    }
+    if(jErrorArray.at(1) == QString("illegal argument")){
+        qDebug() << methods.key(id) <<"CATCH ERROR:  illegal request";
+        //connected = false;
+        //connecting = false;
+    }
+
+    if(jErrorArray.at(1) == QString("Forbidden")){
+        qDebug() << methods.key(id) <<"CATCH ERROR: Forbidden";
+        //connected = false;
+        stopRecMode();
+        stopLiveview();
+        initActEnabelMethodsTimer->start();
+        //connecting = false;
+    }
+
+    if(reply->errorString() == QString("Socket operation timed out")){
+        qDebug() << methods.key(id) <<"CATCH ERROR: Socket operation timed out";
         connected = false;
         connecting = false;
-        _networkConnection->notifyConnectionStatus();
+        _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_WATING);
     }
-    else{
-        //connected = true;
-        //connecting = true;
-    }
+
 
     if(methods.key(id) == "actEnableMethods"){
         connecting = true;
+        initActEnabelMethodsTimer->stop();
     }
     //qDebug()<<"\nQJsonValue of jResult: "<< jResult << jResult.type();
     //qDebug()<< "\nQJsonValue of jid: " << jid << jid.type();
@@ -282,7 +335,6 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             if(jResult.toArray().at(i).isArray()){
                 QJsonArray array = jResult.toArray().at(i).toArray();
                 //qDebug() << "HAHA: "<<  jResult.toArray().at(i) << "size: " << array.size();
-
                 for(int y = 0; y<array.size();y++){
                     QJsonObject jobject3 = array[y].toObject();
                     //qDebug() << jobject3;
@@ -291,13 +343,11 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 if(wbCandidates.isEmpty()){
                     wbCandidates.append(currentWhiteBalanceMode);
                 }
-                qDebug() << "getAvailableWhiteBalance: " << wbCandidates;
+                LOG_RESULT_DEBUG << "getAvailableWhiteBalance: " << wbCandidates;
                 emit publishAvailableWhiteBalanceModes(wbCandidates);
                 emit publishCurrentWhiteBalanceModes(currentWhiteBalanceMode);
             }
         }
-
-
     }
 
     for(int i =0;i<resultJarray.size();i++){
@@ -311,29 +361,33 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                      methods[var.toString()] = buildid;
                      buildid++;
                  }
-                 qDebug() << "names: " << var.toString() << "id: "<<  methods.value(var.toString());
+                 LOG_RESULT_DEBUG << "names: " << var.toString() << "id: "<<  methods.value(var.toString());
              }
              _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTET);
         }
         if(jobject2.value(QString("type")) == QString("cameraStatus")){
-            qDebug() << "cameraStatus: " << jobject2.value(QString("cameraStatus")).toString();
+            LOG_RESULT_DEBUG << "cameraStatus: " << jobject2.value(QString("cameraStatus")).toString();
             if(jobject2.value(QString("cameraStatus")) == QString("NotReady")){
-                //qDebug() << "Camera NotReady";
-                //getEvent("false");
                 cameraReady = false;
             }
         }
         if(jobject2.value(QString("type")) == QString("zoomInformation")){
-            qDebug() << "zoomNumberBox: " << jobject2.value(QString("zoomNumberBox")).toInt();
-            qDebug() << "zoomIndexCurrentBox: " << jobject2.value(QString("zoomIndexCurrentBox")).toInt();
-            qDebug() << "zoomPosition: " << jobject2.value(QString("zoomPosition")).toInt();
-            qDebug() << "zoomPositionCurrentBox: " << jobject2.value(QString("zoomPositionCurrentBox")).toInt();
+            LOG_RESULT_DEBUG << "zoomNumberBox: " << jobject2.value(QString("zoomNumberBox")).toInt();
+            LOG_RESULT_DEBUG << "zoomIndexCurrentBox: " << jobject2.value(QString("zoomIndexCurrentBox")).toInt();
+            LOG_RESULT_DEBUG << "zoomPosition: " << jobject2.value(QString("zoomPosition")).toInt();
+            LOG_RESULT_DEBUG << "zoomPositionCurrentBox: " << jobject2.value(QString("zoomPositionCurrentBox")).toInt();
         }
         if(jobject2.value(QString("type")) == QString("liveviewStatus")){
-            qDebug() << "liveviewStatus: " << jobject2.value(QString("liveviewStatus")).toBool();
-            if(jobject2.value(QString("liveviewStatus")) == bool(false)){
-
+            LOG_RESULT_DEBUG << "liveviewStatus: " << jobject2.value(QString("liveviewStatus")).toBool();
+            bool status = jobject2.value(QString("liveviewStatus")).toBool();
+            if(!liveViewStreamAlive && status == true){
+                stopLiveview();
+                status = false;
             }
+            if((status == bool(false) && !manualLiveViewStart)){
+                startLiveview(methods.value("startLiveview"));
+            }
+            emit publishLiveViewStatus(status);
         }
         if(jobject2.value(QString("type")) == QString("exposureMode")){
             QVariantList vlist = jobject2.value("exposureModeCandidates").toArray().toVariantList();
@@ -343,9 +397,9 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             }
             if(slist.isEmpty())
                slist.append(jobject2.value("currentExposureMode").toString());
-            qDebug() << "exposureModeCandidates: " << slist;
+            LOG_RESULT_DEBUG << "exposureModeCandidates: " << slist;
             emit publishAvailableExposureModes(slist);
-            qDebug() << "currentExposureMode: " << jobject2.value("currentExposureMode").toString();
+            LOG_RESULT_DEBUG << "currentExposureMode: " << jobject2.value("currentExposureMode").toString();
             emit publishCurrentExposureMode(jobject2.value("currentExposureMode").toString());
         }
         if(jobject2.value(QString("type")) == QString("postviewImageSize")){
@@ -354,10 +408,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             foreach (QVariant var, vlist) {
                 slist.append(var.toString());
             }
-            qDebug() << "postviewImageSizeCandidates: " << slist;
-            //emit publishAvailableFNumber(slist);
-            qDebug() << "currentPostviewImageSize: " << jobject2.value("currentPostviewImageSize").toString();
-            //emit publishCurrentFNumber(jobject2.value("currentFNumber").toString());
+            LOG_RESULT_DEBUG << "postviewImageSizeCandidates: " << slist;
+            emit publishAvailablePostviewImageSizeCandidates(slist);
+            LOG_RESULT_DEBUG << "currentPostviewImageSize: " << jobject2.value("currentPostviewImageSize").toString();
+            emit publishCurrentPostviewImageSize(jobject2.value("currentPostviewImageSize").toString());
         }
         if(jobject2.value(QString("type")) == QString("selfTimer")){
             QVariantList vlist = jobject2.value("selfTimerCandidates").toArray().toVariantList();
@@ -365,10 +419,12 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             foreach (QVariant var, vlist) {
                 slist.append(var.toString());
             }
-            qDebug() << "selfTimerCandidates: " << slist;
-            //emit publishAvailableFNumber(slist);
-            qDebug() << "currentSelfTimer: " << jobject2.value("currentSelfTimer").toString();
-            //emit publishCurrentFNumber(jobject2.value("currentFNumber").toString());
+            LOG_RESULT_DEBUG << "selfTimerCandidates: " << slist;
+            emit publishAvailablselfTimerCandidates(slist);
+            int current = jobject2.value("currentSelfTimer").toInt();
+            LOG_RESULT_DEBUG << "currentSelfTimer: " << current;
+            QString currentS;
+            emit publishCurrentSelfTimer(currentS.setNum(current));
         }
         if(jobject2.value(QString("type")) == QString("shootMode")){
             QVariantList vlist = jobject2.value("shootModeCandidates").toArray().toVariantList();
@@ -376,17 +432,25 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             foreach (QVariant var, vlist) {
                 slist.append(var.toString());
             }
-            qDebug() << "shootModeCandidates: " << slist;
-            //emit publishAvailableFNumber(slist);
-            qDebug() << "currentShootMode: " << jobject2.value("currentShootMode").toString();
-            //emit publishCurrentFNumber(jobject2.value("currentFNumber").toString());
+            LOG_RESULT_DEBUG << "shootModeCandidates: " << slist;
+            emit publishAvailableShootModeCandidates(slist);
+            LOG_RESULT_DEBUG << "currentShootMode: " << jobject2.value("currentShootMode").toString();
+            emit publishCurrentShootMode(jobject2.value("currentFNumber").toString());
         }
         if(jobject2.value(QString("type")) == QString("exposureCompensation")){
-            qDebug() << "stepIndexOfExposureCompensation: " << jobject2.value("stepIndexOfExposureCompensation").toInt();
-            qDebug() << "maxExposureCompensation: " << jobject2.value("maxExposureCompensation").toInt();
-            //emit publishAvailableFNumber(slist);
-            qDebug() << "currentExposureCompensation: " << jobject2.value("currentExposureCompensation").toInt();
-            //emit publishCurrentFNumber(jobject2.value("currentFNumber").toString());
+            QStringList slist;
+            int step = jobject2.value("stepIndexOfExposureCompensation").toInt();
+            int max = jobject2.value("maxExposureCompensation").toInt();
+            LOG_RESULT_DEBUG << "stepIndexOfExposureCompensation: " << step;
+            LOG_RESULT_DEBUG << "maxExposureCompensation: " << max;
+            for(int i=0;i<max;i+=step){
+                QString istring;
+                slist.append(istring.setNum(i));
+            }
+
+            emit publishAvailableExposureCompensation(slist);
+            LOG_RESULT_DEBUG << "currentExposureCompensation: " << jobject2.value("currentExposureCompensation").toInt();
+            emit publishCurrentExposureCompensation(jobject2.value("currentExposureCompensation").toString());
         }
         if(jobject2.value(QString("type")) == QString("flashMode")){
             QVariantList vlist = jobject2.value("flashModeCandidates").toArray().toVariantList();
@@ -394,10 +458,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             foreach (QVariant var, vlist) {
                 slist.append(var.toString());
             }
-            qDebug() << "flashModeCandidates: " << slist;
-            //emit publishAvailableFNumber(slist);
-            qDebug() << "currentFlashMode: " << jobject2.value("currentFlashMode").toString();
-            //emit publishCurrentFNumber(jobject2.value("currentFNumber").toString());
+            LOG_RESULT_DEBUG << "flashModeCandidates: " << slist;
+            emit publishAvailableFlashModeCandidates(slist);
+            LOG_RESULT_DEBUG << "currentFlashMode: " << jobject2.value("currentFlashMode").toString();
+            emit publishCurrentFlashMode(jobject2.value("currentFlashMode").toString());
         }
         if(jobject2.value(QString("type")) == (QString("fNumber"))){
              QVariantList vlist = jobject2.value("fNumberCandidates").toArray().toVariantList();
@@ -405,11 +469,11 @@ void Remote::onManagerFinished(QNetworkReply* reply){
              foreach (QVariant var, vlist) {
                  slist.append(var.toString());
              }
-             qDebug() << "fNumberCandidates: " << slist;
+             LOG_RESULT_DEBUG << "fNumberCandidates: " << slist;
              if(slist.isEmpty())
                 slist.append(jobject2.value("currentFNumber").toString());
                 emit publishAvailableFNumber(slist);
-             qDebug() << "currentFNumber: " << jobject2.value("currentFNumber").toString();
+             LOG_RESULT_DEBUG << "currentFNumber: " << jobject2.value("currentFNumber").toString();
              emit publishCurrentFNumber(jobject2.value("currentFNumber").toString());
         }
         if(jobject2.value(QString("type")) == (QString("isoSpeedRate"))){
@@ -418,16 +482,17 @@ void Remote::onManagerFinished(QNetworkReply* reply){
              foreach (QVariant var, vlist) {
                  slist.append(var.toString());
              }
-             qDebug() << "isoSpeedRateCandidates: " << slist;
+             LOG_RESULT_DEBUG << "isoSpeedRateCandidates: " << slist;
              if(slist.isEmpty())
                  slist.append(jobject2.value("currentIsoSpeedRate").toString());
              emit publishAvailableIsoSpeedRates(slist);
-             qDebug() << "currentIsoSpeedRate: " << jobject2.value("currentIsoSpeedRate").toString();
+             LOG_RESULT_DEBUG << "currentIsoSpeedRate: " << jobject2.value("currentIsoSpeedRate").toString();
              emit publishCurrentIsoSpeedRates(jobject2.value("currentIsoSpeedRate").toString());
         }
 
         if(jobject2.value(QString("type")) == (QString("programShift"))){
-             qDebug() << "isShifted: " << jobject2.value("isShifted").toBool();
+             LOG_RESULT_DEBUG << "isShifted: " << jobject2.value("isShifted").toBool();
+             emit publishCurrentProgramShift(jobject2.value("isShifted").toBool());
         }
         if(jobject2.value(QString("type")) == (QString("shutterSpeed"))){
              QVariantList vlist = jobject2.value("shutterSpeedCandidates").toArray().toVariantList();
@@ -437,19 +502,19 @@ void Remote::onManagerFinished(QNetworkReply* reply){
              }
              if(slist.isEmpty())
                 slist.append(jobject2.value("currentShutterSpeed").toString());
-             qDebug() << "shutterSpeedCandidates: " << slist;
+             LOG_RESULT_DEBUG << "shutterSpeedCandidates: " << slist;
              emit publishAvailableShutterSpeed(slist);
-             qDebug() << "currentShutterSpeed: " << jobject2.value("currentShutterSpeed").toString();
+             LOG_RESULT_DEBUG << "currentShutterSpeed: " << jobject2.value("currentShutterSpeed").toString();
              emit publishCurrentShutterSpeed(jobject2.value("currentShutterSpeed").toString());
         }
         if(jobject2.value(QString("type")) ==(QString("whiteBalance"))){
             if(jobject2.value("checkAvailability") == bool(true)){
                 QStringList whiteBalanceModes;
-                qDebug() << "whiteBalance: " << jobject2.value("checkAvailability");
+                LOG_RESULT_DEBUG << "whiteBalance: " << jobject2.value("checkAvailability");
 
                 currentWhiteBalanceMode = jobject2.value("currentWhiteBalanceMode").toString();
                 whiteBalanceModes.append(currentWhiteBalanceMode);
-                qDebug() << "currentWhiteBalanceMode: " << currentWhiteBalanceMode;
+                LOG_RESULT_DEBUG << "currentWhiteBalanceMode: " << currentWhiteBalanceMode;
                 emit publishAvailableWhiteBalanceModes(whiteBalanceModes);
                 emit publishCurrentWhiteBalanceModes(currentWhiteBalanceMode);
                 getAvailableWhiteBalance(methods.value("getAvailableWhiteBalance"));
@@ -458,14 +523,16 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             }
         }
         if(jobject2.value(QString("type")) == (QString("touchAFPosition"))){
-
-             qDebug() << "currentSet: " << jobject2.value("currentSet").toBool();
+             bool touchAFPositionSet =    jobject2.value("currentSet").toBool();
+             LOG_RESULT_DEBUG << "currentSet: " << touchAFPositionSet;
              QVariantList vlist = jobject2.value("currentTouchCoordinates").toArray().toVariantList();
              QStringList slist;
              foreach (QVariant var, vlist) {
                  slist.append(var.toString());
              }
-             qDebug() << "currentTouchCoordinates: " << slist;
+             emit publishCurrentTouchCoordinates(slist);
+             LOG_RESULT_DEBUG << "currentTouchCoordinates: " << slist;
+             emit publishTouchAFPositionSet(touchAFPositionSet);
         }
     }
     foreach (QVariant result, results) {
@@ -497,7 +564,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                             methods[sresult] = buildid;
                             buildid++;
                         }
-                        qDebug() << "result: " << sresult << "id: "<<  methods.value(sresult);
+                        LOG_RESULT_DEBUG << "result: " << sresult << "id: "<<  methods.value(sresult);
                     }
                 }
                 break;
@@ -532,6 +599,12 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 }
 
 void Remote::onLiveViewManagerReadyRead(){
+
+    if(streamReply->isRunning())
+        liveViewStreamAlive = true;
+
+
+
     inputStream.append(streamReply->readAll());
 
 #ifdef __STORESTREAM
@@ -577,6 +650,7 @@ void Remote::buildLiveViewPic(){
 
     bool found = false;
     if(!inputStream.isEmpty()){
+
         while(!found && offset<inputStream.length()-1 ){
             if(inputStream.at(offset) == -1  && inputStream.at(offset+1) == -40){
                 start = offset;
@@ -607,6 +681,8 @@ void Remote::buildLiveViewPic(){
             }
         }
     }
+    else
+        liveViewStreamAlive = false;
 }
 
 void Remote::onPicmanagerFinished(QNetworkReply *reply){
@@ -670,6 +746,7 @@ void Remote::stopRecMode(int id){
     commandFabrikMethod("stopRecMode",id);
     connected = false;
     connecting = false;
+    periodicGetEventTimer->stop();
     _networkConnection->notifyConnectionStatus();
 }
 
@@ -863,5 +940,10 @@ void Remote::startMovieRec(int id){
 
 void Remote::stopMovieRec(int id){
     commandFabrikMethod("stopMovieRec",id);
+}
+
+void Remote::setLiveViewStartToManual(){
+    manualLiveViewStart = true;
+
 }
 

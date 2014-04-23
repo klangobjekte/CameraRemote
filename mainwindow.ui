@@ -6,520 +6,557 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>631</width>
-    <height>807</height>
+    <width>516</width>
+    <height>870</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QGraphicsView" name="previewGraphicsView">
+   <widget class="QScrollArea" name="scrollArea">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>470</y>
-      <width>501</width>
-      <height>331</height>
+      <x>0</x>
+      <y>0</y>
+      <width>511</width>
+      <height>811</height>
      </rect>
     </property>
-   </widget>
-   <widget class="QGroupBox" name="groupBox">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>3</y>
-      <width>501</width>
-      <height>31</height>
-     </rect>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
     </property>
-    <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Connect to the camera WiFi.&lt;/p&gt;&lt;p&gt;Only the default connection of the computer can be used.&lt;/p&gt;&lt;p&gt;The camera must be in Remote Mode and act as an Hot Spot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <property name="widgetResizable">
+     <bool>true</bool>
     </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QPushButton" name="startRecModePushButton">
+    <widget class="QWidget" name="scrollAreaWidgetContents">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>0</x>
        <y>0</y>
-       <width>91</width>
-       <height>32</height>
+       <width>509</width>
+       <height>809</height>
       </rect>
      </property>
-     <property name="text">
-      <string>Connect</string>
-     </property>
+     <widget class="QGraphicsView" name="previewGraphicsView">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>470</y>
+        <width>501</width>
+        <height>331</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_6">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>40</y>
+        <width>501</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QComboBox" name="isoSpeedRateComboBox">
+       <property name="geometry">
+        <rect>
+         <x>175</x>
+         <y>31</y>
+         <width>71</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="shutterSpeedComboBox">
+       <property name="geometry">
+        <rect>
+         <x>285</x>
+         <y>32</y>
+         <width>71</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="fNumberComboBox">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>31</y>
+         <width>51</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="whiteBalanceComboBox">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>31</y>
+         <width>181</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="exposureModeComboBox">
+       <property name="geometry">
+        <rect>
+         <x>350</x>
+         <y>32</y>
+         <width>141</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="zoomComboBox">
+       <property name="geometry">
+        <rect>
+         <x>2</x>
+         <y>8</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="selfTimerComboBox">
+       <property name="geometry">
+        <rect>
+         <x>88</x>
+         <y>8</y>
+         <width>71</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="postViewImageSizeComboBox">
+       <property name="geometry">
+        <rect>
+         <x>161</x>
+         <y>8</y>
+         <width>61</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGraphicsView" name="LiveviewGraphicsView">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>136</y>
+        <width>501</width>
+        <height>331</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>100</y>
+        <width>381</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QPushButton" name="startTimerPushButton">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>81</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Timelapse</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_2">
+       <property name="geometry">
+        <rect>
+         <x>79</x>
+         <y>7</y>
+         <width>41</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Interval</string>
+       </property>
+      </widget>
+      <widget class="QTimeEdit" name="intervalTimeEdit">
+       <property name="geometry">
+        <rect>
+         <x>124</x>
+         <y>3</y>
+         <width>71</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="displayFormat">
+        <string>ss:zzz</string>
+       </property>
+       <property name="time">
+        <time>
+         <hour>0</hour>
+         <minute>0</minute>
+         <second>1</second>
+        </time>
+       </property>
+      </widget>
+      <widget class="QTimeEdit" name="durationTimeEdit">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>3</y>
+         <width>71</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="displayFormat">
+        <string>HH:mm:ss</string>
+       </property>
+       <property name="time">
+        <time>
+         <hour>0</hour>
+         <minute>1</minute>
+         <second>0</second>
+        </time>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_3">
+       <property name="geometry">
+        <rect>
+         <x>201</x>
+         <y>9</y>
+         <width>31</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Dur</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_5">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>4</y>
+        <width>61</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QPushButton" name="takePicturePushButton">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>61</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>&gt;</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="geometry">
+       <rect>
+        <x>66</x>
+        <y>5</y>
+        <width>321</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Connect to the camera WiFi.&lt;/p&gt;&lt;p&gt;Only the default connection of the computer can be used.&lt;/p&gt;&lt;p&gt;The camera must be in Remote Mode and act as an Hot Spot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QPushButton" name="startRecModePushButton">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>81</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Connect</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QLabel" name="protLabel">
+       <property name="geometry">
+        <rect>
+         <x>138</x>
+         <y>35</y>
+         <width>31</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="portLineEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>33</y>
+         <width>241</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="cursor">
+        <cursorShape>ArrowCursor</cursorShape>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="urlLineEdit">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>4</y>
+         <width>171</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="configurationComboBox">
+       <property name="geometry">
+        <rect>
+         <x>250</x>
+         <y>4</y>
+         <width>61</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="geometry">
+       <rect>
+        <x>1</x>
+        <y>102</y>
+        <width>61</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string extracomment="MJepeg Stream is stored in Preview Folder.\n You can use VLC Media Player to open the Stream">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The MJepeg Stream is stored in the Preview Folder. &lt;/p&gt;&lt;p&gt;You can use the VLC Media Player to open the Stream&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QPushButton" name="startLiveViewPushButton">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>61</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Live</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_4">
+      <property name="geometry">
+       <rect>
+        <x>386</x>
+        <y>5</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable Preview Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QPushButton" name="chooseFolderPushButton">
+       <property name="geometry">
+        <rect>
+         <x>54</x>
+         <y>1</y>
+         <width>61</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose the folder where  the preview pictures are stored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Folder</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="loadPreviewPicCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>6</x>
+         <y>4</y>
+         <width>51</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load the Preview Pictures&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Load</string>
+       </property>
+      </widget>
+     </widget>
     </widget>
-    <widget class="QPushButton" name="stopRecModePushButton">
-     <property name="geometry">
-      <rect>
-       <x>380</x>
-       <y>0</y>
-       <width>91</width>
-       <height>32</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Disconnect</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="protLabel">
-     <property name="geometry">
-      <rect>
-       <x>138</x>
-       <y>35</y>
-       <width>31</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="portLineEdit">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>33</y>
-       <width>241</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="cursor">
-      <cursorShape>ArrowCursor</cursorShape>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="urlLineEdit">
-     <property name="geometry">
-      <rect>
-       <x>102</x>
-       <y>4</y>
-       <width>181</width>
-       <height>21</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="urlLabel">
-     <property name="geometry">
-      <rect>
-       <x>76</x>
-       <y>8</y>
-       <width>21</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;URL&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="configurationComboBox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>1</y>
-       <width>61</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>130</y>
-      <width>101</width>
-      <height>211</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Timelapse</string>
-    </property>
-    <widget class="QPushButton" name="startTimerPushButton">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>20</y>
-       <width>91</width>
-       <height>32</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Start</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="stopTimerPushButton">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>50</y>
-       <width>91</width>
-       <height>32</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Stop</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_2">
-     <property name="geometry">
-      <rect>
-       <x>8</x>
-       <y>109</y>
-       <width>62</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Interval</string>
-     </property>
-    </widget>
-    <widget class="QTimeEdit" name="intervalTimeEdit">
-     <property name="geometry">
-      <rect>
-       <x>7</x>
-       <y>80</y>
-       <width>91</width>
-       <height>24</height>
-      </rect>
-     </property>
-     <property name="displayFormat">
-      <string>ss:zzz</string>
-     </property>
-     <property name="time">
-      <time>
-       <hour>0</hour>
-       <minute>0</minute>
-       <second>1</second>
-      </time>
-     </property>
-    </widget>
-    <widget class="QTimeEdit" name="durationTimeEdit">
-     <property name="geometry">
-      <rect>
-       <x>8</x>
-       <y>140</y>
-       <width>91</width>
-       <height>24</height>
-      </rect>
-     </property>
-     <property name="displayFormat">
-      <string>HH:mm:ss</string>
-     </property>
-     <property name="time">
-      <time>
-       <hour>0</hour>
-       <minute>1</minute>
-       <second>0</second>
-      </time>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_3">
-     <property name="geometry">
-      <rect>
-       <x>9</x>
-       <y>170</y>
-       <width>62</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Duration</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_3">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>357</y>
-      <width>101</width>
-      <height>102</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string extracomment="MJepeg Stream is stored in Preview Folder.\n You can use VLC Media Player to open the Stream">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The MJepeg Stream is stored in the Preview Folder. &lt;/p&gt;&lt;p&gt;You can use the VLC Media Player to open the Stream&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-    <property name="title">
-     <string>Live View</string>
-    </property>
-    <widget class="QPushButton" name="startLiveViewPushButton">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>25</y>
-       <width>101</width>
-       <height>32</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Start</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="stopLiveViewPushButton">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>60</y>
-       <width>101</width>
-       <height>32</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Stop</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_4">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>470</y>
-      <width>101</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable Preview Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-    <property name="title">
-     <string>Preview Picture</string>
-    </property>
-    <widget class="QPushButton" name="chooseFolderPushButton">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>47</y>
-       <width>81</width>
-       <height>32</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose the folder where  the preview pictures are stored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>Folder</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="loadPreviewPicCheckBox">
-     <property name="geometry">
-      <rect>
-       <x>6</x>
-       <y>27</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load the Preview Pictures&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>Load</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_5">
-    <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>4</y>
-      <width>101</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QPushButton" name="takePicturePushButton">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>1</y>
-       <width>101</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&gt;</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_6">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>40</y>
-      <width>611</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QComboBox" name="isoSpeedRateComboBox">
-     <property name="geometry">
-      <rect>
-       <x>167</x>
-       <y>38</y>
-       <width>71</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="shutterSpeedComboBox">
-     <property name="geometry">
-      <rect>
-       <x>326</x>
-       <y>38</y>
-       <width>91</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="whiteBalanceLabel">
-     <property name="geometry">
-      <rect>
-       <x>13</x>
-       <y>64</y>
-       <width>131</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="cursor">
-      <cursorShape>ArrowCursor</cursorShape>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::WheelFocus</enum>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;White Balance&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="scaledContents">
-      <bool>false</bool>
-     </property>
-     <property name="wordWrap">
-      <bool>false</bool>
-     </property>
-     <property name="margin">
-      <number>0</number>
-     </property>
-    </widget>
-    <widget class="QLabel" name="fNumberLabel">
-     <property name="geometry">
-      <rect>
-       <x>253</x>
-       <y>64</y>
-       <width>62</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Aperture&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="shutterLabel">
-     <property name="geometry">
-      <rect>
-       <x>340</x>
-       <y>64</y>
-       <width>62</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Shutter&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="isolabel">
-     <property name="geometry">
-      <rect>
-       <x>171</x>
-       <y>64</y>
-       <width>62</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="cursor">
-      <cursorShape>ArrowCursor</cursorShape>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Iso&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="fNumberComboBox">
-     <property name="geometry">
-      <rect>
-       <x>247</x>
-       <y>38</y>
-       <width>71</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="whiteBalanceComboBox">
-     <property name="geometry">
-      <rect>
-       <x>7</x>
-       <y>38</y>
-       <width>151</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="exposureModeComboBox">
-     <property name="geometry">
-      <rect>
-       <x>421</x>
-       <y>38</y>
-       <width>141</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="exposureModeLabel">
-     <property name="geometry">
-      <rect>
-       <x>427</x>
-       <y>63</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Exposure Mode&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="cameraStatusLabel">
-     <property name="geometry">
-      <rect>
-       <x>15</x>
-       <y>11</y>
-       <width>62</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>notReady</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGraphicsView" name="LiveviewGraphicsView">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>130</y>
-      <width>501</width>
-      <height>331</height>
-     </rect>
-    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -527,7 +564,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>631</width>
+     <width>516</width>
      <height>22</height>
     </rect>
    </property>
@@ -541,6 +578,17 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

@@ -1,6 +1,17 @@
 #ifndef CAMERAREMOTEDEFINITIONS_H
 #define CAMERAREMOTEDEFINITIONS_H
 
+class NullDebug
+{
+public:
+    template <typename T>
+    NullDebug& operator<<(const T&) { return *this; }
+};
+
+inline NullDebug nullDebug() { return NullDebug(); }
+
+
+
 enum _CONNECTIONSTATE{
     _CONNECTIONSTATE_ERROR,
     _CONNECTIONSTATE_DISCONNECTED,

@@ -33,29 +33,34 @@ public slots:
 private slots:
     void closeEvent(QCloseEvent *event);
     void on_configurationComboBox_currentIndexChanged(QString text);
-    void on_startRecModePushButton_clicked();
-    void on_stopRecModePushButton_clicked();
+    void on_startRecModePushButton_clicked(bool checked);
     void on_takePicturePushButton_clicked();
-    void on_startLiveViewPushButton_clicked();
-    void on_stopLiveViewPushButton_clicked();
-    void on_startTimerPushButton_clicked();
-    void on_stopTimerPushButton_clicked();
+    void on_startLiveViewPushButton_clicked(bool checked);
+    void on_startTimerPushButton_clicked(bool checked);
     void on_durationTimeEdit_timeChanged(const QTime &time);
     void on_intervalTimeEdit_timeChanged(const QTime &time);
     void on_chooseFolderPushButton_clicked();
     void on_urlLineEdit_textEdited(QString url);
     void on_portLineEdit_textEdited(QString port);
-    void on_isoSpeedRateComboBox_currentTextChanged(QString text);
-    void on_shutterSpeedComboBox_currentTextChanged(QString text);
-    void on_fNumberComboBox_currentTextChanged(QString text);
-    void on_whiteBalanceComboBox_currentTextChanged(QString text);
-    void on_exposureModeComboBox_currentTextChanged(QString text);
+    void on_isoSpeedRateComboBox_activated(QString text);
+    void on_shutterSpeedComboBox_activated(QString text);
+    void on_fNumberComboBox_activated(QString text);
+    void on_whiteBalanceComboBox_activated(QString text);
+    void on_exposureModeComboBox_activated(QString text);
+    void on_postViewImageSizeComboBox_activated(QString text);
+    void on_selfTimerComboBox_activated(QString text);
+    void on_zoomComboBox_activated(QString text);
 
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
     void addwhiteBalanceComboBoxItems(QStringList items);
     void addshutterSpeedComboBox_2Items(QStringList items);
     void addexposureModeComboBoxItems(QStringList items);
+    void addSelfTimerComboBoxItems(QStringList items);
+    void addPostViewImageSizeComboBoxItems(QStringList items);
+    void addZoomComboBoxItems(QStringList items);
+
+
 
     void drawPreview(QNetworkReply *reply,QString previePicName);
     void drawLiveView(QByteArray data);
