@@ -24,6 +24,14 @@
 #   define LOG_RESULT_DEBUG nullDebug()
 #endif
 
+//#define LOG_REQUEST
+#ifdef LOG_REQUEST
+#   define LOG_REQUEST_DEBUG qDebug()
+#else
+#   define LOG_REQUEST_DEBUG nullDebug()
+#endif
+
+
 
 Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     QObject(parent)
@@ -46,27 +54,25 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     timer->setInterval(80);
     connect(timer,SIGNAL(timeout()), this,SLOT(buildLiveViewPic()));
 
-    periodicGetEventTimer = new QTimer;
-    periodicGetEventTimer->setInterval(5000);
-    connect(periodicGetEventTimer,SIGNAL(timeout()),
+    getEventTimerPeriodic = new QTimer;
+    getEventTimerPeriodic->setInterval(5000);
+    connect(getEventTimerPeriodic,SIGNAL(timeout()),
             this,SLOT(getEvent()));
 
-    getEventTimer = new QTimer;
-    getEventTimer->setInterval(7000);
-    getEventTimer->setSingleShot(true);
-    connect(getEventTimer,SIGNAL(timeout()),
+    getEventTimerSingleshot = new QTimer;
+    getEventTimerSingleshot->setInterval(7000);
+    getEventTimerSingleshot->setSingleShot(true);
+    connect(getEventTimerSingleshot,SIGNAL(timeout()),
             this,SLOT(getEvent()));
 
-    startRecordModeTimer = new QTimer;
-    startRecordModeTimer->setInterval(2000);
-    startRecordModeTimer->setSingleShot(true);
-    connect(startRecordModeTimer,SIGNAL(timeout()),
-            this,SLOT(startRecMode()));
 
-    initActEnabelMethodsTimer = new QTimer;
-    initActEnabelMethodsTimer->setInterval(1000);
-    connect(initActEnabelMethodsTimer,SIGNAL(timeout()),
-            this,SLOT(initActEnabelMethods()));
+
+    initialEventTimer = new QTimer;
+    initialEventTimer->setInterval(1000);
+    connect(initialEventTimer,SIGNAL(timeout()),
+            this,SLOT(initialEvent()));
+    //connect(initialEventTimer,SIGNAL(timeout()),
+    //        this,SLOT(initActEnabelMethods()));
 
 
     manager = new QNetworkAccessManager;
@@ -98,18 +104,23 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     methods["startLiveviewWithSize"] = 15;
     methods["startMovieRec"] = 16;
     methods["stopMovieRec"] = 17;
+    methods["setCameraFunction"] = 18;
 }
 
 Remote::~Remote(){
     stopLiveview();
     stopRecMode();
     delete timer;
-    delete periodicGetEventTimer;
-    delete getEventTimer;
-    delete startRecordModeTimer;
+    delete getEventTimerPeriodic;
+    delete getEventTimerSingleshot;
     delete liveViewManager;
     delete picmanager;
     delete manager;
+}
+
+void Remote::initialEvent(){
+    getEvent("false",66);
+    //initialEventTimer->start();
 }
 
 QMap<QString,int> Remote::getMethods(){
@@ -119,15 +130,15 @@ QMap<QString,int> Remote::getMethods(){
 
 void Remote::startDevice(){
     qDebug() << "start Device ++++++++++++++++++++++++++++++++++" << connected;
-
     if(!connected){
-        initialCommands();
+        initActEnabelMethods();
     }
 }
 
-void Remote::initialCommands(){
-    initActEnabelMethods();
+void Remote::setDevice(QString device){
+    deviceFriendlyName = device;
 }
+
 
 void Remote::setConnectionStatus(int status,QString message){
     Q_UNUSED(message);
@@ -138,7 +149,11 @@ void Remote::setConnectionStatus(int status,QString message){
     case _CONNECTIONSTATE_CAMERA_DETECTED:
         if(!connected && !connecting){
             connecting = true;
-            startDevice();
+            deviceFriendlyName = message;
+            qDebug() << "deviceFriendlyName: " << deviceFriendlyName;
+            //startDevice();
+            initialEvent();
+
         }
         break;
     case _CONNECTIONSTATE_CONNECTING:
@@ -163,9 +178,12 @@ bool Remote::getConnectionStatus(){
 
 
 void Remote::initActEnabelMethods(){
+
     QByteArray jSonString = "{\"version\": \"1.0\", \"params\": [{\"developerName\": \"\", \"sg\": \"\", \"methods\": \"\", \"developerID\": \"\"}], \"method\": \"actEnableMethods\", \"id\": 1}";
     QByteArray postDataSize = QByteArray::number(jSonString.size());
     QNetworkRequest request = constructAccessControlRequest(postDataSize);
+    LOG_REQUEST_DEBUG << "initActEnabelMethods request: " << jSonString << "\n";
+
     manager->post(request,jSonString);
 
 }
@@ -179,6 +197,7 @@ void Remote::actEnabelMethods(QByteArray key){
     //qDebug() << "\njSonString2: "<< jSonString2 << "\n";
     QByteArray postDataSize2 = QByteArray::number(jSonString2.size());
     QNetworkRequest request2 = constructAccessControlRequest(postDataSize2);
+    LOG_REQUEST_DEBUG << "actEnabelMethods request: " << jSonString2 << "\n";
     manager->post(request2,jSonString2);
 }
 
@@ -194,7 +213,7 @@ void Remote::commandFabrikMethod(QByteArray command, int id, QByteArray params){
     QByteArray idNum;
     jSonString.append(idNum.setNum(id));
     jSonString.append("}");
-    qDebug() << "commandFabrikMethod request: "<< params << " " << jSonString << "\n";
+    LOG_REQUEST_DEBUG << "commandFabrikMethod request: "<< params << " " << jSonString << "\n";
     QByteArray postDataSize = QByteArray::number(jSonString.size());
     QNetworkRequest request = construcCameraRequest(postDataSize);
     manager->post(request,jSonString);
@@ -237,6 +256,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     QString str(bts);
     static bool cameraReady = false;
     static int buildid = 20;
+    static bool once = false;
     QJsonDocument jdocument = QJsonDocument::fromJson(str.toUtf8());
     QJsonObject jobject = jdocument.object();
     QJsonValue jResult = jobject.value(QString("result"));
@@ -258,7 +278,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 << methods.key(id) << reply->url() << "\n"<< str
                 << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-*/
+    */
     if(!jError.isUndefined()){
         //qDebug() << "+++++++++++++++++++++++++++++++ ERROR ++++++++++++++++++++++++++++++++++++++++";
         //connected = false;
@@ -273,8 +293,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
     if(reply->errorString() == QString("Network unreachable")){
         qDebug() << methods.key(id) <<"CATCH ERROR: Network unreachable";
-        //initActEnabelMethods();
-        initActEnabelMethodsTimer->start();
+        if(getEventTimerPeriodic->isActive())
+            getEventTimerPeriodic->stop();
+        if(!initialEventTimer->isActive())
+            initialEventTimer->start();
         connected = false;
         connecting = false;
         _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_WATING);
@@ -300,21 +322,50 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //connected = false;
         stopRecMode();
         stopLiveview();
-        initActEnabelMethodsTimer->start();
+        initialEventTimer->start();
         //connecting = false;
     }
 
     if(reply->errorString() == QString("Socket operation timed out")){
         qDebug() << methods.key(id) <<"CATCH ERROR: Socket operation timed out";
+        if(getEventTimerPeriodic->isActive())
+            getEventTimerPeriodic->stop();
+        if(!initialEventTimer->isActive())
+            initialEventTimer->start();
+        connected = false;
+        connecting = false;
+        _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_WATING);
+    }
+
+    if(reply->errorString() == QString("Host  not found")){
+        qDebug() << methods.key(id) <<"CATCH ERROR: Host  not found";
+        if(getEventTimerPeriodic->isActive())
+            getEventTimerPeriodic->stop();
+        if(!initialEventTimer->isActive())
+            initialEventTimer->start();
+        connected = false;
+        connecting = false;
+        _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_WATING);
+    }
+
+    if(reply->errorString().contains("is unknown")){
+        qDebug() << methods.key(id) <<"CATCH ERROR: Protocol \"\" is unknown";
+        if(getEventTimerPeriodic->isActive())
+            getEventTimerPeriodic->stop();
+        if(!initialEventTimer->isActive())
+            initialEventTimer->start();
         connected = false;
         connecting = false;
         _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_WATING);
     }
 
 
+
+
+
     if(methods.key(id) == "actEnableMethods"){
         connecting = true;
-        initActEnabelMethodsTimer->stop();
+        initialEventTimer->stop();
     }
     //qDebug()<<"\nQJsonValue of jResult: "<< jResult << jResult.type();
     //qDebug()<< "\nQJsonValue of jid: " << jid << jid.type();
@@ -355,13 +406,28 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //qDebug() << "jobject2" << jobject2.toVariantMap() << "i: " << i ;
         //qDebug() << "jobject2.keys()" << jobject2.keys();
         if(jobject2.value(QString("type")) ==(QString("availableApiList"))){
-             QVariantList vlist = jobject2.value("names").toArray().toVariantList();
+
+            availableMetods.clear();
+            QVariantList vlist = jobject2.value("names").toArray().toVariantList();
+
              foreach (QVariant var, vlist) {
+                 availableMetods.append(var.toString());
+
                  if(!methods.keys().contains(var.toString())){
                      methods[var.toString()] = buildid;
                      buildid++;
                  }
                  LOG_RESULT_DEBUG << "names: " << var.toString() << "id: "<<  methods.value(var.toString());
+             }
+             //qDebug() << "availableMetods: " << availableMetods << "\n";
+             if(id == 66 && availableMetods.isEmpty()){
+                 once = true;
+                 return;
+             }
+             if(id == 66 && !availableMetods.isEmpty()){
+                 initialEventTimer->stop();
+                 initActEnabelMethods();
+                 return;
              }
              _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTET);
         }
@@ -519,7 +585,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 emit publishCurrentWhiteBalanceModes(currentWhiteBalanceMode);
                 getAvailableWhiteBalance(methods.value("getAvailableWhiteBalance"));
                 connected = true;
-                periodicGetEventTimer->start();
+                //getEventTimerPeriodic->start();
             }
         }
         if(jobject2.value(QString("type")) == (QString("touchAFPosition"))){
@@ -545,8 +611,11 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 if(methods.value("startRecMode") == id){
                     qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                                "\nstartRecMode finished";
+                    //commandFabrikMethod("setCameraFunction",methods.value("setCameraFunction"),"Content Transfer");
+                    //commandFabrikMethod("setCameraFunction",methods.value("setCameraFunction"),"Remote Shooting");
                     _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
-                    getEventTimer->start();
+                    //getEventTimerSingleshot->start();
+                    getEventTimerPeriodic->start();
                     connected = true;
                 }
                 break;
@@ -589,7 +658,33 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                         //once = false;
                     }
                     if(id==2){
-                        startRecMode();
+                        /*
+                        if(deviceFriendlyName == "NEX-6" ||
+                                deviceFriendlyName == "A7" ||
+                                deviceFriendlyName == "A7R" ||
+                                deviceFriendlyName == "NEX-5" ||
+                                deviceFriendlyName == "NEX-5R" ||
+                                deviceFriendlyName == "NEX-5T" ||
+                                deviceFriendlyName == "A5000" ||
+                                deviceFriendlyName == "A6000" ||
+                                deviceFriendlyName == "DSC-HX60" ||
+                                deviceFriendlyName == "DSC-HX400" ||
+                                availableMetods.contains("startRecMode")){
+                            startRecMode();
+                        }*/
+
+                        if(availableMetods.contains("startRecMode")){
+                            startRecMode();
+                        }
+                        else{
+                            _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
+                            //getEventTimerSingleshot->setInterval(1000);
+                            //getEventTimerSingleshot->start();
+                            //commandFabrikMethod("setCameraFunction",99,"Content Transfer");
+                            getEventTimerPeriodic->start();
+                            commandFabrikMethod("setCameraFunction",99,"Remote Shooting");
+                            connected = true;
+                        }
                     }
                 }
                 break;
@@ -739,6 +834,7 @@ void Remote::actTakePicture(int id){
 }
 
 void Remote::startRecMode(int id){
+    qDebug() << "startRecMode CALLED";
     commandFabrikMethod("startRecMode",id);
 }
 
@@ -746,7 +842,7 @@ void Remote::stopRecMode(int id){
     commandFabrikMethod("stopRecMode",id);
     connected = false;
     connecting = false;
-    periodicGetEventTimer->stop();
+    getEventTimerPeriodic->stop();
     _networkConnection->notifyConnectionStatus();
 }
 

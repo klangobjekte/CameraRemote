@@ -84,8 +84,9 @@ public:
     explicit Remote(NetworkConnection *networkConnection, QObject *parent = 0);
     ~Remote();
 
+    void setDevice(QString device);
     bool getConnectionStatus();
-    void initialCommands();
+
 
     void actEnabelMethods(QByteArray key);
     void commandFabrikMethod(QByteArray command, int id, QByteArray params = QByteArray());
@@ -205,6 +206,7 @@ signals:
 
 
 public slots:
+    void initialEvent();
     void initActEnabelMethods();
     void setConnectionStatus(int status = _CONNECTIONSTATE_DISCONNECTED, QString message = QString());
     void startDevice();
@@ -232,16 +234,17 @@ private:
     QNetworkRequest constructAccessControlRequest(QByteArray postDataSize);
     QNetworkReply *streamReply;
     QTimer *timer;
-    QTimer *getEventTimer;
-    QTimer *periodicGetEventTimer;
-    QTimer *startRecordModeTimer;
-    QTimer *initActEnabelMethodsTimer;
+    QTimer *getEventTimerSingleshot;
+    QTimer *getEventTimerPeriodic;
+
+    QTimer *initialEventTimer;
     QByteArray inputStream;
     QByteArray imageArray;
     QString currentWhiteBalanceMode;
 
     QMap<QString,int> methods;
-    //QUrl url;
+    QStringList availableMetods;
+    QString deviceFriendlyName;
     QString liveViewRequest;
     QString previePicName;
     bool _loadpreviewpic;
