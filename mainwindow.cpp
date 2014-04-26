@@ -13,7 +13,7 @@
 #include "timelapse.h"
 #include "cameraremotedefinitions.h"
 #include "QGraphicsOpacityEffect"
-
+#include <QDesktopWidget>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -23,6 +23,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->portLineEdit->setVisible(false);
     ui->protLabel->setVisible(false);
+
+    QDesktopWidget *desktopwidget = QApplication::desktop();
+    qDebug() << "sreenGeometry:     " << desktopwidget->screenGeometry();
+    qDebug() << "availableGeometry: " << desktopwidget->availableGeometry();
+    QRect geo = desktopwidget->availableGeometry();
+    this->setMaximumWidth(geo.width());
+    this->setMaximumHeight(geo.height());
+    this->setGeometry(geo);
 
 
 
@@ -36,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QGraphicsOpacityEffect * zoomComboBoxeffect = new QGraphicsOpacityEffect(ui->zoomComboBox);
 
 
-    float opacity = 0.5;
+    float opacity = 0.9;
     whiteBalanceComboBoxeffect->setOpacity(opacity);
     fNumberComboBoxeffect->setOpacity(opacity);
     shutterSpeedComboBoxeffect->setOpacity(opacity);

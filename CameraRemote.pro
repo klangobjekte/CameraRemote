@@ -30,3 +30,6 @@ HEADERS  += mainwindow.h \
     controllstation.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    cameraremoteres.qrc

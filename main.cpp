@@ -7,8 +7,8 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     //QFile file(qsspath + "default.qss");
-    QFile file("./default.qss");
-    file.open(QFile::ReadWrite);
+    QFile file(":default.qss");
+    file.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(file.readAll());
     app.setStyleSheet(styleSheet);
 

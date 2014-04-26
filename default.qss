@@ -1,0 +1,94 @@
+QGraphicsView
+{
+    background-color: #888888;
+}
+
+
+
+
+QPushButton:checked
+{
+
+     	/*border-style: inset;*/
+}
+
+QPushButton
+{
+	/*border: 2px solid #3a3478;*/     	
+	/*border-style: inset;*/
+    	font-size: 10px;
+	color:#cbcbcb;
+        /*background-color: #888888;*/
+
+}
+
+
+
+
+
+
+
+QComboBox {
+    font-family:  "Lucida Grande", Lucida, Verdana, sans-serif;
+    /*border: 0px solid #D3D3D3;*/
+    /*border-radius: 3px;*/
+    /*background-color: #888888;*/
+    background: transparent;
+    color: #FFFFFF;
+    font-size: 10pt;
+    /*padding: 2px;*/
+}
+
+QComboBox:hover {
+    font-family:  "Lucida Grande", Lucida, Verdana, sans-serif;
+    border: 0px solid #D3D3D3;
+    border-radius: 3px;
+    background-color: #888888;
+    color: #000000;
+    font-size: 10pt;
+    padding: 2px;
+}
+
+/* Remove the arrow */
+QComboBox::drop-down {
+    border: 0px solid #D3D3D3;
+    color: #000000;
+}
+
+QComboBox::drop-down:pressed {
+    border: 1px solid #D3D3D3;
+    color: #000000;
+}
+
+
+/* forQComboBox */
+QListView{
+    background: #444444;
+     color: #000000;
+     show-decoration-selected: 1; /* make the selection span the entire width of the view */
+
+}
+
+ QListView::item:alternate {
+     background: #EEEEEE;
+ }
+
+ QListView::item:selected {
+     border: 1px solid #6a6ea9;
+ }
+
+ QListView::item:selected:!active {
+     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                 stop: 0 #ABAFE5, stop: 1 #8588B2);
+ }
+
+ QListView::item:selected:active {
+     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                 stop: 0 #6a6ea9, stop: 1 #888dd9);
+ }
+
+ QListView::item:hover {
+     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                 stop: 0 #FAFBFE, stop: 1 #DCDEF1);
+ }
+
