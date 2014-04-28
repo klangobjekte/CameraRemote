@@ -4,30 +4,6 @@ QGraphicsView
 }
 
 
-
-
-QPushButton:checked
-{
-
-     	/*border-style: inset;*/
-}
-
-QPushButton
-{
-	/*border: 2px solid #3a3478;*/     	
-	/*border-style: inset;*/
-    	font-size: 10px;
-	color:#cbcbcb;
-        /*background-color: #888888;*/
-
-}
-
-
-
-
-
-
-
 QComboBox {
     font-family:  "Lucida Grande", Lucida, Verdana, sans-serif;
     /*border: 0px solid #D3D3D3;*/

@@ -32,8 +32,6 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setMaximumHeight(geo.height());
     this->setGeometry(geo);
 
-
-
     QGraphicsOpacityEffect * whiteBalanceComboBoxeffect = new QGraphicsOpacityEffect(ui->whiteBalanceComboBox);
     QGraphicsOpacityEffect * fNumberComboBoxeffect = new QGraphicsOpacityEffect(ui->fNumberComboBox);
     QGraphicsOpacityEffect * shutterSpeedComboBoxeffect = new QGraphicsOpacityEffect(ui->shutterSpeedComboBox);
@@ -157,6 +155,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     remote->setDevice(friendlyName);
     remote->initialEvent();
+
+
+    this->resize(geo.width(),geo.height());
+    //ui->centralWidget->resize(geo.width(),geo.height());
+    ui->toolBar->setVisible(false);
+    ui->mainToolBar->setVisible(false);
+
+
+
 }
 
 MainWindow::~MainWindow()
@@ -436,12 +443,10 @@ void MainWindow::addPostViewImageSizeComboBoxItems(QStringList items){
 
 void MainWindow::isoSpeedRateComboBox_setCurrentText(QString text){
     //ui->isoSpeedRateComboBox
-
 }
 
 void MainWindow::shutterSpeedComboBox_setCurrentText(QString text){
     //ui->shutterSpeedComboBox
-
 }
 
 void MainWindow::fNumberComboBox_setCurrentText(QString text){
