@@ -41,7 +41,6 @@ private slots:
     void on_intervalTimeEdit_timeChanged(const QTime &time);
     void on_chooseFolderPushButton_clicked();
     void on_urlLineEdit_textEdited(QString url);
-    void on_portLineEdit_textEdited(QString port);
     void on_isoSpeedRateComboBox_activated(QString text);
     void on_shutterSpeedComboBox_activated(QString text);
     void on_fNumberComboBox_activated(QString text);

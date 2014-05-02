@@ -21,8 +21,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->portLineEdit->setVisible(false);
-    ui->protLabel->setVisible(false);
+    //ui->portLineEdit->setVisible(false);
+    //ui->protLabel->setVisible(false);
 
     QDesktopWidget *desktopwidget = QApplication::desktop();
     qDebug() << "sreenGeometry:     " << desktopwidget->screenGeometry();
@@ -69,8 +69,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(networkConnection,SIGNAL(publishUrl(QString)),
             ui->urlLineEdit,SLOT(setText(QString)));
-    connect(networkConnection,SIGNAL(publishPort(QString)),
-            ui->portLineEdit,SLOT(setText(QString)));
     connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
             this,SLOT(onCameraStatusChanged(int,QString)));
     networkConnection->init();
@@ -294,10 +292,7 @@ void MainWindow::on_urlLineEdit_textEdited(QString url){
 
 }
 
-void MainWindow::on_portLineEdit_textEdited(QString port){
-    networkConnection->setPort(port);
-    //ui->urlLineEdit->setText(networkConnection->getUrl().toString());
-}
+
 
 void MainWindow::on_isoSpeedRateComboBox_activated(QString text){
     QByteArray index;
@@ -533,7 +528,7 @@ void MainWindow::drawLiveView(QByteArray bytes){
         QImage img;
         img.loadFromData(bytes);
         QSize size = img.size();
-        QSize newSize = size/1.30;
+        QSize newSize = size/2;
         //QSize newSize = size;
         img = img.scaled(newSize);
         QPixmap pixmap = QPixmap::fromImage(img);
@@ -552,8 +547,8 @@ void MainWindow::readSettings()
 
 
     QSettings settings("KlangObjekte.", "CameraRemote");
-    networkConnection->setUrl(settings.value("url",QString("http://127.0.0.1")).toString());
-    networkConnection->setPort(settings.value("port",8080).toString());
+    //networkConnection->setUrl(settings.value("url",QString("http://127.0.0.1")).toString());
+    //networkConnection->setPort(settings.value("port",8080).toString());
     friendlyName = settings.value("friendlyName",QString()).toString();
     previewPath = settings.value("previewPath").toString();
     ui->loadPreviewPicCheckBox->setChecked(settings.value("loadpreviePic",true).toBool());

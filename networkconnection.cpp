@@ -61,7 +61,9 @@ NetworkConnection::NetworkConnection()
     }
 
     if (activeConfigs.count() > 0){
-        Q_ASSERT(networkConfigurationManager->isOnline());
+        //Q_ASSERT(networkConfigurationManager->isOnline());
+        //qDebug() << networkConfigurationManager->isOnline();
+        //Q_ASSERT(networkConfigurationManager->isOnline());
         foreach (QNetworkConfiguration config, activeConfigs) {
             qDebug()<< config.bearerTypeName() << config.name();
             _availableNetworks.append(config.name());
@@ -70,10 +72,8 @@ NetworkConnection::NetworkConnection()
         }
 
     }
-    else
-    {
-        Q_ASSERT(!networkConfigurationManager->isOnline());
-    }
+
+
     downloadManager = new QNetworkAccessManager;
     connect(downloadManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 

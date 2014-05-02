@@ -290,6 +290,16 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     else
         qDebug() << methods.key(id)<<" " <<"REPLY ERROR: " << reply->errorString();
 
+    if(reply->errorString() == QString("The specified configuration cannot be used.")){
+        qDebug() << methods.key(id) <<"CATCH ERROR: Network unreachable";
+        if(getEventTimerPeriodic->isActive())
+            getEventTimerPeriodic->stop();
+        if(!initialEventTimer->isActive())
+            initialEventTimer->start();
+        connected = false;
+        connecting = false;
+        _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_WATING);
+    }
 
     if(reply->errorString() == QString("Network unreachable")){
         qDebug() << methods.key(id) <<"CATCH ERROR: Network unreachable";
