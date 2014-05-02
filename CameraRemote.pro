@@ -19,7 +19,11 @@ SOURCES += main.cpp\
     ssdpclient.cpp \
     timelapse.cpp \
     networkconnection.cpp \
-    controllstation.cpp
+    controllstation.cpp \
+    QsLog.cpp \
+    QsLogDest.cpp \
+    QsLogDestConsole.cpp \
+    QsLogDestFile.cpp
 
 HEADERS  += mainwindow.h \
     remote.h \
@@ -27,7 +31,12 @@ HEADERS  += mainwindow.h \
     timelapse.h \
     networkconnection.h \
     cameraremotedefinitions.h \
-    controllstation.h
+    controllstation.h \
+    QsLog.h \
+    QsLogDest.h \
+    QsLogLevel.h \
+    QsLogDestConsole.h \
+    QsLogDestFile.h
 
 FORMS    += mainwindow.ui
 
