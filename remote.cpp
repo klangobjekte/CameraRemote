@@ -12,9 +12,9 @@
 
 #include <QTimer>
 #include <QFile>
-#include <QSslKey>
+//#include <QSslKey>
 
-#include <QCryptographicHash>
+//#include <QCryptographicHash>
 #include "networkconnection.h"
 
 //#define LOG_RESULT
