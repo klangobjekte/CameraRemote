@@ -14,23 +14,84 @@
 #include "cameraremotedefinitions.h"
 #include "QGraphicsOpacityEffect"
 #include <QDesktopWidget>
+#include <QButtonGroup>
+
 
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
-    //ui->portLineEdit->setVisible(false);
-    //ui->protLabel->setVisible(false);
+        ui->setupUi(this);
+    buttonGroup = new QButtonGroup(this);
+    buttonGroup->addButton(ui->pushButton_1);
+    buttonGroup->addButton(ui->pushButton_2);
+    buttonGroup->addButton(ui->pushButton_3);
+
+
+    buttonGroup->setId(ui->pushButton_1,0);
+    buttonGroup->setId(ui->pushButton_2,1);
+    buttonGroup->setId(ui->pushButton_3,2);
+
+    connect(buttonGroup,SIGNAL(buttonClicked(int)),
+            ui->stackedWidget,SLOT(setCurrentIndex(int)));
+
+    qDebug() << buttonGroup->id(ui->pushButton_1);
+    qDebug() << buttonGroup->id(ui->pushButton_2);
 
     QDesktopWidget *desktopwidget = QApplication::desktop();
     qDebug() << "sreenGeometry:     " << desktopwidget->screenGeometry();
     qDebug() << "availableGeometry: " << desktopwidget->availableGeometry();
     QRect geo = desktopwidget->availableGeometry();
-    this->setMaximumWidth(geo.width());
-    this->setMaximumHeight(geo.height());
-    this->setGeometry(geo);
+//#ifndef Q_OS_IOS && Q_OS_ANDROID
+//    geo.setWidth(geo.width()/2);
+//#endif
+
+
+#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
+  geo.setWidth(geo.width()/2);
+#endif
+
+
+
+    this->resize(geo.size());
+
+
+
+
+
+    QSize innerSize;
+    innerSize.setWidth(geo.width()-geo.width()/20);
+    innerSize.setHeight(geo.height());
+
+    this->resize(geo.size());
+    ui->centralWidget->resize(geo.size());
+    ui->centralGridLayoutWidget->resize(innerSize);
+
+
+    //ui->stackedWidget->resize(innerSize);
+    //ui->viewGridLayoutWidget->resize(innerSize.width(),innerSize.height()-10);
+    //ui->listView->resize(innerSize.width(),innerSize.height()/10);
+//ui->stackedWidget->resize();
+    ui->page->resize(innerSize.width(),innerSize.height()/10*9);
+    ui->viewGridLayoutWidget->resize(innerSize.width(),innerSize.height()/10*9);
+
+
+   //ui->centralGridLayoutWidget->resize(innerSize.width(),innerSize.height()/3);
+   ui->controlGridLayoutWidget->resize(ui->viewGridLayoutWidget->width(), ui->viewGridLayoutWidget->height()/2);
+
+   //ui->previewGraphicsView->resize(innerSize);
+   //ui->LiveviewGraphicsView->resize(innerSize);
+
+   ui->retranslateUi(this);
+
+
+
+    /*
+    //this->setMaximumWidth(geo.width());
+    //this->setMaximumHeight(geo.height());
+    //this->setGeometry(geo);
+    //this->setBaseSize(geo.width(),geo.height());
 
     QGraphicsOpacityEffect * whiteBalanceComboBoxeffect = new QGraphicsOpacityEffect(ui->whiteBalanceComboBox);
     QGraphicsOpacityEffect * fNumberComboBoxeffect = new QGraphicsOpacityEffect(ui->fNumberComboBox);
@@ -60,17 +121,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->postViewImageSizeComboBox->setGraphicsEffect(postViewImageSizeComboBoxeffect);
     ui->selfTimerComboBox->setGraphicsEffect(selfTimerComboBoxeffect);
     ui->zoomComboBox->setGraphicsEffect(zoomComboBoxeffect);
+    */
+
+
 
 
 
     //! [Create Object Connection to WiFi]
     networkConnection = new NetworkConnection;
 
-
     connect(networkConnection,SIGNAL(publishUrl(QString)),
             ui->urlLineEdit,SLOT(setText(QString)));
     connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
             this,SLOT(onCameraStatusChanged(int,QString)));
+    connect(networkConnection,SIGNAL(publishDeviceFound(QStringList)),
+            this,SLOT(addConfigurationComboBoxItems(QStringList)));
+
     networkConnection->init();
 
 
@@ -150,12 +216,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QStringList availableNetworks = networkConnection->getAvailableNetWorks();
     qDebug() << "availableNetworks: " << availableNetworks;
     ui->configurationComboBox->addItems(availableNetworks);
+    ui->configurationComboBox->setCurrentText(networkConnection->getActiveConfiguration().name());
 
     remote->setDevice(friendlyName);
     remote->initialEvent();
 
 
-    this->resize(geo.width(),geo.height());
+    //this->resize(geo.width(),geo.height());
     //ui->centralWidget->resize(geo.width(),geo.height());
     ui->toolBar->setVisible(false);
     ui->mainToolBar->setVisible(false);
@@ -232,8 +299,9 @@ void MainWindow::onCameraStatusChanged(int status,QString message){
     }
 }
 
-void MainWindow::on_configurationComboBox_currentIndexChanged(QString text){
+void MainWindow::on_configurationComboBox_activated(QString text){
     networkConnection->setActiveNetwork(text);
+    remote->setActiveNetworkConnection();
 }
 
 void MainWindow::on_startRecModePushButton_clicked(bool checked){
@@ -436,6 +504,15 @@ void MainWindow::addPostViewImageSizeComboBoxItems(QStringList items){
 }
 
 
+void MainWindow::addConfigurationComboBoxItems(QStringList items){
+    foreach (QString item, items) {
+        if(ui->configurationComboBox->findText(item) == -1){
+            ui->configurationComboBox->addItem(item);
+        }
+    }
+
+}
+
 void MainWindow::isoSpeedRateComboBox_setCurrentText(QString text){
     //ui->isoSpeedRateComboBox
 }
@@ -547,20 +624,20 @@ void MainWindow::readSettings()
 
 
     QSettings settings("KlangObjekte.", "CameraRemote");
-    //networkConnection->setUrl(settings.value("url",QString("http://127.0.0.1")).toString());
-    //networkConnection->setPort(settings.value("port",8080).toString());
+    networkConnection->setUrl(settings.value("url",QString("http://127.0.0.1")).toString());
+    networkConnection->setPort(settings.value("port",8080).toString());
     friendlyName = settings.value("friendlyName",QString()).toString();
     previewPath = settings.value("previewPath").toString();
     ui->loadPreviewPicCheckBox->setChecked(settings.value("loadpreviePic",true).toBool());
 
 
     QPoint pos = settings.value("pos", QPoint(200,200)).toPoint();
-    QSize size = settings.value("size", QSize(300, 200)).toSize();
+    //QSize size = settings.value("size", QSize(300, 200)).toSize();
     //! gibt geometry einProblem mit den Toolbars??
     //restoreGeometry(settings.value("geometry").toByteArray());
 
     restoreState(settings.value("state").toByteArray());
-    resize(size);
+    //resize(size);
     move(pos);
     //this->pos().setX(pos.x());
     //this->pos().setY(pos.y());
@@ -579,7 +656,7 @@ void MainWindow::writeSettings()
     settings.setValue("port",networkConnection->getUrl().port());
     settings.setValue("friendlyName",friendlyName);
     settings.setValue("pos", pos());
-    settings.setValue("size", size());
+    //settings.setValue("size", size());
     //! gibt geometry einProblem mit den Toolbars??
     //settings.setValue("geometry", saveGeometry());
     //! die Breite und Position der DockWindows!!

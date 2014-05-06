@@ -11,6 +11,7 @@ class QNetworkReply;
 class QGraphicsView;
 class QGraphicsScene;
 class QLabel;
+class QButtonGroup;
 //class QUrl;
 
 namespace Ui {
@@ -32,7 +33,7 @@ public slots:
 
 private slots:
     void closeEvent(QCloseEvent *event);
-    void on_configurationComboBox_currentIndexChanged(QString text);
+    void on_configurationComboBox_activated(QString text);
     void on_startRecModePushButton_clicked(bool checked);
     void on_takePicturePushButton_clicked();
     void on_startLiveViewPushButton_clicked(bool checked);
@@ -58,6 +59,7 @@ private slots:
     void addSelfTimerComboBoxItems(QStringList items);
     void addPostViewImageSizeComboBoxItems(QStringList items);
     void addZoomComboBoxItems(QStringList items);
+    void addConfigurationComboBoxItems(QStringList items);
 
 
     void isoSpeedRateComboBox_setCurrentText(QString text);
@@ -80,6 +82,7 @@ private:
     Remote *remote;
     Timelapse *timelapse;
     //QLabel *label;
+    QButtonGroup *buttonGroup;
     QGraphicsScene *previewScene;
     QGraphicsScene *liveviewScene;
     //QGraphicsView * view;

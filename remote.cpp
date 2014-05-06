@@ -14,17 +14,17 @@
 #include <QFile>
 //#include <QSslKey>
 
-//#include <QCryptographicHash>
+#include <QCryptographicHash>
 #include "networkconnection.h"
 
-//#define LOG_RESULT
+#define LOG_RESULT
 #ifdef LOG_RESULT
 #   define LOG_RESULT_DEBUG qDebug()
 #else
 #   define LOG_RESULT_DEBUG nullDebug()
 #endif
 
-//#define LOG_REQUEST
+#define LOG_REQUEST
 #ifdef LOG_REQUEST
 #   define LOG_REQUEST_DEBUG qDebug()
 #else
@@ -116,6 +116,12 @@ Remote::~Remote(){
     delete liveViewManager;
     delete picmanager;
     delete manager;
+}
+
+void Remote::setActiveNetworkConnection(){
+    manager->setConfiguration(_networkConnection->getActiveConfiguration());
+    picmanager->setConfiguration(_networkConnection->getActiveConfiguration());
+    liveViewManager->setConfiguration(_networkConnection->getActiveConfiguration());
 }
 
 void Remote::initialEvent(){
@@ -266,11 +272,6 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
     LOG_RESULT_DEBUG << "jError "<< jError;
     QJsonArray jErrorArray = jError.toArray();
-    //qDebug() << "jErrorArray size: " << jErrorArray.size();
-    for(int i = 0; i<jErrorArray.size();i++){
-
-    }
-
 
     double id = jid.toDouble();
     /*
@@ -284,14 +285,16 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //connected = false;
         //connecting = false;
     }
+    /*
     if(reply->errorString() == QString("Unknown error")){
         // everything is fine
     }
     else
         qDebug() << methods.key(id)<<" " <<"REPLY ERROR: " << reply->errorString();
+    */
 
     if(reply->errorString() == QString("The specified configuration cannot be used.")){
-        qDebug() << methods.key(id) <<"CATCH ERROR: Network unreachable";
+        qDebug() << methods.key(id) <<"CATCH ERROR: The specified configuration cannot be used";
         if(getEventTimerPeriodic->isActive())
             getEventTimerPeriodic->stop();
         if(!initialEventTimer->isActive())
@@ -322,7 +325,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //connecting = false;
     }
     if(jErrorArray.at(1) == QString("illegal argument")){
-        qDebug() << methods.key(id) <<"CATCH ERROR:  illegal request";
+        qDebug() << methods.key(id) <<"CATCH ERROR:  illegal argument";
         //connected = false;
         //connecting = false;
     }
@@ -757,7 +760,12 @@ void Remote::buildLiveViewPic(){
     if(!inputStream.isEmpty()){
 
         while(!found && offset<inputStream.length()-1 ){
+            //255,216
+#ifdef Q_OS_ANDROID
+            if(inputStream.at(offset) == 255  && inputStream.at(offset+1) == 216){
+#else
             if(inputStream.at(offset) == -1  && inputStream.at(offset+1) == -40){
+#endif
                 start = offset;
                 found = true;
             }
@@ -765,7 +773,12 @@ void Remote::buildLiveViewPic(){
         }
         found = false;
         while(!found && offset<inputStream.length()-1){
+            //255,217
+#ifdef Q_OS_ANDROID
+            if(inputStream.at(offset) == 255 && inputStream.at(offset+1) == 217){
+#else
             if(inputStream.at(offset) == -1 && inputStream.at(offset+1) == -39){
+#endif
                 end = offset;
                 found = true;
             }

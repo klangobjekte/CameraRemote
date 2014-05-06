@@ -20,6 +20,7 @@ class NetworkConnection : public QObject
 public:
     explicit NetworkConnection();
     ~NetworkConnection();
+    QNetworkConfigurationManager *getNetworkConfigurationManager();
     void init();
     void notifyConnectionStatus(int status = _CONNECTIONSTATE_DISCONNECTED ,QString message = QString());
     void setUrl(QString urlstring);
@@ -32,14 +33,13 @@ public:
 signals:
     void publishUrl(QString urlstring);
     void publishPort(QString port);
-    void publishAvailableNetworks(QStringList networks);
     void publishDeviceFound(QStringList data);
-    //void publishDeviceFound();
     void publishConnectionStatus(int status,QString message = QString());
 
 private slots:
     void readPendingDatagrams();
     void replyFinished(QNetworkReply *reply);
+    void onUpdateCompleted();
 
 private:
     void decodeDatagramm(QByteArray datagramm);

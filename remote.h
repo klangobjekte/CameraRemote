@@ -84,6 +84,7 @@ public:
     explicit Remote(NetworkConnection *networkConnection, QObject *parent = 0);
     ~Remote();
 
+    void setActiveNetworkConnection();
     void setDevice(QString device);
     bool getConnectionStatus();
 

@@ -50,28 +50,29 @@ NetworkConnection::NetworkConnection()
 
 
     QNetworkInterface *interface = new QNetworkInterface;
-    qDebug() << "interface->allAddresses(): "<< interface->allAddresses();
-
-    //QNetworkConfigurationManager networkConfigurationManager;
+    qDebug() << "\ninterface->allAddresses(): "<< interface->allAddresses();
     networkConfigurationManager = new QNetworkConfigurationManager;
     QList<QNetworkConfiguration> activeConfigs = networkConfigurationManager->allConfigurations();
-    qDebug() << "activeConfigs.count()"  << activeConfigs.count();
+    qDebug() << "\nactiveConfigs.count()"  << activeConfigs.count();
     if(activeConfigs.count() == 0){
         networkConfigurationManager->updateConfigurations();
     }
 
     if (activeConfigs.count() > 0){
-        //Q_ASSERT(networkConfigurationManager->isOnline());
-        //qDebug() << networkConfigurationManager->isOnline();
-        //Q_ASSERT(networkConfigurationManager->isOnline());
+        qDebug() << "Active Configurations: ";
         foreach (QNetworkConfiguration config, activeConfigs) {
-            qDebug()<< config.bearerTypeName() << config.name();
+            qDebug()<< config.bearerTypeName() << config.name() << config.bearerType();
             _availableNetworks.append(config.name());
-            if(config.name() == "en1")
+            if(config.name() == "en0"){
                activeConfiguration =  config;
+
+            }
         }
 
     }
+
+    connect(networkConfigurationManager,SIGNAL(updateCompleted()),
+            this,SLOT(onUpdateCompleted()));
 
 
     downloadManager = new QNetworkAccessManager;
@@ -85,12 +86,42 @@ NetworkConnection::~NetworkConnection(){
     delete networkConfigurationManager;
 }
 
+
+QNetworkConfigurationManager *NetworkConnection::getNetworkConfigurationManager(){
+    return networkConfigurationManager;
+}
+
 void NetworkConnection::init(){
+    networkConfigurationManager->updateConfigurations();
     emit publishConnectionStatus(_CONNECTIONSTATE_WATING);
+}
+
+
+void NetworkConnection::onUpdateCompleted(){
+    QList<QNetworkConfiguration> activeConfigs = networkConfigurationManager->allConfigurations();
+    _availableNetworks.clear();
+    foreach (QNetworkConfiguration config, activeConfigs) {
+         _availableNetworks.append(config.name());
+        if(config.name().contains("DIRECT-IDE")){
+           activeConfiguration =  config;
+           qDebug()<< "onUpdateCompleted: " << config.bearerTypeName() << config.name() << config.type();
+
+        }
+    }
+    publishDeviceFound(_availableNetworks);
+
 }
 
 void NetworkConnection::setActiveNetwork(QString networkName){
     _networkName = networkName;
+    QList<QNetworkConfiguration> activeConfigs = networkConfigurationManager->allConfigurations();
+    foreach (QNetworkConfiguration config, activeConfigs) {
+        if(config.name() == networkName){
+           activeConfiguration =  config;
+           qDebug()<< config.bearerTypeName() << config.name() << config.type();
+
+        }
+    }
 }
 
 void NetworkConnection::notifyConnectionStatus(int status,QString message){
@@ -100,6 +131,7 @@ void NetworkConnection::notifyConnectionStatus(int status,QString message){
 
 void NetworkConnection::readPendingDatagrams()
 {
+    qDebug() << "readPendingDatagrams: udpSocket->localAddress()" << udpSocket->localAddress();
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket->pendingDatagramSize());
@@ -107,7 +139,8 @@ void NetworkConnection::readPendingDatagrams()
         quint16 senderPort;
         udpSocket->readDatagram(datagram.data(), datagram.size(),
                                 &sender, &senderPort);
-        //qDebug() << "datagram: " << datagram;
+        qDebug() << "sender: " << sender;
+        qDebug() << "senderPort: " << senderPort;
         decodeDatagramm(datagram);
         if(httpresponse.value("NTS") == "ssdp:alive" &&
             httpresponse.value("NT") == "urn:schemas-sony-com:service:ScalarWebAPI:1"){
@@ -276,6 +309,7 @@ QStringList NetworkConnection::getAvailableNetWorks(){
 }
 
 QNetworkConfiguration NetworkConnection::getActiveConfiguration(){
+    qDebug() << "QNetworkConfiguration getActiveConfiguration" << activeConfiguration.name();
     return activeConfiguration;
 }
 
