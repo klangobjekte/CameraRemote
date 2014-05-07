@@ -50,7 +50,7 @@
        <property name="maximumSize">
         <size>
          <width>16777215</width>
-         <height>62</height>
+         <height>80</height>
         </size>
        </property>
        <property name="sizeIncrement">
@@ -493,10 +493,6 @@
           </item>
          </layout>
         </widget>
-        <zorder>viewGridLayoutWidget</zorder>
-        <zorder>controlGridLayoutWidget</zorder>
-        <zorder>pushButton_1</zorder>
-        <zorder>pushButton_1</zorder>
        </widget>
        <widget class="QWidget" name="page_2">
         <widget class="QWidget" name="settingsGridLayoutWidget">
@@ -757,6 +753,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>80</height>
+        </size>
+       </property>
        <property name="text">
         <string>Page 2</string>
        </property>
@@ -772,6 +774,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>80</height>
+        </size>
        </property>
        <property name="text">
         <string>Page 3</string>

@@ -64,17 +64,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QSize innerSize;
     innerSize.setWidth(geo.width()-geo.width()/20);
-    innerSize.setHeight(geo.height()-geo.height()/20);
+    innerSize.setHeight(geo.height()-geo.height()/10);
 
     this->resize(geo.size());
     ui->centralWidget->resize(geo.size());
     ui->centralGridLayoutWidget->resize(innerSize);
 
-
-    //ui->stackedWidget->resize(innerSize);
-    //ui->viewGridLayoutWidget->resize(innerSize.width(),innerSize.height()-10);
-    //ui->listView->resize(innerSize.width(),innerSize.height()/10);
-//ui->stackedWidget->resize();
     ui->page->resize(innerSize.width(),innerSize.height()/10*9);
     ui->viewGridLayoutWidget->resize(innerSize.width(),innerSize.height()/10*9);
 
