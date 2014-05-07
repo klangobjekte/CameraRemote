@@ -78,79 +78,8 @@ MainWindow::MainWindow(QWidget *parent) :
    ui->controlGridLayoutWidget->resize(ui->viewGridLayoutWidget->width() -ui->viewGridLayoutWidget->width()/20, ui->viewGridLayoutWidget->height()/2 - ui->viewGridLayoutWidget->height()/25);
    ui->settingsGridLayoutWidget->resize(ui->viewGridLayoutWidget->width() -ui->viewGridLayoutWidget->width()/20, ui->viewGridLayoutWidget->height()/2 - ui->viewGridLayoutWidget->height()/25);
 
-   //ui->previewGraphicsView->resize(innerSize);
-   //ui->LiveviewGraphicsView->resize(innerSize);
 
 
-   //setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-   //setParent(0); // Create TopLevel-Widget
-   //setAttribute(Qt::WA_NoSystemBackground, true);
-   //setAttribute(Qt::WA_TranslucentBackground, true);
-   //setAttribute(Qt::WA_PaintOnScreen); // as pointed by Caveman (thanks!)
-//ui->controlGridLayoutWidget
-/*
-   ui->shutterSpeedComboBox->setWindowOpacity(0.8);
-
-   ui->fNumberComboBox->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-   ui->fNumberComboBox->setAttribute(Qt::WA_NoSystemBackground, true);
-   ui->fNumberComboBox->setAttribute(Qt::WA_TranslucentBackground, true);
-   ui->fNumberComboBox->setAttribute(Qt::WA_PaintOnScreen, true);
-
-   ui->postViewImageSizeComboBox->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-   ui->postViewImageSizeComboBox->setAttribute(Qt::WA_NoSystemBackground, true);
-   ui->postViewImageSizeComboBox->setAttribute(Qt::WA_TranslucentBackground, true);
-   ui->postViewImageSizeComboBox->setAttribute(Qt::WA_PaintOnScreen, true);
-
-   ui->selfTimerComboBox->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-   ui->selfTimerComboBox->setAttribute(Qt::WA_NoSystemBackground, true);
-   ui->selfTimerComboBox->setAttribute(Qt::WA_TranslucentBackground, true);
-   ui->selfTimerComboBox->setAttribute(Qt::WA_PaintOnScreen, true);
-
-   Qt::WA_TranslucentBackground attribute
-   ui->takePicturePushButton->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-   ui->takePicturePushButton->setAttribute(Qt::WA_NoSystemBackground, true);
-   ui->takePicturePushButton->setAttribute(Qt::WA_TranslucentBackground, true);
-   ui->takePicturePushButton->setAttribute(Qt::WA_PaintOnScreen, true);
-
-   //ui->retranslateUi(this);
-
-
-
-
-    //this->setMaximumWidth(geo.width());
-    //this->setMaximumHeight(geo.height());
-    //this->setGeometry(geo);
-    //this->setBaseSize(geo.width(),geo.height());
-
-    QGraphicsOpacityEffect * whiteBalanceComboBoxeffect = new QGraphicsOpacityEffect(ui->whiteBalanceComboBox);
-    QGraphicsOpacityEffect * fNumberComboBoxeffect = new QGraphicsOpacityEffect(ui->fNumberComboBox);
-    QGraphicsOpacityEffect * shutterSpeedComboBoxeffect = new QGraphicsOpacityEffect(ui->shutterSpeedComboBox);
-    QGraphicsOpacityEffect * isoSpeedRateComboBoxeffect = new QGraphicsOpacityEffect(ui->isoSpeedRateComboBox);
-    QGraphicsOpacityEffect * exposureModeComboBoxeffect = new QGraphicsOpacityEffect(ui->exposureModeComboBox);
-    QGraphicsOpacityEffect * postViewImageSizeComboBoxeffect = new QGraphicsOpacityEffect(ui->postViewImageSizeComboBox);
-    QGraphicsOpacityEffect * selfTimerComboBoxeffect = new QGraphicsOpacityEffect(ui->selfTimerComboBox);
-    QGraphicsOpacityEffect * zoomComboBoxeffect = new QGraphicsOpacityEffect(ui->zoomComboBox);
-
-
-    float opacity = 0.9;
-    whiteBalanceComboBoxeffect->setOpacity(opacity);
-    fNumberComboBoxeffect->setOpacity(opacity);
-    shutterSpeedComboBoxeffect->setOpacity(opacity);
-    isoSpeedRateComboBoxeffect->setOpacity(opacity);
-    exposureModeComboBoxeffect->setOpacity(opacity);
-    postViewImageSizeComboBoxeffect->setOpacity(opacity);
-    selfTimerComboBoxeffect->setOpacity(opacity);
-    zoomComboBoxeffect->setOpacity(opacity);
-
-    ui->whiteBalanceComboBox->setGraphicsEffect(whiteBalanceComboBoxeffect);
-    ui->fNumberComboBox->setGraphicsEffect(fNumberComboBoxeffect);
-    ui->shutterSpeedComboBox->setGraphicsEffect(shutterSpeedComboBoxeffect);
-    ui->isoSpeedRateComboBox->setGraphicsEffect(isoSpeedRateComboBoxeffect);
-    ui->exposureModeComboBox->setGraphicsEffect(exposureModeComboBoxeffect);
-    ui->postViewImageSizeComboBox->setGraphicsEffect(postViewImageSizeComboBoxeffect);
-    ui->selfTimerComboBox->setGraphicsEffect(selfTimerComboBoxeffect);
-    ui->zoomComboBox->setGraphicsEffect(zoomComboBoxeffect);
-    */
 
 
 
