@@ -22,7 +22,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-        ui->setupUi(this);
+
+    setWindowFlags(Qt::FramelessWindowHint);
+    ui->setupUi(this);
     buttonGroup = new QButtonGroup(this);
     buttonGroup->addButton(ui->pushButton_1);
     buttonGroup->addButton(ui->pushButton_2);
@@ -62,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QSize innerSize;
     innerSize.setWidth(geo.width()-geo.width()/20);
-    innerSize.setHeight(geo.height());
+    innerSize.setHeight(geo.height()-geo.height()/20);
 
     this->resize(geo.size());
     ui->centralWidget->resize(geo.size());
@@ -78,16 +80,48 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
    //ui->centralGridLayoutWidget->resize(innerSize.width(),innerSize.height()/3);
-   ui->controlGridLayoutWidget->resize(ui->viewGridLayoutWidget->width(), ui->viewGridLayoutWidget->height()/2);
+   ui->controlGridLayoutWidget->resize(ui->viewGridLayoutWidget->width() -ui->viewGridLayoutWidget->width()/20, ui->viewGridLayoutWidget->height()/2 - ui->viewGridLayoutWidget->height()/25);
+   ui->settingsGridLayoutWidget->resize(ui->viewGridLayoutWidget->width() -ui->viewGridLayoutWidget->width()/20, ui->viewGridLayoutWidget->height()/2 - ui->viewGridLayoutWidget->height()/25);
 
    //ui->previewGraphicsView->resize(innerSize);
    //ui->LiveviewGraphicsView->resize(innerSize);
 
-   ui->retranslateUi(this);
+
+   //setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+   //setParent(0); // Create TopLevel-Widget
+   //setAttribute(Qt::WA_NoSystemBackground, true);
+   //setAttribute(Qt::WA_TranslucentBackground, true);
+   //setAttribute(Qt::WA_PaintOnScreen); // as pointed by Caveman (thanks!)
+//ui->controlGridLayoutWidget
+/*
+   ui->shutterSpeedComboBox->setWindowOpacity(0.8);
+
+   ui->fNumberComboBox->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+   ui->fNumberComboBox->setAttribute(Qt::WA_NoSystemBackground, true);
+   ui->fNumberComboBox->setAttribute(Qt::WA_TranslucentBackground, true);
+   ui->fNumberComboBox->setAttribute(Qt::WA_PaintOnScreen, true);
+
+   ui->postViewImageSizeComboBox->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+   ui->postViewImageSizeComboBox->setAttribute(Qt::WA_NoSystemBackground, true);
+   ui->postViewImageSizeComboBox->setAttribute(Qt::WA_TranslucentBackground, true);
+   ui->postViewImageSizeComboBox->setAttribute(Qt::WA_PaintOnScreen, true);
+
+   ui->selfTimerComboBox->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+   ui->selfTimerComboBox->setAttribute(Qt::WA_NoSystemBackground, true);
+   ui->selfTimerComboBox->setAttribute(Qt::WA_TranslucentBackground, true);
+   ui->selfTimerComboBox->setAttribute(Qt::WA_PaintOnScreen, true);
+
+   Qt::WA_TranslucentBackground attribute
+   ui->takePicturePushButton->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+   ui->takePicturePushButton->setAttribute(Qt::WA_NoSystemBackground, true);
+   ui->takePicturePushButton->setAttribute(Qt::WA_TranslucentBackground, true);
+   ui->takePicturePushButton->setAttribute(Qt::WA_PaintOnScreen, true);
+
+   //ui->retranslateUi(this);
 
 
 
-    /*
+
     //this->setMaximumWidth(geo.width());
     //this->setMaximumHeight(geo.height());
     //this->setGeometry(geo);
