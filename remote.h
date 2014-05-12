@@ -176,33 +176,43 @@ signals:
 
     void publishStartLiveView(QNetworkReply* reply,QString previePicName);
     void publishLiveViewBytes(QByteArray bytes);
+    void publishLiveViewStatus(bool status);
 
     void publishAvailableIsoSpeedRates(QStringList speedRates);
-    void publishAvailableFNumber(QStringList fNumber);
-    void publishAvailableShutterSpeed(QStringList shutterSpeed);
-    void publishAvailableWhiteBalanceModes(QStringList whiteBalanceModes);
-    void publishAvailableExposureModes(QStringList exposureModes);
-
-    void publishCurrentFNumber(QString result);
     void publishCurrentIsoSpeedRates(QString result);
+
+    void publishAvailableFNumber(QStringList fNumber);
+    void publishCurrentFNumber(QString result);
+
+    void publishAvailableShutterSpeed(QStringList shutterSpeed);
     void publishCurrentShutterSpeed(QString result);
+
+    void publishAvailableWhiteBalanceModes(QStringList whiteBalanceModes);
     void publishCurrentWhiteBalanceModes(QString result);
-    void publishCurrentExposureMode(QString result);
-    void publishLiveViewStatus(bool status);
 
     void publishAvailablePostviewImageSizeCandidates(QStringList result);
     void publishCurrentPostviewImageSize(QString result);
+
     void publishAvailablselfTimerCandidates(QStringList result);
     void publishCurrentSelfTimer(QString result);
+
     void publishAvailableShootModeCandidates(QStringList result);
     void publishCurrentShootMode(QString result);
+
+    void publishAvailableExposureModes(QStringList exposureModes);
+    void publishCurrentExposureMode(QString result);
     void publishAvailableExposureCompensation(QStringList result);
     void publishCurrentExposureCompensation(QString result);
+
     void publishAvailableFlashModeCandidates(QStringList result);
     void publishCurrentFlashMode(QString result);
+
     void publishCurrentProgramShift(bool result);
+
     void publishCurrentTouchCoordinates(QStringList resutl);
     void publishTouchAFPositionSet(bool result);
+
+    void publishZoomPosition(int pos);
 
 
 

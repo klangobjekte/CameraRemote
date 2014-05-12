@@ -15,73 +15,107 @@
 #include "QGraphicsOpacityEffect"
 #include <QDesktopWidget>
 #include <QButtonGroup>
+#include <QScreen>
+#include <QTimer>
+//#include <QStandardPaths>
+#include <QMouseEvent>
+#include <QPoint>
+#include "iostream"
+#include "iomanip"
 
+using namespace std;
 
+#define LOG_MAINWINDOW
+#ifdef LOG_MAINWINDOW
+#   define LOG_MAINWINDOW_DEBUG qDebug()
+#else
+#   define LOG_MAINWINDOW_DEBUG nullDebug()
+#endif
+
+#define LOG_SCREENDESIGN
+#ifdef LOG_SCREENDESIGN
+#   define LOG_SCREENDESIGN_DEBUG qDebug()
+#else
+#   define LOG_SCREENDESIGN_DEBUG nullDebug()
+#endif
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
 
-    setWindowFlags(Qt::FramelessWindowHint);
+    pressedBegin = 0;
+    pressedEnd = 0;
+
+
+
+    int dpi=QPaintDevice::physicalDpiX();
+    float fontsize=dpi/8;                                //change to your liking
+    qDebug() << "fontsize: " << fontsize;
+    statusBarSize = fontsize/2;
+    myf=QApplication::font();
+    myf.setPixelSize(fontsize);
+    QApplication::setFont(myf);
+    pushbuttonsize = fontsize*4;
+
+    //pictureLocation = QDir::homePath ();
+    //pictureLocation = QStandardPaths::displayName(QStandardPaths::PicturesLocation);
+    //pictureLocation = QStandardPaths::locate(QStandardPaths::PicturesLocation,"Pictures",QStandardPaths::LocateDirectory);
+    //pictureLocation.append("/Pictures/");
+    //qDebug() << "homeLocation: " << QStandardPaths::displayName(QStandardPaths::HomeLocation);
+    //qDebug() << "pictureLocation: " << pictureLocation;
+    previewPath = pictureLocation;
+
+    //setWindowFlags(Qt::FramelessWindowHint);
     ui->setupUi(this);
+    QFont statusfont = myf;
+    statusfont.setPixelSize(myf.pixelSize()/2);
+    this->statusBar()->setFont(statusfont);
+    this->statusBar()->setMaximumHeight(statusBarSize);
+/*
+    ui->pushButton_1->setMaximumHeight(pushbuttonsize);
+    ui->pushButton_2->setMaximumHeight(pushbuttonsize);
+    ui->pushButton_3->setMaximumHeight(pushbuttonsize);
+    ui->takePicturePushButton->setMaximumHeight(pushbuttonsize);
+
+    ui->takePicturePushButton->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+
+
+    ui->pushButton_1->resize(ui->pushButton_1->width(),pushbuttonsize);
+    ui->pushButton_2->resize(ui->pushButton_1->width(),pushbuttonsize);
+    ui->pushButton_3->resize(ui->pushButton_1->width(),pushbuttonsize);
+    ui->takePicturePushButton->resize(ui->pushButton_1->width(),pushbuttonsize);
+*/
     buttonGroup = new QButtonGroup(this);
     buttonGroup->addButton(ui->pushButton_1);
     buttonGroup->addButton(ui->pushButton_2);
     buttonGroup->addButton(ui->pushButton_3);
 
-
     buttonGroup->setId(ui->pushButton_1,0);
     buttonGroup->setId(ui->pushButton_2,1);
     buttonGroup->setId(ui->pushButton_3,2);
 
+
+
     connect(buttonGroup,SIGNAL(buttonClicked(int)),
-            ui->stackedWidget,SLOT(setCurrentIndex(int)));
-
-    qDebug() << buttonGroup->id(ui->pushButton_1);
-    qDebug() << buttonGroup->id(ui->pushButton_2);
-
-    QDesktopWidget *desktopwidget = QApplication::desktop();
-    qDebug() << "sreenGeometry:     " << desktopwidget->screenGeometry();
-    qDebug() << "availableGeometry: " << desktopwidget->availableGeometry();
-    QRect geo = desktopwidget->availableGeometry();
-//#ifndef Q_OS_IOS && Q_OS_ANDROID
-//    geo.setWidth(geo.width()/2);
-//#endif
+            this,SLOT(on_buttonGroup_buttonClicked(int)));
+    // to get a geometryChangedEvent
+    ui->pushButton_1->setVisible(false);
+    ui->stackedWidget->setCurrentIndex(0);
 
 
-#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
-  geo.setWidth(geo.width()/2);
-#endif
+    //const QScreen* screen = qGuiApp->primaryScreen();
+    QScreen* screen = QApplication::primaryScreen();
 
+    connect( screen, SIGNAL(orientationChanged(Qt::ScreenOrientation)), this, SLOT(on_orientationChanged(Qt::ScreenOrientation)) );
+    connect( screen, SIGNAL(primaryOrientationChanged(Qt::ScreenOrientation)), this, SLOT(on_primaryOrientationChanged(Qt::ScreenOrientation)) );
+    connect( screen, SIGNAL(geometryChanged(QRect)), this, SLOT(on_GeometryChanged(QRect)) );
 
+    //this->setLayoutDimensions(screen->orientation());
+    //QStringList testlist;
+    //testlist << "test1" <<"test2"<<"test3" << "test4" << "test5" << "test5" << "test6" << "test7" << "test8" << "test9";
 
-    this->resize(geo.size());
-
-
-
-
-
-    QSize innerSize;
-    innerSize.setWidth(geo.width()-geo.width()/20);
-    innerSize.setHeight(geo.height()-geo.height()/10);
-
-    this->resize(geo.size());
-    ui->centralWidget->resize(geo.size());
-    ui->centralGridLayoutWidget->resize(innerSize);
-
-    ui->page->resize(innerSize.width(),innerSize.height()/10*9);
-    ui->viewGridLayoutWidget->resize(innerSize.width(),innerSize.height()/10*9);
-
-
-   //ui->centralGridLayoutWidget->resize(innerSize.width(),innerSize.height()/3);
-   ui->controlGridLayoutWidget->resize(ui->viewGridLayoutWidget->width() -ui->viewGridLayoutWidget->width()/20, ui->viewGridLayoutWidget->height()/2 - ui->viewGridLayoutWidget->height()/25);
-   ui->settingsGridLayoutWidget->resize(ui->viewGridLayoutWidget->width() -ui->viewGridLayoutWidget->width()/20, ui->viewGridLayoutWidget->height()/2 - ui->viewGridLayoutWidget->height()/25);
-
-
-
-
-
+    //ui->zoomComboBox->model()->setData(ui->zoomComboBox->model()->index(0, 0), QSize(1000, 1000), Qt::SizeHintRole);
 
 
 
@@ -101,6 +135,11 @@ MainWindow::MainWindow(QWidget *parent) :
     //! [Create Object QGraphicsScene for Preview]
     previewScene = new QGraphicsScene;
     liveviewScene = new QGraphicsScene;
+    this->installEventFilter(this);
+
+    liveviewScene->setObjectName("liveviewScene");
+    //liveviewScene->installEventFilter(this);
+
 
     //! [Create Object Camera Remote]
     remote = new Remote(networkConnection,this);
@@ -148,7 +187,8 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->selfTimerComboBox,SLOT(setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentPostviewImageSize(QString)),
             ui->postViewImageSizeComboBox,SLOT(setCurrentText(QString)));
-
+    connect(remote,SIGNAL(publishZoomPosition(int)),
+            ui->zoomPositionLabel,SLOT(setNum(int)));
 
     connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
             remote,SLOT(setConnectionStatus(int,QString)));
@@ -171,21 +211,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->loadPreviewPicCheckBox->setChecked(true);
 
     readSettings();
+
     QStringList availableNetworks = networkConnection->getAvailableNetWorks();
-    qDebug() << "availableNetworks: " << availableNetworks;
+    LOG_MAINWINDOW_DEBUG << "availableNetworks: " << availableNetworks;
     ui->configurationComboBox->addItems(availableNetworks);
     ui->configurationComboBox->setCurrentText(networkConnection->getActiveConfiguration().name());
 
     remote->setDevice(friendlyName);
     remote->initialEvent();
 
-
-    //this->resize(geo.width(),geo.height());
-    //ui->centralWidget->resize(geo.width(),geo.height());
     ui->toolBar->setVisible(false);
     ui->mainToolBar->setVisible(false);
-
-
 
 }
 
@@ -204,9 +240,231 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     Q_UNUSED(event);
     writeSettings();
-    qDebug() << "Leave Application";
+    LOG_MAINWINDOW_DEBUG << "Leave Application";
     remote->stopLiveview();
     remote->stopRecMode();
+}
+
+bool MainWindow::eventFilter(QObject *object, QEvent *event){
+    //qDebug() << "event: " << event->type() << "object " << object->objectName();
+
+    if (event->type() == QEvent::Resize){
+        //qDebug() << "event: " << event->type() << "object " << object->objectName();
+        QSize orientedSize = this->size();
+        QSize orientedInnerSize = this->size();
+        orientedInnerSize.setHeight(height()-statusBarSize);
+        QSize viewSize;
+        viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize)/2);
+        viewSize.setWidth(this->width());
+        //resizeWindow(orientedSize,orientedInnerSize,viewSize);
+
+        return QMainWindow::eventFilter(object, event);
+    }
+
+    //if(object->objectName() == "liveviewScene"){
+
+        if (event->type() == QEvent::MouseButtonPress){
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+            QPoint point = mouseEvent->pos();
+            qDebug() << "event: " << event->type() << "object " << object->objectName() <<"pos: " << point ;
+            return true;
+            //return QWidget::eventFilter(object, event);
+        }
+
+        if (event->type() == QEvent::MouseMove){
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+            QPoint point = mouseEvent->pos();
+            qDebug() << "event: " << event->type() << "object " << object->objectName() <<"pos: " << point ;
+            return true;
+            //return QWidget::eventFilter(object, event);
+        }
+
+
+    //}
+    //return true;
+}
+
+
+void MainWindow::on_buttonGroup_buttonClicked(int index){
+            ui->stackedWidget->setCurrentIndex(index);
+            switch (index) {
+            case 0:
+                ui->pushButton_1->setVisible(false);
+                ui->pushButton_2->setVisible(true);
+                ui->pushButton_3->setVisible(true);
+                break;
+            case 1:
+                ui->pushButton_2->setVisible(false);
+                ui->pushButton_1->setVisible(true);
+                ui->pushButton_3->setVisible(true);
+                break;
+
+               case 2:
+                ui->pushButton_3->setVisible(false);
+                ui->pushButton_1->setVisible(true);
+                ui->pushButton_2->setVisible(false);
+                break;
+            default:
+                break;
+            }
+}
+
+void MainWindow::on_primaryOrientationChanged(Qt::ScreenOrientation orientation){
+    LOG_SCREENDESIGN_DEBUG << "on_primaryOrientationChanged " << orientation;
+    setLayoutDimensions(orientation);
+}
+
+void MainWindow::on_orientationChanged(Qt::ScreenOrientation orientation){
+    LOG_SCREENDESIGN_DEBUG << "on_orientationChanged " << orientation;
+    setLayoutDimensions(orientation);
+}
+
+void MainWindow::on_GeometryChanged(QRect geo){
+    LOG_SCREENDESIGN_DEBUG << "on_GeometryChanged " << geo;
+
+    if(geo.width()>geo.height()){
+        setLayoutDimensions(Qt::LandscapeOrientation);
+    }
+    else{
+        setLayoutDimensions(Qt::PortraitOrientation);
+    }
+
+
+}
+
+void MainWindow::setLayoutDimensions(Qt::ScreenOrientation orientation){
+    QScreen* screen = QApplication::primaryScreen();
+    QRect geo = screen->geometry();
+    LOG_SCREENDESIGN_DEBUG << "screen->screenGeometry():     " << screen->geometry();
+    LOG_SCREENDESIGN_DEBUG << "screen->availableGeometry();: " << screen->availableGeometry();
+
+    if(orientation == Qt::PortraitOrientation){
+        setupPortraitScreen(geo);
+    }
+    else if(orientation == Qt::LandscapeOrientation){
+        setupLandscapeScreen(geo);
+    }
+    LOG_SCREENDESIGN_DEBUG << "setLayoutDimensions orientation: " << orientation;
+}
+
+void MainWindow::setupPortraitScreen(QRect geo){
+    QSize orientedSize;
+    QSize orientedInnerSize;
+
+    if(!ui->previewGraphicsView->isVisible())
+        ui->previewGraphicsView->setVisible(true);
+    orientedInnerSize.setWidth(geo.width());
+    orientedInnerSize.setHeight(geo.height()-statusBarSize);
+    orientedSize.setWidth(geo.width());
+    orientedSize.setHeight(geo.height());
+    QSize viewSize;
+    viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize)/2);
+    viewSize.setWidth(geo.width());
+    resizeWindow(orientedSize,orientedInnerSize,viewSize);
+
+}
+
+void MainWindow::setupLandscapeScreen(QRect geo){
+    QSize orientedSize;
+    QSize orientedInnerSize;
+    QSize viewSize;
+#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
+    orientedInnerSize.setWidth(geo.width()-geo.width()/60);
+    orientedInnerSize.setHeight(geo.height() - statusBarSize);
+    orientedSize.setWidth(geo.width());
+    orientedSize.setHeight(geo.height());
+    viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize));
+    viewSize.setWidth(geo.width());
+    if(!ui->previewGraphicsView->isVisible())
+        ui->previewGraphicsView->setVisible(true);
+#else
+    orientedInnerSize.setWidth(geo.width() - geo.width()/60);
+    orientedInnerSize.setHeight(geo.height() - statusBarSize);
+    orientedSize.setWidth(geo.width());
+    orientedSize.setHeight(geo.height());
+    ui->previewGraphicsView->setVisible(false);
+    viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize));
+    viewSize.setWidth(geo.width());
+#endif
+     resizeWindow(orientedSize,orientedInnerSize,viewSize);
+}
+
+void MainWindow::resizeWindow(QSize  orientedSize,
+                              QSize innerorientedSize,
+                              QSize viewSize){
+    LOG_SCREENDESIGN_DEBUG << "resizeWindow width: " <<  innerorientedSize.width() << " height: " << innerorientedSize.height();
+
+    this->resize(orientedSize);
+    //ui->centralWidget->resize(orientedSize);
+
+    ui->centralGridLayoutWidget->resize(innerorientedSize);
+
+    int size = fontsize;
+/*
+    ui->whiteBalanceComboBox->setMaximumHeight(fontsize);
+    ui->fNumberComboBox->setMaximumHeight(fontsize);
+    ui->shutterSpeedComboBox->setMaximumHeight(fontsize);
+    ui->whiteBalanceComboBox->setMaximumHeight(fontsize);
+    ui->isoSpeedRateComboBox->setMaximumHeight(fontsize);
+    ui->exposureModeComboBox->setMaximumHeight(fontsize);
+    ui->zoomPositionLabel->setMaximumHeight(fontsize);
+
+    ui->whiteBalanceComboBox->resize(ui->whiteBalanceComboBox->width(),fontsize);
+    ui->fNumberComboBox->resize(ui->fNumberComboBox->width() ,fontsize);
+    ui->shutterSpeedComboBox->resize(ui->shutterSpeedComboBox->width(), fontsize);
+    ui->whiteBalanceComboBox->resize(ui->whiteBalanceComboBox->width(), fontsize);
+    ui->isoSpeedRateComboBox->resize(ui->isoSpeedRateComboBox->width(), fontsize);
+    ui->exposureModeComboBox->resize(ui->exposureModeComboBox->width(), fontsize);
+    ui->zoomPositionLabel->resize(ui->zoomPositionLabel->width(),fontsize);
+
+
+    ui->pushButton_1->setMaximumHeight(pushbuttonsize);
+    ui->pushButton_2->setMaximumHeight(pushbuttonsize);
+    ui->pushButton_3->setMaximumHeight(pushbuttonsize);
+    ui->takePicturePushButton->setMaximumHeight(pushbuttonsize);
+
+    ui->pushButton_1->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+    ui->pushButton_2->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+    ui->pushButton_3->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+    ui->takePicturePushButton->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+
+    ui->pushButton_1->resize(ui->pushButton_1->width(),pushbuttonsize);
+    ui->pushButton_2->resize(ui->pushButton_1->width(),pushbuttonsize);
+    ui->pushButton_3->resize(ui->pushButton_1->width(),pushbuttonsize);
+    ui->takePicturePushButton->resize(ui->pushButton_1->width(),pushbuttonsize);
+
+*/
+    //ui->page->resize(innerorientedSize.width(),innerorientedSize.height()-pushbuttonsize);
+
+    //ui->stackedWidget->resize(innerorientedSize.width(),innerorientedSize.height()-pushbuttonsize);
+
+    //ui->viewGridLayoutWidget->resize(innerorientedSize.width(),innerorientedSize.height()-pushbuttonsize);
+
+    ui->controlGridLayoutWidget->resize(innerorientedSize.width(),
+            viewSize.height()*2);
+
+    ui->settingsGridLayoutWidget->resize(innerorientedSize.width() -innerorientedSize.width()/20,
+            viewSize.height()*2);
+
+    ui->LiveviewGraphicsView->resize(innerorientedSize.width(),viewSize.height());
+    ui->previewGraphicsView->resize(innerorientedSize.width(),viewSize.height());
+
+    ui->previewVerticalLayoutWidget->resize(innerorientedSize.width(),innerorientedSize.height()-pushbuttonsize);
+
+
+    previewimg = previewimg.scaled(ui->previewGraphicsView->size(),Qt::KeepAspectRatio);
+    liveviewimg = liveviewimg.scaled(ui->LiveviewGraphicsView->size(),Qt::KeepAspectRatio);
+    dialogsize = innerorientedSize;
+
+    //int dpi=QPaintDevice::physicalDpiX();
+    //ui->pushButton_1->setMaximumHeight(pushbuttonsize);
+
+
+    QFont statusfont = myf;
+    statusfont.setPixelSize(myf.pixelSize()/2);
+    this->statusBar()->setFont(statusfont);
+    this->statusBar()->setMaximumHeight(statusBarSize);
+    this->statusBar()->resize(statusBar()->width(),statusBarSize);
 }
 
 
@@ -309,7 +567,10 @@ void MainWindow::on_durationTimeEdit_timeChanged(const QTime &time){
 }
 
 void MainWindow::on_chooseFolderPushButton_clicked(){
-    previewPath = QFileDialog::getExistingDirectory();
+    QFileDialog dialog;
+    //dialog.setFixedSize(dialogsize);
+     dialog.setWindowState(dialog.windowState() | Qt::WindowMaximized);
+    previewPath = QFileDialog::getExistingDirectory(this,"select Locationd",previewPath);
 }
 
 void MainWindow::on_urlLineEdit_textEdited(QString url){
@@ -364,14 +625,7 @@ void MainWindow::on_exposureModeComboBox_activated(QString text){
     remote->commandFabrikMethod("setExposureMode",remote->getMethods().value("setExposureMode"),param);
 }
 
-void MainWindow::on_zoomComboBox_activated(QString text){
-    QByteArray param;
-    param.append("\"");
-    param.append(text);
-    param.append("\"");
-    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
 
-}
 
 void MainWindow::on_selfTimerComboBox_activated(QString text){
 
@@ -445,13 +699,7 @@ void MainWindow::addSelfTimerComboBoxItems(QStringList items){
     }
 }
 
-void MainWindow::addZoomComboBoxItems(QStringList items){
-    foreach (QString item, items) {
-        if(ui->zoomComboBox->findText(item) == -1){
-            ui->zoomComboBox->addItem(item);
-        }
-    }
-}
+
 
 void MainWindow::addPostViewImageSizeComboBoxItems(QStringList items){
     foreach (QString item, items) {
@@ -506,43 +754,44 @@ void MainWindow::postViewImageSizeComboBox_setCurrentText(QString text){
 
 
 void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
-    //qDebug() << "drawPreview";
+    //LOG_SCREENDESIGN_DEBUG << "drawPreview";
     QByteArray bytes = reply->readAll();
-    QImage img;
-    img.loadFromData(bytes);
-    QSize size = img.size();
-    QSize newSize = size/5;
-    img = img.scaled(newSize);
-    QPixmap pixmap = QPixmap::fromImage(img);
+    //QImage img;
+    previewimg.loadFromData(bytes);
+    QSize size = previewimg.size();
+    LOG_SCREENDESIGN_DEBUG << "Preview image Size: " << size;
+    QSize widgetSize = ui->previewGraphicsView->size();
+    LOG_SCREENDESIGN_DEBUG << "previewGraphicsView Size: " << widgetSize;
+    previewimg = previewimg.scaled(widgetSize,Qt::KeepAspectRatio);
+    QPixmap pixmap = QPixmap::fromImage(previewimg);
     previewScene->clear();
     previewScene->addPixmap(pixmap);
     ui->previewGraphicsView->setScene(previewScene);
-    //ui->label->setPixmap(QPixmap::fromImage(img));
-    savePreviewFile(bytes,previePicName);
 
+    savePreviewFile(bytes,previePicName);
 }
 
 void MainWindow::savePreviewFile(QByteArray bytes,QString previePicName){
     if(!previewPath.isEmpty()){
         QString path = previewPath;
         path.append(previePicName);
-        //qDebug() << "path: " << path;
+        //LOG_MAINWINDOW_DEBUG << "path: " << path;
         QFile file( path );
         if( !file.open( QIODevice::WriteOnly ) ){
-            qDebug() << "Unable to open";
-            qDebug() << file.errorString();
+            LOG_MAINWINDOW_DEBUG << "Unable to open";
+            LOG_MAINWINDOW_DEBUG << file.errorString();
             return;
         }
         if(file.write( bytes ) < 0 ){
-            qDebug() << "Unable to write";
-            qDebug() << file.errorString();
+            LOG_MAINWINDOW_DEBUG << "Unable to write";
+            LOG_MAINWINDOW_DEBUG << file.errorString();
         }
         file.close();
     }
 }
 
 void MainWindow::drawLiveView(QByteArray bytes){
-    //qDebug() << "drawLiveView";
+    //LOG_SCREENDESIGN_DEBUG << "drawLiveView";
 #ifdef __STORE__SINGLE_PREVIEW_PICS
     static int number = 0;
     QFile file("testpic"+QString::number(number)+".jpeg");
@@ -558,18 +807,16 @@ void MainWindow::drawLiveView(QByteArray bytes){
         file.close();
     }
     number++;
-    qDebug() << "number: " << number;
+    LOG_MAINWINDOW_DEBUG << "number: " << number;
 #endif
-        QImage img;
-        img.loadFromData(bytes);
-        QSize size = img.size();
-        QSize newSize = size/2;
-        //QSize newSize = size;
-        img = img.scaled(newSize);
-        QPixmap pixmap = QPixmap::fromImage(img);
+        liveviewimg.loadFromData(bytes);
+        QSize size = liveviewimg.size();
+        //LOG_SCREENDESIGN_DEBUG << "LiveView image Size: " << size;
+        QSize widgetSize = ui->LiveviewGraphicsView->size();
+        liveviewimg = liveviewimg.scaled(widgetSize,Qt::KeepAspectRatio);
+        QPixmap pixmap = QPixmap::fromImage(liveviewimg);
         liveviewScene->clear();
         liveviewScene->addPixmap(pixmap);
-        //ui->label->setPixmap(QPixmap::fromImage(img));
         ui->LiveviewGraphicsView->setScene(liveviewScene);
 }
 
@@ -579,16 +826,12 @@ void MainWindow::drawLiveView(QByteArray bytes){
 
 void MainWindow::readSettings()
 {
-
-
     QSettings settings("KlangObjekte.", "CameraRemote");
     networkConnection->setUrl(settings.value("url",QString("http://127.0.0.1")).toString());
     networkConnection->setPort(settings.value("port",8080).toString());
     friendlyName = settings.value("friendlyName",QString()).toString();
     previewPath = settings.value("previewPath").toString();
     ui->loadPreviewPicCheckBox->setChecked(settings.value("loadpreviePic",true).toBool());
-
-
     QPoint pos = settings.value("pos", QPoint(200,200)).toPoint();
     //QSize size = settings.value("size", QSize(300, 200)).toSize();
     //! gibt geometry einProblem mit den Toolbars??
@@ -599,15 +842,11 @@ void MainWindow::readSettings()
     move(pos);
     //this->pos().setX(pos.x());
     //this->pos().setY(pos.y());
-
-
-
 }
 
 void MainWindow::writeSettings()
 {
     QSettings settings("KlangObjekte.", "CameraRemote");
-
     settings.setValue("previewPath",previewPath);
     settings.setValue("loadpreviePic",ui->loadPreviewPicCheckBox->isChecked());
     settings.setValue("url",networkConnection->getUrl().toString());
@@ -620,8 +859,83 @@ void MainWindow::writeSettings()
     //! die Breite und Position der DockWindows!!
     //! wenn sie nicht gefloated sind!!
     settings.setValue("state", saveState());
-
-
 }
 
 
+
+void MainWindow::on_zoomInPushButton_pressed()
+{
+    //clock_t end = clock();
+
+    pressedBegin = clock();
+    double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
+    if(elapsed_secs > 0){
+        cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
+    }
+
+
+    QByteArray param;
+    param.append("\"");
+    param.append("in");
+    param.append("\"");
+    param.append(",");
+    param.append("\"");
+    param.append("1shot");
+    param.append("\"");
+    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+}
+
+void MainWindow::on_zoomInPushButton_released()
+{
+    pressedEnd = clock();
+    QByteArray param;
+    param.append("\"");
+    param.append("in");
+    param.append("\"");
+    param.append(",");
+    param.append("\"");
+    param.append("stop");
+    param.append("\"");
+    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+    double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
+    if(elapsed_secs > 0){
+        cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
+    }
+
+}
+
+void MainWindow::on_zoomOutPushButton_pressed()
+{
+    pressedBegin = clock();
+    double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
+    if(elapsed_secs > 0){
+        cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
+    }
+    QByteArray param;
+    param.append("\"");
+    param.append("out");
+    param.append("\"");
+    param.append(",");
+    param.append("\"");
+    param.append("1shot");
+    param.append("\"");
+    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+}
+
+void MainWindow::on_zoomOutPushButton_released()
+{
+    pressedEnd = clock();
+    double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
+    if(elapsed_secs > 0){
+        cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
+    }
+    QByteArray param;
+    param.append("\"");
+    param.append("out");
+    param.append("\"");
+    param.append(",");
+    param.append("\"");
+    param.append("stop");
+    param.append("\"");
+    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+}

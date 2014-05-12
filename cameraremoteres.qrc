@@ -1,5 +1,25 @@
 <RCC>
     <qresource prefix="/">
         <file>default.qss</file>
+        <file>img/btn_settings_disable.png</file>
+        <file>img/btn_settings_normal.png</file>
+        <file>img/btn_postview_common_disable.png</file>
+        <file>img/btn_postview_common_normal.png</file>
+        <file>img/btn_postview_common_press.png</file>
+        <file>img/wifi_camera.png</file>
+        <file>img/btn_capture_still_disable.png</file>
+        <file>img/btn_capture_still_normal.png</file>
+        <file>img/zoom_t_disable.png</file>
+        <file>img/zoom_t_normal.png</file>
+        <file>img/zoom_t_pushed.png</file>
+        <file>img/zoom_w_disable.png</file>
+        <file>img/zoom_w_normal.png</file>
+        <file>img/zoom_w_pushed.png</file>
+        <file>img/device_alpha.png</file>
+        <file>img/device_bloggie.png</file>
+        <file>img/device_cyber.png</file>
+        <file>img/device_emount.png</file>
+        <file>img/device_handycam.png</file>
+        <file>img/device_nex.png</file>
     </qresource>
 </RCC>

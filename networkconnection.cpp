@@ -9,7 +9,16 @@
 #include <QNetworkReply>
 #include <QTreeWidget>
 #include "cameraremotedefinitions.h"
+#include <QNetworkSession>
+#include <QMessageBox>
+#include <QString>
 
+//#define LOG_NETWORKCONNECTION
+#ifdef LOG_NETWORKCONNECTION
+#   define LOG_NETWORKCONNECTION_DEBUG qDebug()
+#else
+#   define LOG_NETWORKCONNECTION_DEBUG nullDebug()
+#endif
 
 NetworkConnection::NetworkConnection()
 {
@@ -23,6 +32,7 @@ NetworkConnection::NetworkConnection()
     //QString SSDP_ST = "ssdp:all";
 
     //treeWidget = new QTreeWidget;
+
 
     QByteArray ssdpRequest = "M-SEARCH * HTTP/1.1\r\nHOST: ";
             ssdpRequest.append(SSDP_ADDR);
@@ -50,29 +60,56 @@ NetworkConnection::NetworkConnection()
 
 
     QNetworkInterface *interface = new QNetworkInterface;
-    qDebug() << "\ninterface->allAddresses(): "<< interface->allAddresses();
+    LOG_NETWORKCONNECTION_DEBUG << "\ninterface->allAddresses(): "<< interface->allAddresses();
     networkConfigurationManager = new QNetworkConfigurationManager;
+    const bool canStartIAP = (networkConfigurationManager->capabilities()
+                                 & QNetworkConfigurationManager::CanStartAndStopInterfaces);
+
     QList<QNetworkConfiguration> activeConfigs = networkConfigurationManager->allConfigurations();
-    qDebug() << "\nactiveConfigs.count()"  << activeConfigs.count();
-    if(activeConfigs.count() == 0){
+    LOG_NETWORKCONNECTION_DEBUG << "\nactiveConfigs.count()"  << activeConfigs.count();
+    //if(activeConfigs.count() == 0){
+        //networkConfigurationManager->updateConfigurations();
+    //}
+
+    QNetworkConfiguration cfg = networkConfigurationManager->defaultConfiguration();
+    if (!cfg.isValid() || (!canStartIAP && cfg.state() != QNetworkConfiguration::Active)) {
+        //QMessageBox::information(this, tr("Network"), tr("No Access Point found."));
+        LOG_NETWORKCONNECTION_DEBUG << "No Access Point found";
         networkConfigurationManager->updateConfigurations();
+
+    }
+    else{
+        activeConfiguration = cfg;
+        networkSession = new QNetworkSession(cfg, this);
+        networkSession->open();
+        networkSession->waitForOpened(-1);
     }
 
-    if (activeConfigs.count() > 0){
-        qDebug() << "Active Configurations: ";
-        foreach (QNetworkConfiguration config, activeConfigs) {
-            qDebug()<< config.bearerTypeName() << config.name() << config.bearerType();
-            _availableNetworks.append(config.name());
-            if(config.name() == "en0"){
-               activeConfiguration =  config;
 
-            }
+
+    if (activeConfigs.count() > 0){
+        LOG_NETWORKCONNECTION_DEBUG << "Active Configurations: ";
+        foreach (QNetworkConfiguration config, activeConfigs) {
+            LOG_NETWORKCONNECTION_DEBUG<< config.bearerTypeName() << config.name() << config.bearerType();
+            _availableNetworks.append(config.name());
+            //if(config.name() == "en0"){
+            //   activeConfiguration =  config;
+            //}
         }
 
     }
 
     connect(networkConfigurationManager,SIGNAL(updateCompleted()),
             this,SLOT(onUpdateCompleted()));
+    connect(networkConfigurationManager,SIGNAL(configurationChanged(QNetworkConfiguration)),
+            this,SLOT(onConfigurationChanged(QNetworkConfiguration)));
+    connect(networkConfigurationManager,SIGNAL(configurationAdded(QNetworkConfiguration)),
+            this,SLOT(onConfigurationAdded(QNetworkConfiguration)));
+    connect(networkConfigurationManager,SIGNAL(configurationRemoved(QNetworkConfiguration)),
+            this,SLOT(onconfigurationRemoved(QNetworkConfiguration)));
+
+    //networkSession = new QNetworkSession(activeConfiguration);
+    LOG_NETWORKCONNECTION_DEBUG << "Network Session State:" << networkSession->state();
 
 
     downloadManager = new QNetworkAccessManager;
@@ -98,18 +135,103 @@ void NetworkConnection::init(){
 
 
 void NetworkConnection::onUpdateCompleted(){
+
     QList<QNetworkConfiguration> activeConfigs = networkConfigurationManager->allConfigurations();
     _availableNetworks.clear();
     foreach (QNetworkConfiguration config, activeConfigs) {
          _availableNetworks.append(config.name());
-        if(config.name().contains("DIRECT-IDE")){
-           activeConfiguration =  config;
-           qDebug()<< "onUpdateCompleted: " << config.bearerTypeName() << config.name() << config.type();
+         LOG_NETWORKCONNECTION_DEBUG<< "onUpdateCompleted activeConfigs: " << config.bearerTypeName() << config.name() << config.type();
+         //if(config.name().contains("DIRECT-IDE")){
+         //  activeConfiguration =  config;
+
+        //}
+    }
+
+    LOG_NETWORKCONNECTION_DEBUG << "networkConfigurationManager->defaultConfiguration():\n"
+             << "name            : "<< networkConfigurationManager->defaultConfiguration().name() << "\n"
+             << "type            : "<< networkConfigurationManager->defaultConfiguration().type() << "\n"
+             << "bearerTypeName  : "<< networkConfigurationManager->defaultConfiguration().bearerTypeName() << "\n"
+             << "identifier      : "<< networkConfigurationManager->defaultConfiguration().identifier() << "\n"
+             << "bearerTypeFamily: "<< networkConfigurationManager->defaultConfiguration().bearerTypeFamily() << "\n"
+             << "bearerType      : "<< networkConfigurationManager->defaultConfiguration().bearerType() << "\n"
+             << "children        : " "\n";
+
+    foreach (QNetworkConfiguration configuration, networkConfigurationManager->defaultConfiguration().children()) {
+     LOG_NETWORKCONNECTION_DEBUG   << "child           : " << "\n"
+        << "name            : "<< configuration.name() << "\n"
+        << "type            : "<< configuration.type() << "\n"
+        << "bearerTypeName  : "<< configuration.bearerTypeName() << "\n"
+        << "identifier      : "<< configuration.identifier() << "\n"
+        << "bearerTypeFamily: "<< configuration.bearerTypeFamily() << "\n"
+        << "bearerType      : "<< configuration.bearerType() << "\n";
+    }
+
+    const bool CanStartAndStopInterfaces = (networkConfigurationManager->capabilities()
+                                 & QNetworkConfigurationManager::CanStartAndStopInterfaces);
+    const bool DirectConnectionRouting = (networkConfigurationManager->capabilities()
+                                 & QNetworkConfigurationManager::DirectConnectionRouting);
+    const bool SystemSessionSupport = (networkConfigurationManager->capabilities()
+                                 & QNetworkConfigurationManager::SystemSessionSupport);
+    const bool ApplicationLevelRoaming = (networkConfigurationManager->capabilities()
+                                 & QNetworkConfigurationManager::ApplicationLevelRoaming);
+    const bool ForcedRoaming = (networkConfigurationManager->capabilities()
+                                 & QNetworkConfigurationManager::ForcedRoaming);
+
+    const bool DataStatistics = (networkConfigurationManager->capabilities()
+                                 & QNetworkConfigurationManager::DataStatistics);
+
+    const bool NetworkSessionRequired = (networkConfigurationManager->capabilities()
+                                 & QNetworkConfigurationManager::NetworkSessionRequired);
+
+    LOG_NETWORKCONNECTION_DEBUG << "cababilties: \n"
+                << "CanStartAndStopInterfaces: " << CanStartAndStopInterfaces << "\n"
+                << "DirectConnectionRouting:   " << DirectConnectionRouting << "\n"
+                << "SystemSessionSupport:      " << SystemSessionSupport << "\n"
+                << "ApplicationLevelRoaming:   " << ApplicationLevelRoaming << "\n"
+                << "ForcedRoaming:             " << ForcedRoaming << "\n"
+                << "DataStatistics:            " << DataStatistics << "\n"
+                << "NetworkSessionRequired:    " << NetworkSessionRequired << "\n";
+
+
+
+    if(!networkSession->state() == QNetworkSession::Connected){
+        delete networkSession;
+        const bool canStartIAP = (networkConfigurationManager->capabilities()
+                                     & QNetworkConfigurationManager::CanStartAndStopInterfaces);
+        QNetworkConfiguration cfg = networkConfigurationManager->defaultConfiguration();
+        activeConfiguration =  cfg;
+        if (!cfg.isValid() || (!canStartIAP && cfg.state() != QNetworkConfiguration::Active)) {
+            //QMessageBox::information(this, tr("Network"), tr("No Access Point found."));
+            LOG_NETWORKCONNECTION_DEBUG << "No Access Point found";
+            //networkConfigurationManager->updateConfigurations();
 
         }
+        else{
+            activeConfiguration = cfg;
+            networkSession = new QNetworkSession(cfg, this);
+            networkSession->open();
+            networkSession->waitForOpened(-1);
+            LOG_NETWORKCONNECTION_DEBUG << "Network Session State:" << networkSession->state();
+        }
+
     }
+    LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface(): " << networkSession->interface() << "\n\n";
     publishDeviceFound(_availableNetworks);
 
+}
+
+void NetworkConnection::onConfigurationAdded(QNetworkConfiguration configration){
+    LOG_NETWORKCONNECTION_DEBUG << "onConfigurationAdded: " << configration.name();
+
+
+}
+
+void NetworkConnection::onConfigurationChanged(QNetworkConfiguration configration){
+    LOG_NETWORKCONNECTION_DEBUG << "onConfigurationChanged: " << configration.name();
+}
+
+void NetworkConnection::onconfigurationRemoved(QNetworkConfiguration configration){
+      LOG_NETWORKCONNECTION_DEBUG << "onconfigurationRemoved: " << configration.name();
 }
 
 void NetworkConnection::setActiveNetwork(QString networkName){
@@ -118,20 +240,21 @@ void NetworkConnection::setActiveNetwork(QString networkName){
     foreach (QNetworkConfiguration config, activeConfigs) {
         if(config.name() == networkName){
            activeConfiguration =  config;
-           qDebug()<< config.bearerTypeName() << config.name() << config.type();
+           LOG_NETWORKCONNECTION_DEBUG<< config.bearerTypeName() << config.name() << config.type();
 
         }
     }
 }
 
 void NetworkConnection::notifyConnectionStatus(int status,QString message){
-    //qDebug() << "NetworkConnection::notifyConnectionStatus" << status;
+    //LOG_NETWORKCONNECTION_DEBUG << "NetworkConnection::notifyConnectionStatus" << status;
     emit publishConnectionStatus(status,message);
 }
 
 void NetworkConnection::readPendingDatagrams()
 {
-    qDebug() << "readPendingDatagrams: udpSocket->localAddress()" << udpSocket->localAddress();
+    //onUpdateCompleted();
+    LOG_NETWORKCONNECTION_DEBUG << "readPendingDatagrams: udpSocket->localAddress()" << udpSocket->localAddress();
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket->pendingDatagramSize());
@@ -139,21 +262,21 @@ void NetworkConnection::readPendingDatagrams()
         quint16 senderPort;
         udpSocket->readDatagram(datagram.data(), datagram.size(),
                                 &sender, &senderPort);
-        qDebug() << "sender: " << sender;
-        qDebug() << "senderPort: " << senderPort;
+        LOG_NETWORKCONNECTION_DEBUG << "sender: " << sender;
+        LOG_NETWORKCONNECTION_DEBUG << "senderPort: " << senderPort;
         decodeDatagramm(datagram);
         if(httpresponse.value("NTS") == "ssdp:alive" &&
             httpresponse.value("NT") == "urn:schemas-sony-com:service:ScalarWebAPI:1"){
             downloadManager->get(QNetworkRequest(QUrl(httpresponse.value("LOCATION"))));
-            qDebug() << "SSDP Client: Received alive from " << httpresponse.value("USN");
+            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client: Received alive from " << httpresponse.value("USN");
             emit publishConnectionStatus(_CONNECTIONSTATE_SSDP_ALIVE_RECEIVED);
         }
         else if(httpresponse.value("NTS") == "ssdp:byebye"){
-            qDebug() << "SSDP Client: Received byebye from " << httpresponse.value("USN");
+            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client: Received byebye from " << httpresponse.value("USN");
             emit publishConnectionStatus(_CONNECTIONSTATE_DISCONNECTED);
         }
         else {
-            qDebug() << "SSDP Client: Received unknown subtype: " << httpresponse.value("NTS");
+            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client: Received unknown subtype: " << httpresponse.value("NTS");
         }
     }
 }
@@ -164,7 +287,7 @@ void NetworkConnection::decodeDatagramm(QByteArray datagramm){
     QString key;
     QStringList splitted = sdatagramm.split("\n");
     httpresponse.clear();
-    //qDebug() << "splitted: " << splitted;
+    //LOG_NETWORKCONNECTION_DEBUG << "splitted: " << splitted;
     foreach(QString splitter,splitted){
         splitter = splitter.trimmed();
         int keysize = splitter.indexOf(":");
@@ -173,8 +296,8 @@ void NetworkConnection::decodeDatagramm(QByteArray datagramm){
             value = splitter.right(size-keysize-1);
             key = splitter.left(keysize);
             value = value.trimmed();
-            //qDebug() << "KEY  : " << key;
-            //qDebug() << "VALUE: " << value;
+            //LOG_NETWORKCONNECTION_DEBUG << "KEY  : " << key;
+            //LOG_NETWORKCONNECTION_DEBUG << "VALUE: " << value;
             httpresponse[key] = value;
         }
     }
@@ -185,7 +308,7 @@ void NetworkConnection::decodeDatagramm(QByteArray datagramm){
 void NetworkConnection::replyFinished(QNetworkReply *reply){
      QByteArray bts = reply->readAll();
      QString str(bts);
-    //qDebug() << "reply: " << str;
+    //LOG_NETWORKCONNECTION_DEBUG << "reply: " << str;
     xml.addData(bts);
     parseXml();
     QStringList data;
@@ -202,72 +325,72 @@ void NetworkConnection::parseXml()
         xml.readNext();
         if (xml.isStartElement()) {
             /*
-            qDebug() << "isStartElement";
-            qDebug() << "xml.name() " <<xml.name().toString();
-            qDebug() << "xml.attributes() " <<xml.attributes().value(xml.name().toString()).toString();
-            qDebug() << "xml.text() " <<xml.text().toString();
-            qDebug() << "\n ";
+            LOG_NETWORKCONNECTION_DEBUG << "isStartElement";
+            LOG_NETWORKCONNECTION_DEBUG << "xml.name() " <<xml.name().toString();
+            LOG_NETWORKCONNECTION_DEBUG << "xml.attributes() " <<xml.attributes().value(xml.name().toString()).toString();
+            LOG_NETWORKCONNECTION_DEBUG << "xml.text() " <<xml.text().toString();
+            LOG_NETWORKCONNECTION_DEBUG << "\n ";
             */
             if(xml.name().toString() == "friendlyName"){
                 friendlyName = xml.readElementText();
-                qDebug() << xml.name().toString() << "     " << friendlyName;
+                LOG_NETWORKCONNECTION_DEBUG << xml.name().toString() << "     " << friendlyName;
             }
             if(xml.name().toString() == "manufacturer"){
                 manufacturer = xml.readElementText();
-                qDebug() << xml.name().toString() << "     " << manufacturer;
+                LOG_NETWORKCONNECTION_DEBUG << xml.name().toString() << "     " << manufacturer;
             }
             if(xml.name().toString() == "manufacturerURL"){
                 manufacturerURL = xml.readElementText();
-                qDebug() << xml.name().toString() << "  " << manufacturerURL;
+                LOG_NETWORKCONNECTION_DEBUG << xml.name().toString() << "  " << manufacturerURL;
             }
             if(xml.name().toString() == "modelDescription"){
                 modelDescription = xml.readElementText();
-                qDebug() << xml.name().toString() << " " << modelDescription;
+                LOG_NETWORKCONNECTION_DEBUG << xml.name().toString() << " " << modelDescription;
             }
             if(xml.name().toString() == "modelName"){
                 modelName = xml.readElementText();
-                qDebug() << xml.name().toString() << "        " << modelName;
+                LOG_NETWORKCONNECTION_DEBUG << xml.name().toString() << "        " << modelName;
             }
             if(xml.name().toString() == "UDN"){
                 UDN = xml.readElementText();
-                qDebug() << xml.name().toString() << "              " << UDN;
+                LOG_NETWORKCONNECTION_DEBUG << xml.name().toString() << "              " << UDN;
             }
             /*
             if(xml.name().toString() == "X_ScalarWebAPI_DeviceInfo"){
-                qDebug() << "xml.name() " <<xml.name().toString();
-                qDebug() << "xml.readElementText() " <<xml.readElementText();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.name() " <<xml.name().toString();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.readElementText() " <<xml.readElementText();
             }
 
             if(xml.name().toString() == "X_ScalarWebAPI_Version"){
-                qDebug() << "xml.name() " <<xml.name().toString();
-                qDebug() << "xml.readElementText() " <<xml.readElementText();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.name() " <<xml.name().toString();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.readElementText() " <<xml.readElementText();
             }
 
             if(xml.name().toString() == "X_ScalarWebAPI_ServiceList"){
-                qDebug() << "xml.name() " <<xml.name().toString();
-                qDebug() << "xml.readElementText() " <<xml.readElementText();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.name() " <<xml.name().toString();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.readElementText() " <<xml.readElementText();
             }
 
             if(xml.name().toString() == "X_ScalarWebAPI_Service"){
-                qDebug() << "xml.name() " <<xml.name().toString();
-                qDebug() << "xml.readElementText() " <<xml.readElementText();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.name() " <<xml.name().toString();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.readElementText() " <<xml.readElementText();
             }
             if(xml.name().toString() == "X_ScalarWebAPI_ServiceType"){
-                qDebug() << "xml.name() " <<xml.name().toString();
-                qDebug() << "xml.readElementText() " <<xml.readElementText();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.name() " <<xml.name().toString();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.readElementText() " <<xml.readElementText();
             }
             */
             if(xml.name().toString() == "X_ScalarWebAPI_ActionList_URL"){
                 linkString = xml.readElementText();
-                qDebug() << xml.name().toString() << " " << linkString;
+                LOG_NETWORKCONNECTION_DEBUG << xml.name().toString() << " " << linkString;
             }
             /*
             if(xml.name().toString() == "X_ScalarWebAPI_AccessType"){
-                qDebug() << "xml.name() " <<xml.name().toString();
-                qDebug() << "xml.readElementText() " <<xml.readElementText();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.name() " <<xml.name().toString();
+                LOG_NETWORKCONNECTION_DEBUG << "xml.readElementText() " <<xml.readElementText();
             }
             */
-            //qDebug() << "\n ";
+            //LOG_NETWORKCONNECTION_DEBUG << "\n ";
         }
     }
     if (xml.error() && xml.error() != QXmlStreamReader::PrematureEndOfDocumentError) {
@@ -278,7 +401,7 @@ void NetworkConnection::parseXml()
 
 
 void NetworkConnection::setUrl(QString urlstring){
-    //qDebug() << "NetworkConnection::setUrl: " << urlstring;
+    //LOG_NETWORKCONNECTION_DEBUG << "NetworkConnection::setUrl: " << urlstring;
     QUrl localUrl;
     if(!urlstring.isEmpty()){
         localUrl.setUrl(urlstring);
@@ -288,19 +411,19 @@ void NetworkConnection::setUrl(QString urlstring){
             sport.setNum(url.port());
         }
         //setPort(sport);
-        //qDebug() << "NetworkConnection::setUrl url: " << url;
+        //LOG_NETWORKCONNECTION_DEBUG << "NetworkConnection::setUrl url: " << url;
         emit publishUrl(urlstring);
     }
 }
 
 void NetworkConnection::setPort(QString portstring){
-    qDebug() << "NetworkConnection::setPort: " << portstring;
+    LOG_NETWORKCONNECTION_DEBUG << "NetworkConnection::setPort: " << portstring;
     QUrl localUrl;
     if(!portstring.isEmpty()){
         url.setPort(portstring.toInt());
         emit publishPort(portstring);
     }
-    //qDebug() << "port: " << portstring;
+    //LOG_NETWORKCONNECTION_DEBUG << "port: " << portstring;
 }
 
 
@@ -309,12 +432,12 @@ QStringList NetworkConnection::getAvailableNetWorks(){
 }
 
 QNetworkConfiguration NetworkConnection::getActiveConfiguration(){
-    qDebug() << "QNetworkConfiguration getActiveConfiguration" << activeConfiguration.name();
+    LOG_NETWORKCONNECTION_DEBUG << "QNetworkConfiguration getActiveConfiguration" << activeConfiguration.name();
     return activeConfiguration;
 }
 
 QUrl NetworkConnection::getUrl(){
-    //qDebug() << "NetworkConnection::getUrl() path: " << url.toString();
+    //LOG_NETWORKCONNECTION_DEBUG << "NetworkConnection::getUrl() path: " << url.toString();
     return url;
 
 }
@@ -329,16 +452,16 @@ void NetworkConnection::notifyReceived(QHttpRequestHeader *datagram) {
                             datagram->value("location"), datagram->value("nt"),
                             datagram->value("ext"), datagram->value("server"),
                             datagram->value("cacheControl"));
-        qDebug() << "Brisa SSDP Client: Received alive from " <<
+        LOG_NETWORKCONNECTION_DEBUG << "Brisa SSDP Client: Received alive from " <<
                 datagram->value("usn") << "";
 
     } else if (datagram->value("nts") == "ssdp:byebye") {
         emit removedDeviceEvent(datagram->value("usn"));
-        qDebug() << "Brisa SSDP Client: Received byebye from " <<
+        LOG_NETWORKCONNECTION_DEBUG << "Brisa SSDP Client: Received byebye from " <<
                 datagram->value("usn") << "";
 
     } else {
-        qDebug() << "Brisa SSDP Client: Received unknown subtype: " <<
+        LOG_NETWORKCONNECTION_DEBUG << "Brisa SSDP Client: Received unknown subtype: " <<
                 datagram->value("nts") << "";
     }
 }

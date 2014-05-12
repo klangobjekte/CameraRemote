@@ -25,6 +25,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    //bool eventFilter(QObject *object, QEvent *event);
 
 public slots:
     void onCameraStatusChanged(int status,QString message = QString());
@@ -33,6 +34,15 @@ public slots:
 
 private slots:
     void closeEvent(QCloseEvent *event);
+    bool eventFilter(QObject *object, QEvent *event);
+    void on_buttonGroup_buttonClicked(int index);
+    void on_orientationChanged(Qt::ScreenOrientation orientation);
+    void on_primaryOrientationChanged(Qt::ScreenOrientation orientation);
+    void on_GeometryChanged(QRect geo);
+    void setupLandscapeScreen(QRect geo);
+    void setupPortraitScreen(QRect geo);
+    void setLayoutDimensions(Qt::ScreenOrientation orientation);
+    void resizeWindow(QSize orientedSize, QSize innerorientedSize, QSize viewSize);
     void on_configurationComboBox_activated(QString text);
     void on_startRecModePushButton_clicked(bool checked);
     void on_takePicturePushButton_clicked();
@@ -49,7 +59,6 @@ private slots:
     void on_exposureModeComboBox_activated(QString text);
     void on_postViewImageSizeComboBox_activated(QString text);
     void on_selfTimerComboBox_activated(QString text);
-    void on_zoomComboBox_activated(QString text);
 
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
@@ -58,7 +67,6 @@ private slots:
     void addexposureModeComboBoxItems(QStringList items);
     void addSelfTimerComboBoxItems(QStringList items);
     void addPostViewImageSizeComboBoxItems(QStringList items);
-    void addZoomComboBoxItems(QStringList items);
     void addConfigurationComboBoxItems(QStringList items);
 
 
@@ -76,22 +84,44 @@ private slots:
     void drawPreview(QNetworkReply *reply,QString previePicName);
     void drawLiveView(QByteArray data);
 
+    void on_zoomInPushButton_pressed();
+
+    void on_zoomInPushButton_released();
+
+    void on_zoomOutPushButton_pressed();
+
+    void on_zoomOutPushButton_released();
+
 private:
     Ui::MainWindow *ui;
+    QTimer *zoomBoxTimer;
     NetworkConnection *networkConnection;
     Remote *remote;
     Timelapse *timelapse;
+    double pressedEnd;
+    double pressedBegin;
+    //double elapsed_secs;
     //QLabel *label;
     QButtonGroup *buttonGroup;
+    QImage previewimg;
+    QImage liveviewimg;
+    QSize dialogsize;
+    QSize liveViewSize;
+
     QGraphicsScene *previewScene;
     QGraphicsScene *liveviewScene;
     //QGraphicsView * view;
     QString previewPath;
     QString friendlyName;
+    QString pictureLocation;
 
     void savePreviewFile(QByteArray bytes,QString previePicName);
     void readSettings();
     void writeSettings();
+    float fontsize;
+    float statusBarSize;
+    QFont myf;
+    int pushbuttonsize;
 };
 
 #endif // MAINWINDOW_H

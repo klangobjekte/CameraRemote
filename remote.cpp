@@ -17,14 +17,22 @@
 #include <QCryptographicHash>
 #include "networkconnection.h"
 
-#define LOG_RESULT
+//#define LOG_RESULT
 #ifdef LOG_RESULT
 #   define LOG_RESULT_DEBUG qDebug()
 #else
 #   define LOG_RESULT_DEBUG nullDebug()
 #endif
 
-#define LOG_REQUEST
+//#define LOG_RESPONSE
+#ifdef LOG_RESPONSE
+#   define LOG_RESPONSE_DEBUG qDebug()
+#else
+#   define LOG_RESPONSE_DEBUG nullDebug()
+#endif
+
+
+//#define LOG_REQUEST
 #ifdef LOG_REQUEST
 #   define LOG_REQUEST_DEBUG qDebug()
 #else
@@ -200,7 +208,7 @@ void Remote::actEnabelMethods(QByteArray key){
     jSonString2.append(key);
     jSonString2.append("\", ");
     jSonString2.append("\"methods\": \"camera/setFlashMode:camera/getFlashMode:camera/getSupportedFlashMode:camera/getAvailableFlashMode:camera/setExposureCompensation:camera/getExposureCompensation:camera/getSupportedExposureCompensation:camera/getAvailableExposureCompensation:camera/setSteadyMode:camera/getSteadyMode:camera/getSupportedSteadyMode:camera/getAvailableSteadyMode:camera/setViewAngle:camera/getViewAngle:camera/getSupportedViewAngle:camera/getAvailableViewAngle:camera/setMovieQuality:camera/getMovieQuality:camera/getSupportedMovieQuality:camera/getAvailableMovieQuality:camera/setFocusMode:camera/getFocusMode:camera/getSupportedFocusMode:camera/getAvailableFocusMode:camera/setStillSize:camera/getStillSize:camera/getSupportedStillSize:camera/getAvailableStillSize:camera/setBeepMode:camera/getBeepMode:camera/getSupportedBeepMode:camera/getAvailableBeepMode:camera/setCameraFunction:camera/getCameraFunction:camera/getSupportedCameraFunction:camera/getAvailableCameraFunction:camera/setLiveviewSize:camera/getLiveviewSize:camera/getSupportedLiveviewSize:camera/getAvailableLiveviewSize:camera/setTouchAFPosition:camera/getTouchAFPosition:camera/cancelTouchAFPosition:camera/setFNumber:camera/getFNumber:camera/getSupportedFNumber:camera/getAvailableFNumber:camera/setShutterSpeed:camera/getShutterSpeed:camera/getSupportedShutterSpeed:camera/getAvailableShutterSpeed:camera/setIsoSpeedRate:camera/getIsoSpeedRate:camera/getSupportedIsoSpeedRate:camera/getAvailableIsoSpeedRate:camera/setExposureMode:camera/getExposureMode:camera/getSupportedExposureMode:camera/getAvailableExposureMode:camera/setWhiteBalance:camera/getWhiteBalance:camera/getSupportedWhiteBalance:camera/getAvailableWhiteBalance:camera/setProgramShift:camera/getSupportedProgramShift:camera/getStorageInformation:camera/startLiveviewWithSize:camera/startIntervalStillRec:camera/stopIntervalStillRec:camera/actFormatStorage:system/setCurrentTime\", \"developerID\": \"7DED695E-75AC-4ea9-8A85-E5F8CA0AF2F3\"}], \"method\": \"actEnableMethods\", \"id\": 2}");
-    //jSonString2.append("\"methods\": \"camera/setFlashMode:camera/actFormatStorage:system/setCurrentTime\", \"developerID\": \"7DED695E-75AC-4ea9-8A85-E5F8CA0AF2F3\"}], \"method\": \"actEnableMethods\", \"id\": 2}");
+    //jSonString2.append("\"methods\": \"camera/actTakePicture:system/getSystemInformation\", \"developerID\": \"34567890-1234-1010-8000-5c6d20c00961\"}], \"method\": \"actEnableMethods\", \"id\": 2}");
 
     //qDebug() << "\njSonString2: "<< jSonString2 << "\n";
     QByteArray postDataSize2 = QByteArray::number(jSonString2.size());
@@ -276,12 +284,12 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     QJsonArray jErrorArray = jError.toArray();
 
     double id = jid.toDouble();
-    /*
-    qDebug() << "\n\n+++++++++++++++++++++++++++++++  onManagerFinished:   +++++++++++++++++++++++++++++++++\n"
+
+    LOG_RESPONSE_DEBUG << "\n\n+++++++++++++++++++++++++++++++  onManagerFinished:   +++++++++++++++++++++++++++++++++\n"
                 << methods.key(id) << reply->url() << "\n"<< str
                 << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-    */
+
     if(!jError.isUndefined()){
         //qDebug() << "+++++++++++++++++++++++++++++++ ERROR ++++++++++++++++++++++++++++++++++++++++";
         //connected = false;
@@ -457,6 +465,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             LOG_RESULT_DEBUG << "zoomIndexCurrentBox: " << jobject2.value(QString("zoomIndexCurrentBox")).toInt();
             LOG_RESULT_DEBUG << "zoomPosition: " << jobject2.value(QString("zoomPosition")).toInt();
             LOG_RESULT_DEBUG << "zoomPositionCurrentBox: " << jobject2.value(QString("zoomPositionCurrentBox")).toInt();
+            emit publishZoomPosition(jobject2.value(QString("zoomPositionCurrentBox")).toInt());
         }
         if(jobject2.value(QString("type")) == QString("liveviewStatus")){
             LOG_RESULT_DEBUG << "liveviewStatus: " << jobject2.value(QString("liveviewStatus")).toBool();
@@ -673,20 +682,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                         //once = false;
                     }
                     if(id==2){
-                        /*
-                        if(deviceFriendlyName == "NEX-6" ||
-                                deviceFriendlyName == "A7" ||
-                                deviceFriendlyName == "A7R" ||
-                                deviceFriendlyName == "NEX-5" ||
-                                deviceFriendlyName == "NEX-5R" ||
-                                deviceFriendlyName == "NEX-5T" ||
-                                deviceFriendlyName == "A5000" ||
-                                deviceFriendlyName == "A6000" ||
-                                deviceFriendlyName == "DSC-HX60" ||
-                                deviceFriendlyName == "DSC-HX400" ||
-                                availableMetods.contains("startRecMode")){
-                            startRecMode();
-                        }*/
+
 
                         if(availableMetods.contains("startRecMode")){
                             startRecMode();
@@ -762,7 +758,6 @@ void Remote::buildLiveViewPic(){
     if(!inputStream.isEmpty()){
 
         while(!found && offset<inputStream.length()-1 ){
-            //255,216
 #ifdef Q_OS_ANDROID
             if(inputStream.at(offset) == 255  && inputStream.at(offset+1) == 216){
 #else
@@ -775,7 +770,6 @@ void Remote::buildLiveViewPic(){
         }
         found = false;
         while(!found && offset<inputStream.length()-1){
-            //255,217
 #ifdef Q_OS_ANDROID
             if(inputStream.at(offset) == 255 && inputStream.at(offset+1) == 217){
 #else

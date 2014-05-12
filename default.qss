@@ -29,6 +29,7 @@ QPushButton#takePicturePushButton:hover {
 }
 
 
+
 QComboBox {
     font-family:  "Lucida Grande", Lucida, Verdana, sans-serif;
     /*border: 0px solid #D3D3D3;*/
@@ -40,7 +41,7 @@ QComboBox {
 
     /*opacity: 0.5;*/
     color: #FFFFFF;
-    /*font-size: 10pt;*/
+    font-size: 10pt;
     /*padding: 2px;*/
     /*selection-color: yellow;*/
     selection-background-color: blue;
@@ -62,52 +63,60 @@ QComboBox:hover {
 QComboBox::drop-down {
     border: 0px solid #D3D3D3;
     color: #000000;
-    background-color: transparent;
+    /*background-color: transparent;*/
 }
 
 QComboBox::drop-down:pressed {
     border: 1px solid #D3D3D3;
     color: #000000;
-    background-color: transparent;
-}
-
-QAbstractItemView::item:hover {
-    border: 2px solid darkgray;
-    selection-background-color: black;
-    background-color: black;
+    /*background-color: transparent;*/
 }
 
 
-/* forQComboBox */
-QListView{
-    background: #444444;
-     color: #000000;
+
+/* ListView of QComboBox */
+QComboBox QAbstractItemView{
+    background: transparent;
+    background: grey;
+    font-size: 18pt;
+     /*color: #000000;*/
      show-decoration-selected: 1; /* make the selection span the entire width of the view */
 
 }
 
+QComboBox QAbstractItemView::item{
+    background: grey;
+    selection-color: yellow;
+    selection-background-color: orange;
+    color: #000000;
+        font-size: 18pt;
+ }
+
+
  QListView::item:alternate {
-     background: #EEEEEE;
+     background: #ff0000;
+     color: #000000;
+         font-size: 18pt;
  }
 
  QListView::item:selected {
      border: 1px solid #6a6ea9;
+     color: #000000;
+         font-size: 18pt;
  }
 
  QListView::item:selected:!active {
-     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                 stop: 0 #ABAFE5, stop: 1 #8588B2);
+     background: ;
+     color: #000000;
+         font-size: 18pt;
  }
 
  QListView::item:selected:active {
-     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                 stop: 0 #6a6ea9, stop: 1 #888dd9);
+     background: ;
+     color: #000000;
+         font-size: 18pt;
  }
 
- QListView::item:hover {
-     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                 stop: 0 #FAFBFE, stop: 1 #DCDEF1);
-                                 selection-color: yellow;
-                                 selection-background-color: blue;
- }
+
+
 

@@ -13,6 +13,7 @@ class QUdpSocket;
 class QNetworkAccessManager;
 class QNetworkReply;
 class QTreeWidget;
+class QNetworkSession;
 
 class NetworkConnection : public QObject
 {
@@ -40,6 +41,10 @@ private slots:
     void readPendingDatagrams();
     void replyFinished(QNetworkReply *reply);
     void onUpdateCompleted();
+    void onConfigurationChanged(QNetworkConfiguration configration);
+    void onConfigurationAdded(QNetworkConfiguration configration);
+    void onconfigurationRemoved(QNetworkConfiguration configration);
+
 
 private:
     void decodeDatagramm(QByteArray datagramm);
@@ -48,6 +53,7 @@ private:
     QXmlStreamReader xml;
     QNetworkAccessManager *downloadManager;
     QUdpSocket *udpSocket;
+    QNetworkSession *networkSession;
 
     QNetworkConfigurationManager *networkConfigurationManager;
     QNetworkConfiguration activeConfiguration;
