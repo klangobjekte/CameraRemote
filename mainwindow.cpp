@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     pressedEnd = 0;
 
     int dpi=QPaintDevice::physicalDpiX();
-    float fontsize=dpi/8;                                //change to your liking
+    fontsize=dpi/8;                                //change to your liking
     LOG_SCREENDESIGN_DEBUG << "fontsize: " << fontsize;
     statusBarSize = fontsize/2;
     myf=QApplication::font();
@@ -105,8 +105,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // to get a geometryChangedEvent
     ui->pushButton_1->setVisible(false);
-    ui->stackedWidget->setCurrentIndex(0);
-
+    //ui->stackedWidget->setCurrentIndex(0);
 
 
 
@@ -412,26 +411,32 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     LOG_SCREENDESIGN_DEBUG << "resizeWindow orientedSize width     : " <<  orientedSize.width() << " height: " << orientedSize.height();
     LOG_SCREENDESIGN_DEBUG << "resizeWindow innerorientedSize width: " <<  innerorientedSize.width() << " height: " << innerorientedSize.height();
     LOG_SCREENDESIGN_DEBUG << "resizeWindow viewSize width         : " <<  viewSize.width() << " height: " << viewSize.height();
+    LOG_SCREENDESIGN_DEBUG << "resizeWindow fontsize               : " <<  fontsize;// << " height: " << viewSize.height();
+    LOG_SCREENDESIGN_DEBUG << "resizeWindow pushbuttonsize         : " <<  pushbuttonsize;// << " height: " << viewSize.height();
+    LOG_SCREENDESIGN_DEBUG << "resizeWindow statusBarSize          : " <<  statusBarSize;// << " height: " << viewSize.height();
 
 
+/*
 
-    int size = fontsize;
+    ui->whiteBalanceComboBox->setMinimumHeight(fontsize);
+    ui->fNumberComboBox->setMinimumHeight(fontsize);
+    ui->shutterSpeedComboBox->setMinimumHeight(fontsize);
+    ui->isoSpeedRateComboBox->setMinimumHeight(fontsize);
+    //ui->exposureModeComboBox->setMaximumHeight(fontsize);
+    ui->zoomPositionLabel->setMinimumHeight(fontsize);
+*/
+  /*
 
     ui->whiteBalanceComboBox->setMaximumHeight(fontsize);
     ui->fNumberComboBox->setMaximumHeight(fontsize);
     ui->shutterSpeedComboBox->setMaximumHeight(fontsize);
     ui->whiteBalanceComboBox->setMaximumHeight(fontsize);
     ui->isoSpeedRateComboBox->setMaximumHeight(fontsize);
-    ui->exposureModeComboBox->setMaximumHeight(fontsize);
+    //ui->exposureModeComboBox->setMaximumHeight(fontsize);
     ui->zoomPositionLabel->setMaximumHeight(fontsize);
+*/
 
-    ui->whiteBalanceComboBox->resize(ui->whiteBalanceComboBox->width(),fontsize);
-    ui->fNumberComboBox->resize(ui->fNumberComboBox->width() ,fontsize);
-    ui->shutterSpeedComboBox->resize(ui->shutterSpeedComboBox->width(), fontsize);
-    ui->whiteBalanceComboBox->resize(ui->whiteBalanceComboBox->width(), fontsize);
-    ui->isoSpeedRateComboBox->resize(ui->isoSpeedRateComboBox->width(), fontsize);
-    ui->exposureModeComboBox->resize(ui->exposureModeComboBox->width(), fontsize);
-    ui->zoomPositionLabel->resize(ui->zoomPositionLabel->width(),fontsize);
+
 
 /*
     ui->pushButton_1->setMaximumHeight(pushbuttonsize);
@@ -456,6 +461,12 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     this->statusBar()->setMaximumHeight(statusBarSize);
     this->statusBar()->resize(statusBar()->width(),statusBarSize);
 
+    ui->whiteBalanceComboBox->resize(ui->whiteBalanceComboBox->width(),fontsize);
+    ui->fNumberComboBox->resize(ui->fNumberComboBox->width() ,fontsize);
+    ui->shutterSpeedComboBox->resize(ui->shutterSpeedComboBox->width(), fontsize);
+    ui->isoSpeedRateComboBox->resize(ui->isoSpeedRateComboBox->width(), fontsize);
+    //ui->exposureModeComboBox->resize(ui->exposureModeComboBox->width(), fontsize);
+    ui->zoomPositionLabel->resize(ui->zoomPositionLabel->width(),fontsize);
 
 
     ui->LiveviewGraphicsView->resize(innerorientedSize.width(),viewSize.height()-fontsize);
@@ -497,6 +508,8 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     //centralGridLayoutWidget
     ui->centralGridLayoutWidget->resize(innerorientedSize);
    this->resize(orientedSize);
+
+
 
 }
 
