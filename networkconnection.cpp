@@ -12,6 +12,7 @@
 #include <QNetworkSession>
 #include <QMessageBox>
 #include <QString>
+#include "net/ethernet.h"
 
 //#define LOG_NETWORKCONNECTION
 #ifdef LOG_NETWORKCONNECTION
@@ -32,6 +33,7 @@ NetworkConnection::NetworkConnection()
     //QString SSDP_ST = "ssdp:all";
 
     //treeWidget = new QTreeWidget;
+
 
 
     QByteArray ssdpRequest = "M-SEARCH * HTTP/1.1\r\nHOST: ";
@@ -70,6 +72,24 @@ NetworkConnection::NetworkConnection()
     //if(activeConfigs.count() == 0){
         //networkConfigurationManager->updateConfigurations();
     //}
+
+    QNetworkConfigurationManager ncm;
+    auto nc = ncm.allConfigurations();
+
+    for (auto &x : nc)
+    {
+        if (x.bearerType() == QNetworkConfiguration::BearerWLAN)
+        {
+            //if (x.name() == "YouDesiredNetwork")
+                //cfg = x;
+        }
+        qDebug() << "auto: " << x.name() << x.bearerType();
+
+    }
+
+    //auto session = new QNetworkSession(cfg, this);
+    //session->open();
+
 
     QNetworkConfiguration cfg = networkConfigurationManager->defaultConfiguration();
     if (!cfg.isValid() || (!canStartIAP && cfg.state() != QNetworkConfiguration::Active)) {

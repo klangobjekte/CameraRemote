@@ -39,7 +39,15 @@
 #   define LOG_REQUEST_DEBUG nullDebug()
 #endif
 
-
+//! OSX:
+//! Turn off wifi:
+// networksetup -setairportpower en0 off
+//! List available wifi networks:
+// /System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport scan
+//! Join a wifi network
+// networksetup -setairportnetwork en0 WIFI_SSID_I_WANT_TO_JOIN WIFI_PASSWORD
+//! Find your network interface name:
+// networksetup -listallhardwareports
 
 Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     QObject(parent)
@@ -664,6 +672,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             case QVariant::String:
                 if(methods.value("startLiveview")  == id){
                         liveViewRequest = result.toString();
+                        qDebug() << "liveViewRequest: " << liveViewRequest;
                         //liveViewRequest = "http://192.168.122.1:8080/liveview/liveviewstream.JPG?%211234%21http%2dget%3a%2a%3aimage%2fjpeg%3a%2a%21%21%21%21%21";
                         streamReply = liveViewManager->get(QNetworkRequest(QUrl(liveViewRequest)));
                         connect(streamReply, SIGNAL(readyRead()), this, SLOT(onLiveViewManagerReadyRead()));

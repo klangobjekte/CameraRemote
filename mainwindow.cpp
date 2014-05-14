@@ -47,16 +47,16 @@ MainWindow::MainWindow(QWidget *parent) :
     pressedBegin = 0;
     pressedEnd = 0;
 
-
-
     int dpi=QPaintDevice::physicalDpiX();
     float fontsize=dpi/8;                                //change to your liking
-    qDebug() << "fontsize: " << fontsize;
+    LOG_SCREENDESIGN_DEBUG << "fontsize: " << fontsize;
     statusBarSize = fontsize/2;
     myf=QApplication::font();
     myf.setPixelSize(fontsize);
     QApplication::setFont(myf);
     pushbuttonsize = fontsize*4;
+
+
 
     //pictureLocation = QDir::homePath ();
     //pictureLocation = QStandardPaths::displayName(QStandardPaths::PicturesLocation);
@@ -68,24 +68,27 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //setWindowFlags(Qt::FramelessWindowHint);
     ui->setupUi(this);
+
+
     QFont statusfont = myf;
     statusfont.setPixelSize(myf.pixelSize()/2);
     this->statusBar()->setFont(statusfont);
     this->statusBar()->setMaximumHeight(statusBarSize);
-/*
-    ui->pushButton_1->setMaximumHeight(pushbuttonsize);
-    ui->pushButton_2->setMaximumHeight(pushbuttonsize);
-    ui->pushButton_3->setMaximumHeight(pushbuttonsize);
-    ui->takePicturePushButton->setMaximumHeight(pushbuttonsize);
 
-    ui->takePicturePushButton->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+    //const QScreen* screen = qGuiApp->primaryScreen();
+    QScreen* screen = QApplication::primaryScreen();
+    LOG_SCREENDESIGN_DEBUG << "Konstructor screen->screenGeometry():     " << screen->geometry();
+    LOG_SCREENDESIGN_DEBUG << "Konstructor screen->availableGeometry();: " << screen->availableGeometry();
+
+    connect( screen, SIGNAL(orientationChanged(Qt::ScreenOrientation)), this, SLOT(on_orientationChanged(Qt::ScreenOrientation)) );
+    connect( screen, SIGNAL(primaryOrientationChanged(Qt::ScreenOrientation)), this, SLOT(on_primaryOrientationChanged(Qt::ScreenOrientation)) );
+    connect( screen, SIGNAL(geometryChanged(QRect)), this, SLOT(on_GeometryChanged(QRect)) );
 
 
-    ui->pushButton_1->resize(ui->pushButton_1->width(),pushbuttonsize);
-    ui->pushButton_2->resize(ui->pushButton_1->width(),pushbuttonsize);
-    ui->pushButton_3->resize(ui->pushButton_1->width(),pushbuttonsize);
-    ui->takePicturePushButton->resize(ui->pushButton_1->width(),pushbuttonsize);
-*/
+    QStringList test;
+    test << "test1" << "test2";
+    ui->zoomPositionLabel->setText("test");
+
     buttonGroup = new QButtonGroup(this);
     buttonGroup->addButton(ui->pushButton_1);
     buttonGroup->addButton(ui->pushButton_2);
@@ -99,19 +102,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(buttonGroup,SIGNAL(buttonClicked(int)),
             this,SLOT(on_buttonGroup_buttonClicked(int)));
+
     // to get a geometryChangedEvent
     ui->pushButton_1->setVisible(false);
     ui->stackedWidget->setCurrentIndex(0);
 
 
-    //const QScreen* screen = qGuiApp->primaryScreen();
-    QScreen* screen = QApplication::primaryScreen();
 
-    connect( screen, SIGNAL(orientationChanged(Qt::ScreenOrientation)), this, SLOT(on_orientationChanged(Qt::ScreenOrientation)) );
-    connect( screen, SIGNAL(primaryOrientationChanged(Qt::ScreenOrientation)), this, SLOT(on_primaryOrientationChanged(Qt::ScreenOrientation)) );
-    connect( screen, SIGNAL(geometryChanged(QRect)), this, SLOT(on_GeometryChanged(QRect)) );
 
-    //this->setLayoutDimensions(screen->orientation());
+
+
     //QStringList testlist;
     //testlist << "test1" <<"test2"<<"test3" << "test4" << "test5" << "test5" << "test6" << "test7" << "test8" << "test9";
 
@@ -135,7 +135,6 @@ MainWindow::MainWindow(QWidget *parent) :
     //! [Create Object QGraphicsScene for Preview]
     previewScene = new QGraphicsScene;
     liveviewScene = new QGraphicsScene;
-    this->installEventFilter(this);
 
     liveviewScene->setObjectName("liveviewScene");
     //liveviewScene->installEventFilter(this);
@@ -223,6 +222,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->toolBar->setVisible(false);
     ui->mainToolBar->setVisible(false);
 
+#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
+    this->installEventFilter(this);
+    on_GeometryChanged(screen->availableGeometry());
+#endif
+
+
 }
 
 MainWindow::~MainWindow()
@@ -231,7 +236,6 @@ MainWindow::~MainWindow()
     delete remote;
     delete previewScene;
     delete liveviewScene;
-
     delete ui;
     delete networkConnection;
 }
@@ -250,13 +254,23 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
 
     if (event->type() == QEvent::Resize){
         //qDebug() << "event: " << event->type() << "object " << object->objectName();
+
+        //QScreen* screen = QApplication::primaryScreen();
+        //QRect geo = screen->geometry();
         QSize orientedSize = this->size();
-        QSize orientedInnerSize = this->size();
-        orientedInnerSize.setHeight(height()-statusBarSize);
+        qDebug() << "resize: " << size();
+        QSize orientedInnerSize;
+        orientedInnerSize.setHeight(size().height()-statusBarSize);
+        orientedInnerSize.setWidth(size().width()- size().width()/60);
         QSize viewSize;
-        viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize)/2);
-        viewSize.setWidth(this->width());
-        //resizeWindow(orientedSize,orientedInnerSize,viewSize);
+        viewSize.setHeight((orientedInnerSize.height()-pushbuttonsize));
+        viewSize.setWidth(orientedInnerSize.width());
+        //viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize)/2);
+
+        resizeWindow(orientedSize,orientedInnerSize,viewSize);
+
+        //setLayoutDimensions(Qt::LandscapeOrientation);
+
 
         return QMainWindow::eventFilter(object, event);
     }
@@ -267,23 +281,22 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
             QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
             QPoint point = mouseEvent->pos();
             qDebug() << "event: " << event->type() << "object " << object->objectName() <<"pos: " << point ;
-            return true;
-            //return QWidget::eventFilter(object, event);
+            //return true;
+            return QMainWindow::eventFilter(object, event);
         }
 
         if (event->type() == QEvent::MouseMove){
             QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
             QPoint point = mouseEvent->pos();
             qDebug() << "event: " << event->type() << "object " << object->objectName() <<"pos: " << point ;
-            return true;
-            //return QWidget::eventFilter(object, event);
+            //return true;
+            return QMainWindow::eventFilter(object, event);
         }
 
 
     //}
     //return true;
 }
-
 
 void MainWindow::on_buttonGroup_buttonClicked(int index){
             ui->stackedWidget->setCurrentIndex(index);
@@ -334,7 +347,12 @@ void MainWindow::on_GeometryChanged(QRect geo){
 
 void MainWindow::setLayoutDimensions(Qt::ScreenOrientation orientation){
     QScreen* screen = QApplication::primaryScreen();
+
+#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
+    QRect geo = screen->availableGeometry();
+#else
     QRect geo = screen->geometry();
+#endif
     LOG_SCREENDESIGN_DEBUG << "screen->screenGeometry():     " << screen->geometry();
     LOG_SCREENDESIGN_DEBUG << "screen->availableGeometry();: " << screen->availableGeometry();
 
@@ -351,14 +369,14 @@ void MainWindow::setupPortraitScreen(QRect geo){
     QSize orientedSize;
     QSize orientedInnerSize;
 
-    if(!ui->previewGraphicsView->isVisible())
-        ui->previewGraphicsView->setVisible(true);
+    //if(!ui->previewGraphicsView->isVisible())
+    //    ui->previewGraphicsView->setVisible(true);
     orientedInnerSize.setWidth(geo.width());
     orientedInnerSize.setHeight(geo.height()-statusBarSize);
     orientedSize.setWidth(geo.width());
     orientedSize.setHeight(geo.height());
     QSize viewSize;
-    viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize)/2);
+    viewSize.setHeight((orientedInnerSize.height()-pushbuttonsize));
     viewSize.setWidth(geo.width());
     resizeWindow(orientedSize,orientedInnerSize,viewSize);
 
@@ -373,18 +391,17 @@ void MainWindow::setupLandscapeScreen(QRect geo){
     orientedInnerSize.setHeight(geo.height() - statusBarSize);
     orientedSize.setWidth(geo.width());
     orientedSize.setHeight(geo.height());
-    viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize));
-    viewSize.setWidth(geo.width());
-    if(!ui->previewGraphicsView->isVisible())
-        ui->previewGraphicsView->setVisible(true);
+    viewSize.setHeight((orientedInnerSize.height()-pushbuttonsize));
+    viewSize.setWidth(orientedInnerSize.width());
+
 #else
     orientedInnerSize.setWidth(geo.width() - geo.width()/60);
     orientedInnerSize.setHeight(geo.height() - statusBarSize);
     orientedSize.setWidth(geo.width());
     orientedSize.setHeight(geo.height());
-    ui->previewGraphicsView->setVisible(false);
-    viewSize.setHeight((orientedInnerSize.height()-statusBarSize-pushbuttonsize));
-    viewSize.setWidth(geo.width());
+    //ui->previewGraphicsView->setVisible(false);
+    viewSize.setHeight((orientedInnerSize.height()-pushbuttonsize));
+    viewSize.setWidth(orientedInnerSize.width());
 #endif
      resizeWindow(orientedSize,orientedInnerSize,viewSize);
 }
@@ -392,15 +409,14 @@ void MainWindow::setupLandscapeScreen(QRect geo){
 void MainWindow::resizeWindow(QSize  orientedSize,
                               QSize innerorientedSize,
                               QSize viewSize){
-    LOG_SCREENDESIGN_DEBUG << "resizeWindow width: " <<  innerorientedSize.width() << " height: " << innerorientedSize.height();
+    LOG_SCREENDESIGN_DEBUG << "resizeWindow orientedSize width     : " <<  orientedSize.width() << " height: " << orientedSize.height();
+    LOG_SCREENDESIGN_DEBUG << "resizeWindow innerorientedSize width: " <<  innerorientedSize.width() << " height: " << innerorientedSize.height();
+    LOG_SCREENDESIGN_DEBUG << "resizeWindow viewSize width         : " <<  viewSize.width() << " height: " << viewSize.height();
 
-    this->resize(orientedSize);
-    //ui->centralWidget->resize(orientedSize);
 
-    ui->centralGridLayoutWidget->resize(innerorientedSize);
 
     int size = fontsize;
-/*
+
     ui->whiteBalanceComboBox->setMaximumHeight(fontsize);
     ui->fNumberComboBox->setMaximumHeight(fontsize);
     ui->shutterSpeedComboBox->setMaximumHeight(fontsize);
@@ -417,7 +433,7 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     ui->exposureModeComboBox->resize(ui->exposureModeComboBox->width(), fontsize);
     ui->zoomPositionLabel->resize(ui->zoomPositionLabel->width(),fontsize);
 
-
+/*
     ui->pushButton_1->setMaximumHeight(pushbuttonsize);
     ui->pushButton_2->setMaximumHeight(pushbuttonsize);
     ui->pushButton_3->setMaximumHeight(pushbuttonsize);
@@ -434,37 +450,54 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     ui->takePicturePushButton->resize(ui->pushButton_1->width(),pushbuttonsize);
 
 */
-    //ui->page->resize(innerorientedSize.width(),innerorientedSize.height()-pushbuttonsize);
-
-    //ui->stackedWidget->resize(innerorientedSize.width(),innerorientedSize.height()-pushbuttonsize);
-
-    //ui->viewGridLayoutWidget->resize(innerorientedSize.width(),innerorientedSize.height()-pushbuttonsize);
-
-    ui->controlGridLayoutWidget->resize(innerorientedSize.width(),
-            viewSize.height()*2);
-
-    ui->settingsGridLayoutWidget->resize(innerorientedSize.width() -innerorientedSize.width()/20,
-            viewSize.height()*2);
-
-    ui->LiveviewGraphicsView->resize(innerorientedSize.width(),viewSize.height());
-    ui->previewGraphicsView->resize(innerorientedSize.width(),viewSize.height());
-
-    ui->previewVerticalLayoutWidget->resize(innerorientedSize.width(),innerorientedSize.height()-pushbuttonsize);
-
-
-    previewimg = previewimg.scaled(ui->previewGraphicsView->size(),Qt::KeepAspectRatio);
-    liveviewimg = liveviewimg.scaled(ui->LiveviewGraphicsView->size(),Qt::KeepAspectRatio);
-    dialogsize = innerorientedSize;
-
-    //int dpi=QPaintDevice::physicalDpiX();
-    //ui->pushButton_1->setMaximumHeight(pushbuttonsize);
-
-
     QFont statusfont = myf;
     statusfont.setPixelSize(myf.pixelSize()/2);
     this->statusBar()->setFont(statusfont);
     this->statusBar()->setMaximumHeight(statusBarSize);
     this->statusBar()->resize(statusBar()->width(),statusBarSize);
+
+
+
+    ui->LiveviewGraphicsView->resize(innerorientedSize.width(),viewSize.height()-fontsize);
+    ui->previewGraphicsView->resize(innerorientedSize.width(),viewSize.height()-fontsize);
+
+    previewimg = previewimg.scaled(ui->previewGraphicsView->size(),Qt::KeepAspectRatio);
+    liveviewimg = liveviewimg.scaled(ui->LiveviewGraphicsView->size(),Qt::KeepAspectRatio);
+    dialogsize = innerorientedSize;
+
+
+    ui->controlGridLayoutWidget->resize(innerorientedSize.width(),
+            viewSize.height());
+
+    ui->stackedWidget->resize(innerorientedSize.width(),
+            viewSize.height());
+
+    ui->page->resize(innerorientedSize.width(),
+            viewSize.height());
+
+    ui->page_2->resize(innerorientedSize.width(),
+            viewSize.height());
+
+
+    ui->settingsGridLayoutWidget->resize(innerorientedSize.width(),
+            viewSize.height());
+
+
+    ui->previewVerticalLayoutWidget->resize(innerorientedSize.width(),viewSize.height());
+
+
+
+
+
+    //int dpi=QPaintDevice::physicalDpiX();
+    //ui->pushButton_1->setMaximumHeight(pushbuttonsize);
+
+
+    //ui->centralWidget->resize(innerorientedSize);
+    //centralGridLayoutWidget
+    ui->centralGridLayoutWidget->resize(innerorientedSize);
+   this->resize(orientedSize);
+
 }
 
 
@@ -576,10 +609,7 @@ void MainWindow::on_chooseFolderPushButton_clicked(){
 void MainWindow::on_urlLineEdit_textEdited(QString url){
     networkConnection->setUrl(url);
     //remote->setUrl(url);
-
 }
-
-
 
 void MainWindow::on_isoSpeedRateComboBox_activated(QString text){
     QByteArray index;
@@ -625,10 +655,7 @@ void MainWindow::on_exposureModeComboBox_activated(QString text){
     remote->commandFabrikMethod("setExposureMode",remote->getMethods().value("setExposureMode"),param);
 }
 
-
-
 void MainWindow::on_selfTimerComboBox_activated(QString text){
-
     int para = text.toInt();
     QByteArray param;
     //param.append("\"");
@@ -637,7 +664,6 @@ void MainWindow::on_selfTimerComboBox_activated(QString text){
     //param.append(parachar);
     //param = para;
     remote->commandFabrikMethod("setSelfTimer",remote->getMethods().value("setSelfTimer"),param);
-
 }
 
 void MainWindow::on_postViewImageSizeComboBox_activated(QString text){
@@ -646,10 +672,7 @@ void MainWindow::on_postViewImageSizeComboBox_activated(QString text){
     param.append(text);
     param.append("\"");
     remote->commandFabrikMethod("setPostviewImageSize",remote->getMethods().value("setPostviewImageSize"),param);
-
 }
-
-
 
 void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
     foreach (QString item, items) {
