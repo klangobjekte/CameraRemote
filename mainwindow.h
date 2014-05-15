@@ -61,6 +61,7 @@ private slots:
     void on_selfTimerComboBox_activated(QString text);
     void on_liveViewImageTouched(QPointF pos);
 
+
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
     void addwhiteBalanceComboBoxItems(QStringList items);
@@ -92,6 +93,9 @@ private slots:
     void on_zoomOutPushButton_pressed();
 
     void on_zoomOutPushButton_released();
+
+
+    void on_zoomPositionChanged(const int &text);
 
 private:
     Ui::MainWindow *ui;
@@ -125,6 +129,7 @@ private:
     int pushbuttonsize;
     QSize liveviewimgsize;
     QSize currentsize;
+    bool processingstate;
 };
 
 #endif // MAINWINDOW_H

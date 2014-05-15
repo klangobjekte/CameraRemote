@@ -50,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //! for Future use
     pressedBegin = 0;
     pressedEnd = 0;
+    processingstate = false;
 
 
     //pictureLocation = QDir::homePath ();
@@ -105,9 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //QStringList testlist;
     //testlist << "test1" <<"test2"<<"test3" << "test4" << "test5" << "test5" << "test6" << "test7" << "test8" << "test9";
     //ui->zoomComboBox->model()->setData(ui->zoomComboBox->model()->index(0, 0), QSize(1000, 1000), Qt::SizeHintRole);
-    QStringList test;
-    test << "test1" << "test2";
-    ui->zoomPositionLabel->setText("test");
+    //ui->zoomPositionLabel->setText("test");
 
 
     //! [Create Object Connection to WiFi]
@@ -154,6 +153,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(remote,SIGNAL(publishAvailablePostviewImageSizeCandidates(QStringList)),
             this,SLOT(addPostViewImageSizeComboBoxItems(QStringList)));
+
     connect(remote,SIGNAL(publishAvailablselfTimerCandidates(QStringList)),
             this,SLOT(addSelfTimerComboBoxItems(QStringList)));
 
@@ -176,7 +176,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(remote,SIGNAL(publishCurrentPostviewImageSize(QString)),
             ui->postViewImageSizeComboBox,SLOT(setCurrentText(QString)));
     connect(remote,SIGNAL(publishZoomPosition(int)),
-            ui->zoomPositionLabel,SLOT(setNum(int)));
+            this,SLOT(on_zoomPositionChanged(int)));
 
     connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
             remote,SLOT(setConnectionStatus(int,QString)));
@@ -246,12 +246,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
 #if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
     if (event->type() == QEvent::Resize){
         //qDebug() << "event: " << event->type() << "object " << object->objectName();
-
-        //QScreen* screen = QApplication::primaryScreen();
-        //QRect geo = screen->geometry();
-
-
-
         if(!(this->size() == currentsize)){
             QSize orientedSize = this->size();
             qDebug() << "resize: " << size();
@@ -397,9 +391,6 @@ void MainWindow::setupPortraitScreen(QRect geo){
     ui->whiteBalanceComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
-
-
-
     ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,6);
     ui->centralGridLayout->addWidget(ui->pushButton_1,1,0);
     ui->centralGridLayout->addWidget(ui->pushButton_2,1,1);
@@ -509,17 +500,12 @@ void MainWindow::setupLandscapeScreen(QRect geo){
     ui->centralGridLayout->addWidget(ui->pushButton_2,5,1);
 
 
-
-
     orientedInnerSize.setWidth(geo.width() - geo.width()/60);
     orientedInnerSize.setHeight(geo.height() - statusBarSize);
     orientedSize.setWidth(geo.width());
     orientedSize.setHeight(geo.height());
     viewSize.setHeight((orientedInnerSize.height()));
     viewSize.setWidth(orientedInnerSize.width());
-
-
-
 
 
 #endif
@@ -579,22 +565,11 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     ui->previewVerticalLayoutWidget->resize(innerorientedSize.width(),viewSize.height());
 
 
-
-
-
-
-
-
-
     //centralGridLayoutWidget
     ui->centralGridLayout->setRowMinimumHeight(1,pushbuttonsize);
     ui->centralGridLayout->setVerticalSpacing(0);
     ui->centralGridLayoutWidget->resize(innerorientedSize);
     ui->centralWidget->resize(innerorientedSize);
-
-
-
-
 
     ui->pushButton_1->resize(ui->pushButton_1->width(),pushbuttonsize);
     ui->pushButton_2->resize(ui->pushButton_1->width(),pushbuttonsize);
@@ -821,36 +796,39 @@ void MainWindow::on_zoomInPushButton_pressed()
     if(elapsed_secs > 0){
         cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
     }
-
-
-    QByteArray param;
-    param.append("\"");
-    param.append("in");
-    param.append("\"");
-    param.append(",");
-    param.append("\"");
-    param.append("1shot");
-    param.append("\"");
-    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+    if(!processingstate){
+        QByteArray param;
+        param.append("\"");
+        param.append("in");
+        param.append("\"");
+        param.append(",");
+        param.append("\"");
+        param.append("1shot");
+        param.append("\"");
+        remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+        processingstate = true;
+        ui->zoomInPushButton->setEnabled(false);
+        ui->zoomOutPushButton->setEnabled(false);
+    }
 }
 
 void MainWindow::on_zoomInPushButton_released()
 {
     pressedEnd = clock();
-    QByteArray param;
-    param.append("\"");
-    param.append("in");
-    param.append("\"");
-    param.append(",");
-    param.append("\"");
-    param.append("stop");
-    param.append("\"");
-    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
-    double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
-    if(elapsed_secs > 0){
-        cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
-    }
 
+        QByteArray param;
+        param.append("\"");
+        param.append("in");
+        param.append("\"");
+        param.append(",");
+        param.append("\"");
+        param.append("stop");
+        param.append("\"");
+        remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+        double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
+        if(elapsed_secs > 0){
+            cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
+        }
 }
 
 void MainWindow::on_zoomOutPushButton_pressed()
@@ -860,15 +838,20 @@ void MainWindow::on_zoomOutPushButton_pressed()
     if(elapsed_secs > 0){
         cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
     }
-    QByteArray param;
-    param.append("\"");
-    param.append("out");
-    param.append("\"");
-    param.append(",");
-    param.append("\"");
-    param.append("1shot");
-    param.append("\"");
-    remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+    if(!processingstate){
+        QByteArray param;
+        param.append("\"");
+        param.append("out");
+        param.append("\"");
+        param.append(",");
+        param.append("\"");
+        param.append("1shot");
+        param.append("\"");
+        remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+        processingstate = true;
+        ui->zoomInPushButton->setEnabled(false);
+        ui->zoomOutPushButton->setEnabled(false);
+    }
 }
 
 void MainWindow::on_zoomOutPushButton_released()
@@ -878,6 +861,7 @@ void MainWindow::on_zoomOutPushButton_released()
     if(elapsed_secs > 0){
         cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
     }
+
     QByteArray param;
     param.append("\"");
     param.append("out");
@@ -889,7 +873,16 @@ void MainWindow::on_zoomOutPushButton_released()
     remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
 }
 
-
+void MainWindow::on_zoomPositionChanged(const int &text)
+{
+    if(!(ui->zoomPositionLabel->text().toInt() == text)){
+        //qDebug() << "on_zoomPositionChanged" << text<<  ui->zoomPositionLabel->text().toInt();
+        ui->zoomPositionLabel->setNum(text);
+        processingstate = false;
+        ui->zoomInPushButton->setEnabled(true);
+        ui->zoomOutPushButton->setEnabled(true);
+    }
+}
 
 
 void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
@@ -1080,12 +1073,12 @@ void MainWindow::readSettings()
     previewPath = settings.value("previewPath").toString();
     ui->loadPreviewPicCheckBox->setChecked(settings.value("loadpreviePic",true).toBool());
     QPoint pos = settings.value("pos", QPoint(200,200)).toPoint();
-    //QSize size = settings.value("size", QSize(300, 200)).toSize();
+    QSize size = settings.value("size", QSize(300, 200)).toSize();
     //! gibt geometry einProblem mit den Toolbars??
     //restoreGeometry(settings.value("geometry").toByteArray());
 
     restoreState(settings.value("state").toByteArray());
-    //resize(size);
+    resize(size);
     move(pos);
     //this->pos().setX(pos.x());
     //this->pos().setY(pos.y());
@@ -1100,7 +1093,7 @@ void MainWindow::writeSettings()
     settings.setValue("port",networkConnection->getUrl().port());
     settings.setValue("friendlyName",friendlyName);
     settings.setValue("pos", pos());
-    //settings.setValue("size", size());
+    settings.setValue("size", size());
     //! gibt geometry einProblem mit den Toolbars??
     //settings.setValue("geometry", saveGeometry());
     //! die Breite und Position der DockWindows!!
@@ -1167,3 +1160,7 @@ ui->zoomInPushButton->setStyleSheet("{height: 90px;}");
 ui->zoomOutPushButton->setStyleSheet("{height: 90px;}");
 ui->takePicturePushButton->setStyleSheet("{height: 90px;}");
 */
+
+
+
+

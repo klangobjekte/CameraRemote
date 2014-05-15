@@ -26,7 +26,7 @@
 #endif
 
 //! Zerlegt:
-//#define LOG_RESULT
+//#define LOG_RESULhnT
 #ifdef LOG_RESULT
 #   define LOG_RESULT_DEBUG qDebug()
 #else
@@ -75,12 +75,12 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     connect(timer,SIGNAL(timeout()), this,SLOT(buildLiveViewPic()));
 
     getEventTimerPeriodic = new QTimer;
-    getEventTimerPeriodic->setInterval(5000);
+    getEventTimerPeriodic->setInterval(1500);
     connect(getEventTimerPeriodic,SIGNAL(timeout()),
             this,SLOT(getEvent()));
 
     getEventTimerSingleshot = new QTimer;
-    getEventTimerSingleshot->setInterval(7000);
+    getEventTimerSingleshot->setInterval(5000);
     getEventTimerSingleshot->setSingleShot(true);
     connect(getEventTimerSingleshot,SIGNAL(timeout()),
             this,SLOT(getEvent()));
