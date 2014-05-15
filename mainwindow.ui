@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>504</width>
-    <height>724</height>
+    <width>492</width>
+    <height>704</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -42,121 +42,87 @@ QStatusBar{
 
 QGraphicsView
 {
-    background-color: #888888;
+    background-color: #222222;
+}
+
+QPushButton{
+	border: 1px solid white;
+	background-repeat: none;
+	background-position: center;
+	background-color: black;
+color: white;
+	/*height:	70px;*/
 }
 
 QPushButton#pushButton_1{
-border: 1px solid white;
 	background-image: url(:/img/device_nex.png);
-	background-repeat: none;
-	background-position: center;
-	background-color: black;
 }
 
 QPushButton#pushButton_2{
-border: 1px solid white;
 	background-image: url(:/img/btn_settings_normal.png);
-	background-repeat: none;
-	background-position: center;
-	background-color: black;
 }
 
 QPushButton#pushButton_2:checked{
-border: 1px solid white;
 	background-image: url(:/img/btn_settings_disable.png);
-	background-repeat: none;
-	background-position: center;
-	background-color: black;
-
 }
 
 QPushButton#pushButton_3{
-border: 1px solid white;
 	background-image: url(:/img/btn_postview_common_normal.png);
-	background-repeat: none;
-	background-position: center;
-	background-color: black;
 }
 
 QPushButton#pushButton_3:checked{
 	background-image: url(:/img/btn_postview_common_disable.png);
-	background-repeat: none;
-	background-position: center;
-	background-color: black;
 }
 
 
 QPushButton#takePicturePushButton{
-border: 1px solid white;
 	background-image: url(:/img/btn_capture_still_normal.png);
-	background-repeat: none;
-	background-position: center;
-	background-color: black;
 }
 
 QPushButton#takePicturePushButton:pressed {
 	background-image: url(:/img/btn_capture_still_disable.png);
-	background-repeat: none;
-	background-position: center;
     background-color: #ffffff;
 }
 
 QPushButton#zoomInPushButton{
-border: 1px solid white;
 	background-image: url(:/img/zoom_t_normal.png);
-	background-repeat: none;
-	background-position: center;
-    background-color: transparent;
 }
 
-QPushButton#zoomInPushButton:presseds{
+QPushButton#zoomInPushButton:pressed{
 	background-image: url(:/img/zoom_t_pushed.png);
-	background-repeat: none;
-	background-position: center;
     background-color: #ffffff;
 }
 
 QPushButton#zoomOutPushButton{
-border: 1px solid white;
 	background-image: url(:/img/zoom_w_normal.png);
-	background-repeat: none;
-	background-position: center;
-    background-color: transparent;
 }
 
 QPushButton#zoomOutPushButton:pressed{
 	background-image: url(:/img/zoom_w_pushed.png);
-	background-repeat: none;
-	background-position: center;
     background-color: #ffffff;
 }
 
-QLabel#zoomPositionLabel{
-    font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;
-    border:none;
-    background-color: transparent;
-    color: #FFFFFF;
-}
 
 QComboBox {
-    font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;
-    border:none;
+	/*font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;*/
+	/*height: 90px;*/
+    /*border-radius: 3px;*/
+	border: 0px solid #D3D3D3;
     background-color: transparent;
     color: #FFFFFF;
     selection-background-color: blue;
+
 }
 
 QComboBox:hover {
-    font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;
-    border: 0px solid #D3D3D3;
-    border-radius: 3px;
+   /* font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;*/
     background-color: #888888;
     color: #000000;
     padding: 2px;
 }
 
 QComboBox::drop-down:on {
-    font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;
+    /*font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;*/
     color: #000000;  
 }
 
@@ -174,28 +140,37 @@ QComboBox::drop-down:pressed {
 QComboBox QAbstractItemView{
     background: transparent;
     background: grey;
-    show-decoration-selected: 1; /* make the selection span the entire width of the view */
+	/* make the selection span the entire width of the view */
+    /* show-decoration-selected: 1; */
 }
-
 QComboBox#configurationComboBox{
-    font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;
- color: white;
+    /*font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;*/
+ 	color: white;
 }
 
 QLabel{
-color: white;
+	color: white;
+}
+
+QLabel#zoomPositionLabel{
+    /*font-family:  &quot;Lucida Grande&quot;, Lucida, Verdana, sans-serif;*/
+	border: 0px solid #D3D3D3;
+    background-color: transparent;
+    color: #FFFFFF;
 }
 
 QCheckBox#loadPreviewPicCheckBox{
-color: white;
+
+	color: white;
+
 }
 </string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
      <horstretch>0</horstretch>
-     <verstretch>10</verstretch>
+     <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <widget class="QWidget" name="centralGridLayoutWidget">
@@ -204,32 +179,85 @@ color: white;
       <x>10</x>
       <y>0</y>
       <width>471</width>
-      <height>671</height>
+      <height>631</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="centralGridLayout">
      <property name="sizeConstraint">
-      <enum>QLayout::SetMaximumSize</enum>
+      <enum>QLayout::SetDefaultConstraint</enum>
      </property>
-     <item row="1" column="3">
-      <widget class="QPushButton" name="zoomOutPushButton">
+     <item row="1" column="2">
+      <widget class="QPushButton" name="pushButton_3">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <kerning>false</kerning>
+        </font>
        </property>
        <property name="text">
         <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPushButton" name="pushButton_2">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <kerning>false</kerning>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item row="1" column="5">
       <widget class="QPushButton" name="takePicturePushButton">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>2</horstretch>
-         <verstretch>1</verstretch>
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="font">
@@ -244,47 +272,48 @@ color: white;
        <property name="text">
         <string/>
        </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
+       </property>
       </widget>
      </item>
-     <item row="1" column="2">
-      <widget class="QPushButton" name="pushButton_3">
+     <item row="1" column="3">
+      <widget class="QPushButton" name="zoomOutPushButton">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="pushButton_1">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="maximumSize">
         <size>
          <width>16777215</width>
          <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <kerning>false</kerning>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QPushButton" name="pushButton_1">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
         </size>
        </property>
        <property name="sizeIncrement">
@@ -293,31 +322,10 @@ color: white;
          <height>0</height>
         </size>
        </property>
-       <property name="font">
-        <font>
-         <kerning>false</kerning>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QPushButton" name="pushButton_2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
+       <property name="baseSize">
         <size>
-         <width>16777215</width>
-         <height>16777215</height>
+         <width>0</width>
+         <height>32</height>
         </size>
        </property>
        <property name="font">
@@ -328,30 +336,45 @@ color: white;
        <property name="text">
         <string/>
        </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
+       </property>
        <property name="checkable">
         <bool>true</bool>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
      <item row="1" column="4">
       <widget class="QPushButton" name="zoomInPushButton">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="text">
         <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
        </property>
       </widget>
      </item>
      <item row="0" column="0" colspan="6">
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
          <horstretch>0</horstretch>
-         <verstretch>9</verstretch>
+         <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="currentIndex">
@@ -359,7 +382,7 @@ color: white;
        </property>
        <widget class="QWidget" name="page">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -369,13 +392,13 @@ color: white;
           <rect>
            <x>-10</x>
            <y>0</y>
-           <width>471</width>
+           <width>546</width>
            <height>551</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="controlGridLayout">
           <property name="sizeConstraint">
-           <enum>QLayout::SetMinimumSize</enum>
+           <enum>QLayout::SetDefaultConstraint</enum>
           </property>
           <property name="spacing">
            <number>0</number>
@@ -383,15 +406,15 @@ color: white;
           <item row="1" column="5">
            <widget class="QLabel" name="zoomPositionLabel">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
               <horstretch>0</horstretch>
-              <verstretch>1</verstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>17</height>
+              <height>0</height>
              </size>
             </property>
             <property name="text">
@@ -402,15 +425,15 @@ color: white;
           <item row="1" column="3">
            <widget class="QComboBox" name="fNumberComboBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
               <horstretch>0</horstretch>
-              <verstretch>1</verstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>17</height>
+              <height>0</height>
              </size>
             </property>
             <property name="font">
@@ -427,15 +450,15 @@ color: white;
           <item row="1" column="0" colspan="2">
            <widget class="QComboBox" name="whiteBalanceComboBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
               <horstretch>0</horstretch>
-              <verstretch>1</verstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>17</height>
+              <height>0</height>
              </size>
             </property>
             <property name="sizeIncrement">
@@ -458,15 +481,15 @@ color: white;
           <item row="1" column="2">
            <widget class="QComboBox" name="shutterSpeedComboBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
               <horstretch>0</horstretch>
-              <verstretch>1</verstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>17</height>
+              <height>0</height>
              </size>
             </property>
             <property name="font">
@@ -489,15 +512,15 @@ color: white;
           <item row="1" column="4">
            <widget class="QComboBox" name="isoSpeedRateComboBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
               <horstretch>0</horstretch>
-              <verstretch>1</verstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>17</height>
+              <height>0</height>
              </size>
             </property>
             <property name="font">
@@ -523,9 +546,9 @@ color: white;
              <bool>false</bool>
             </property>
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
               <horstretch>0</horstretch>
-              <verstretch>9</verstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="frameShape">
@@ -546,13 +569,19 @@ color: white;
         </widget>
        </widget>
        <widget class="QWidget" name="page_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <widget class="QWidget" name="settingsGridLayoutWidget">
          <property name="geometry">
           <rect>
            <x>0</x>
            <y>10</y>
            <width>481</width>
-           <height>311</height>
+           <height>581</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -570,28 +599,6 @@ color: white;
           <property name="sizeConstraint">
            <enum>QLayout::SetMinimumSize</enum>
           </property>
-          <item row="6" column="0" colspan="2">
-           <widget class="QPushButton" name="startTimerPushButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-            <property name="text">
-             <string>Timelapse</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLineEdit" name="urlLineEdit">
             <property name="sizePolicy">
@@ -608,26 +615,7 @@ color: white;
             </property>
            </widget>
           </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="intervallLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-            <property name="text">
-             <string>Interval</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="1">
+          <item row="9" column="1">
            <widget class="QTimeEdit" name="intervalTimeEdit">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -653,7 +641,80 @@ color: white;
             </property>
            </widget>
           </item>
-          <item row="8" column="1">
+          <item row="2" column="0">
+           <widget class="QPushButton" name="startRecModePushButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="text">
+             <string>Connect</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="configurationComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QLabel" name="durationLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="text">
+             <string>Dur</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0">
+           <widget class="QComboBox" name="exposureModeComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="1">
            <widget class="QTimeEdit" name="durationTimeEdit">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -679,26 +740,7 @@ color: white;
             </property>
            </widget>
           </item>
-          <item row="8" column="0">
-           <widget class="QLabel" name="durationLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-            <property name="text">
-             <string>Dur</string>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="0">
+          <item row="12" column="0">
            <widget class="QComboBox" name="selfTimerComboBox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
@@ -714,7 +756,86 @@ color: white;
             </property>
            </widget>
           </item>
-          <item row="5" column="0" colspan="2">
+          <item row="4" column="1">
+           <widget class="QPushButton" name="chooseFolderPushButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose the folder where  the preview pictures are stored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Folder</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="intervallLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="text">
+             <string>Interval</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="1">
+           <widget class="QComboBox" name="postViewImageSizeComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="loadPreviewPicCheckBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load the Preview Pictures&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Load</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
            <widget class="QPushButton" name="startLiveViewPushButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -739,56 +860,8 @@ color: white;
             </property>
            </widget>
           </item>
-          <item row="9" column="0">
-           <widget class="QComboBox" name="exposureModeComboBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="1">
-           <widget class="QComboBox" name="postViewImageSizeComboBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="configurationComboBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="startRecModePushButton">
+          <item row="5" column="0">
+           <widget class="QPushButton" name="startTimerPushButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -802,54 +875,10 @@ color: white;
              </font>
             </property>
             <property name="text">
-             <string>Connect</string>
+             <string>Timelapse</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="2">
-           <widget class="QPushButton" name="chooseFolderPushButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose the folder where  the preview pictures are stored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Folder</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QCheckBox" name="loadPreviewPicCheckBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load the Preview Pictures&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Load</string>
             </property>
            </widget>
           </item>
@@ -857,25 +886,31 @@ color: white;
         </widget>
        </widget>
        <widget class="QWidget" name="page_3">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <widget class="QWidget" name="previewVerticalLayoutWidget">
          <property name="geometry">
           <rect>
            <x>0</x>
            <y>20</y>
            <width>471</width>
-           <height>311</height>
+           <height>551</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="previewVerticalLayout">
           <property name="sizeConstraint">
-           <enum>QLayout::SetMinimumSize</enum>
+           <enum>QLayout::SetDefaultConstraint</enum>
           </property>
           <item>
            <widget class="QGraphicsView" name="previewGraphicsView">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
-              <verstretch>12</verstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
            </widget>
@@ -896,7 +931,7 @@ color: white;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>504</width>
+     <width>492</width>
      <height>22</height>
     </rect>
    </property>

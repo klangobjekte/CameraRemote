@@ -59,6 +59,7 @@ private slots:
     void on_exposureModeComboBox_activated(QString text);
     void on_postViewImageSizeComboBox_activated(QString text);
     void on_selfTimerComboBox_activated(QString text);
+    void on_liveViewImageTouched(QPointF pos);
 
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
@@ -122,6 +123,8 @@ private:
     float statusBarSize;
     QFont myf;
     int pushbuttonsize;
+    QSize liveviewimgsize;
+    QSize currentsize;
 };
 
 #endif // MAINWINDOW_H

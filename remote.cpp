@@ -17,6 +17,15 @@
 #include <QCryptographicHash>
 #include "networkconnection.h"
 
+//! Original
+//#define LOG_RESPONSE
+#ifdef LOG_RESPONSE
+#   define LOG_RESPONSE_DEBUG qDebug()
+#else
+#   define LOG_RESPONSE_DEBUG nullDebug()
+#endif
+
+//! Zerlegt:
 //#define LOG_RESULT
 #ifdef LOG_RESULT
 #   define LOG_RESULT_DEBUG qDebug()
@@ -24,12 +33,7 @@
 #   define LOG_RESULT_DEBUG nullDebug()
 #endif
 
-//#define LOG_RESPONSE
-#ifdef LOG_RESPONSE
-#   define LOG_RESPONSE_DEBUG qDebug()
-#else
-#   define LOG_RESPONSE_DEBUG nullDebug()
-#endif
+
 
 
 //#define LOG_REQUEST
@@ -622,14 +626,15 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
         if(jobject2.value(QString("type")) == (QString("touchAFPosition"))){
              bool touchAFPositionSet =    jobject2.value("currentSet").toBool();
-             LOG_RESULT_DEBUG << "currentSet: " << touchAFPositionSet;
-             QVariantList vlist = jobject2.value("currentTouchCoordinates").toArray().toVariantList();
+             LOG_RESULT_DEBUG << "touchAFPosition currentSet: " << touchAFPositionSet;
+             //QVariantList vlist = jobject2.value("currentTouchCoordinates").toArray().toVariantList();
+             double vlist = jobject2.value("currentTouchCoordinates").toDouble();
              QStringList slist;
-             foreach (QVariant var, vlist) {
-                 slist.append(var.toString());
-             }
+             //foreach (QVariant var, vlist) {
+             //    slist.append(var.toString());
+             //}
              emit publishCurrentTouchCoordinates(slist);
-             LOG_RESULT_DEBUG << "currentTouchCoordinates: " << slist;
+             LOG_RESULT_DEBUG << "currentTouchCoordinates: " << vlist;
              emit publishTouchAFPositionSet(touchAFPositionSet);
         }
     }
@@ -1034,12 +1039,12 @@ void Remote::getSupportedShutterSpeed(int id){
     commandFabrikMethod("getSupportedShutterSpeed",id);
 }
 
-void Remote::setTouchPosition(int id){
-    commandFabrikMethod("setTouchPosition",id);
+void Remote::setTouchAFPosition(int id){
+    commandFabrikMethod("setTouchAFPosition",id);
 }
 
-void Remote::getTouchPosition(int id){
-    commandFabrikMethod("getTouchPosition",id);
+void Remote::getTouchAFPosition(int id){
+    commandFabrikMethod("getTouchAFPosition",id);
 }
 
 void Remote::getWhiteBalance(int id){
@@ -1068,6 +1073,7 @@ void Remote::stopMovieRec(int id){
 
 void Remote::setLiveViewStartToManual(){
     manualLiveViewStart = true;
-
 }
+
+
 

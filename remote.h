@@ -161,8 +161,8 @@ public:
     void getAvailableShutterSpeed(int id = 53);
     void getSupportedShutterSpeed(int id = 54);
 
-    void setTouchPosition(int id = 55);
-    void getTouchPosition(int id = 56);
+    void setTouchAFPosition(int id = 55);
+    void getTouchAFPosition(int id = 56);
 
     void setWhiteBalance(int id = 57);
     void getWhiteBalance(int id = 58);
