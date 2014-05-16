@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>492</width>
+    <width>490</width>
     <height>704</height>
    </rect>
   </property>
@@ -25,6 +25,18 @@
 
 }
 
+QFileDialog{
+		background-color: #222222;
+		color: white;
+}
+
+QFileDialog QLineEdit{
+		background-color: #222222;
+		color: white;
+}
+
+
+
 QStatusBar{
 	background-color: #222222;
 	color: white;
@@ -36,7 +48,7 @@ QStatusBar{
  }
 
  QStatusBar QLabel {
-     border: 3px solid white;
+     border: 1px solid white;
  }
 
 
@@ -45,14 +57,21 @@ QGraphicsView
     background-color: #222222;
 }
 
+
+
 QPushButton{
-	border: 1px solid white;
+	border: 0px solid white;
 	background-repeat: none;
 	background-position: center;
 	background-color: black;
-color: white;
+	color: white;
 	/*height:	70px;*/
 }
+
+QPushButton:checked{
+	background-color: #333333;
+}
+
 
 QPushButton#pushButton_1{
 	background-image: url(:/img/device_nex.png);
@@ -80,8 +99,11 @@ QPushButton#takePicturePushButton{
 }
 
 QPushButton#takePicturePushButton:pressed {
-	background-image: url(:/img/btn_capture_still_disable.png);
     background-color: #ffffff;
+}
+
+QPushButton#takePicturePushButton:disabled {
+	background-image: url(:/img/btn_capture_still_disable.png);
 }
 
 QPushButton#zoomInPushButton{
@@ -93,6 +115,11 @@ QPushButton#zoomInPushButton:pressed{
     background-color: #ffffff;
 }
 
+QPushButton#zoomInPushButton:disabled{
+	background-image: url(:/img/zoom_t_disable.png);
+
+}
+
 QPushButton#zoomOutPushButton{
 	background-image: url(:/img/zoom_w_normal.png);
 }
@@ -100,6 +127,10 @@ QPushButton#zoomOutPushButton{
 QPushButton#zoomOutPushButton:pressed{
 	background-image: url(:/img/zoom_w_pushed.png);
     background-color: #ffffff;
+}
+
+QPushButton#zoomOutPushButton:disabled{
+	background-image: url(:/img/zoom_w_disable.png);
 }
 
 
@@ -161,9 +192,35 @@ QLabel#zoomPositionLabel{
 
 QCheckBox#loadPreviewPicCheckBox{
 
-	color: white;
-
 }
+
+
+ QCheckBox {
+     spacing: 0px;
+	color: white;
+	padding: 0px;
+ }
+
+ QCheckBox::indicator {
+     width: 100px;
+     height: 100px;
+ }
+
+ QCheckBox::indicator:unchecked {
+     image: url(:/img/checkbox_off.png);
+ }
+
+ QCheckBox::indicator:unchecked:hover {
+     image: url(:/img/checkbox_off.png);
+ }
+
+ QCheckBox::indicator:unchecked:pressed {
+     image: url(:/img/checkbox_off.png);
+ }
+
+ QCheckBox::indicator:checked {
+     image: url(:/img/checkbox_on.png);
+ }
 </string>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -447,37 +504,6 @@ QCheckBox#loadPreviewPicCheckBox{
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QComboBox" name="whiteBalanceComboBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="sizeIncrement">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-            <property name="maxVisibleItems">
-             <number>20</number>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="2">
            <widget class="QComboBox" name="shutterSpeedComboBox">
             <property name="sizePolicy">
@@ -506,6 +532,37 @@ QCheckBox#loadPreviewPicCheckBox{
             </property>
             <property name="sizeAdjustPolicy">
              <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QComboBox" name="whiteBalanceComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="sizeIncrement">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="maxVisibleItems">
+             <number>20</number>
             </property>
            </widget>
           </item>
@@ -581,7 +638,7 @@ QCheckBox#loadPreviewPicCheckBox{
            <x>0</x>
            <y>10</y>
            <width>481</width>
-           <height>581</height>
+           <height>541</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -618,7 +675,7 @@ QCheckBox#loadPreviewPicCheckBox{
           <item row="9" column="1">
            <widget class="QTimeEdit" name="intervalTimeEdit">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -717,7 +774,7 @@ QCheckBox#loadPreviewPicCheckBox{
           <item row="10" column="1">
            <widget class="QTimeEdit" name="durationTimeEdit">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -835,7 +892,29 @@ QCheckBox#loadPreviewPicCheckBox{
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
+           <widget class="QPushButton" name="startTimerPushButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="text">
+             <string>Timelapse</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
            <widget class="QPushButton" name="startLiveViewPushButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -860,25 +939,16 @@ QCheckBox#loadPreviewPicCheckBox{
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
-           <widget class="QPushButton" name="startTimerPushButton">
+          <item row="12" column="1">
+           <widget class="QPushButton" name="quitPushButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
             <property name="text">
-             <string>Timelapse</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
+             <string>Quit</string>
             </property>
            </widget>
           </item>
@@ -931,7 +1001,7 @@ QCheckBox#loadPreviewPicCheckBox{
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>492</width>
+     <width>490</width>
      <height>22</height>
     </rect>
    </property>

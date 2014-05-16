@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include <QUrl>
 
+
 class NetworkConnection;
 class Timelapse;
 class Remote;
@@ -12,6 +13,7 @@ class QGraphicsView;
 class QGraphicsScene;
 class QLabel;
 class QButtonGroup;
+
 //class QUrl;
 
 namespace Ui {
@@ -28,8 +30,9 @@ public:
     //bool eventFilter(QObject *object, QEvent *event);
 
 public slots:
-    void onCameraStatusChanged(int status,QString message = QString());
-
+    void onConnectionStatusChanged(int status,QString message = QString());
+    void onCameraStatusChanged(QString state);
+    void setControlStates(bool on);
 
 
 private slots:
@@ -97,9 +100,13 @@ private slots:
 
     void on_zoomPositionChanged(const int &text);
 
+    void on_quitPushButton_clicked(bool checked);
+
 private:
+
     Ui::MainWindow *ui;
     QTimer *zoomBoxTimer;
+
     NetworkConnection *networkConnection;
     Remote *remote;
     Timelapse *timelapse;

@@ -85,8 +85,8 @@ public:
     ~Remote();
 
     void setActiveNetworkConnection();
-    void setDevice(QString device);
     bool getConnectionStatus();
+    void setTimeLapsMode(bool on);
 
 
     void actEnabelMethods(QByteArray key);
@@ -112,10 +112,13 @@ public:
 
     void startMovieRec(int id = 16);
     void stopMovieRec(int id = 17);
+    void setCameraFunction(int id = 18);
+
+    void awaitTakePicture(int id = 19);
 
     //! Dynamic Ids:
     void actZoom(int id = 20);
-    void awaitTakePicture(int id = 21);
+
 
     void setSelfTimer(int id = 22);
     void getSelfTimer(int id = 23);
@@ -170,13 +173,21 @@ public:
     void getAvailableWhiteBalance(int id = 60);
     void getSupportedFlashMode(int id = 61);
     void setLiveViewStartToManual();
+    void setRefreshInterval(int ms);
+
+    QString cameraStatus();
+    bool cameraReady();
 
 signals:
+    void publishDiconnected();
+
     void publishLoadPreview(QNetworkReply* reply,QString previePicName);
 
     void publishStartLiveView(QNetworkReply* reply,QString previePicName);
     void publishLiveViewBytes(QByteArray bytes);
     void publishLiveViewStatus(bool status);
+
+    void publishCameraStatus( QString);
 
     void publishAvailableIsoSpeedRates(QStringList speedRates);
     void publishCurrentIsoSpeedRates(QString result);
@@ -216,11 +227,12 @@ signals:
 
 
 
+
 public slots:
     void initialEvent();
     void initActEnabelMethods();
     void setConnectionStatus(int status = _CONNECTIONSTATE_DISCONNECTED, QString message = QString());
-    void startDevice();
+    //void startDevice();
     void getAvailableApiList(int id = 8);
     void getEvent(QByteArray param = QByteArray("false"), int id = 9);
     void setLoadPreviewPic(int state);
@@ -229,6 +241,7 @@ public slots:
 
 
 private slots:
+    void on_getEventTimerTimeout();
     void onManagerFinished(QNetworkReply* reply);
     void onPicmanagerFinished(QNetworkReply* reply);
     void onLiveViewManagerReadyRead();
@@ -255,18 +268,26 @@ private:
 
     QMap<QString,int> methods;
     QStringList availableMetods;
-    QString deviceFriendlyName;
+
     QString liveViewRequest;
     QString previePicName;
     bool _loadpreviewpic;
     bool manualLiveViewStart;
     bool liveViewStreamAlive;
+    QStringList whiteBalanceModes;
+    bool timelapsmode;
 
     int offset;
     uint64_t start;
     uint64_t end;
     bool connected;
     bool connecting;
+    bool cameraready;
+    QString camerastatus;
+    bool event66Happened;
+    bool event77Happened;
+    int connectionstatus;
+
 };
 
 #endif // REMOTE_H

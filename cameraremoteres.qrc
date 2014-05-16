@@ -21,5 +21,7 @@
         <file>img/device_emount.png</file>
         <file>img/device_handycam.png</file>
         <file>img/device_nex.png</file>
+        <file>img/checkbox_off.png</file>
+        <file>img/checkbox_on.png</file>
     </qresource>
 </RCC>

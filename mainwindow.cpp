@@ -26,14 +26,14 @@
 
 using namespace std;
 
-#define LOG_MAINWINDOW
+//#define LOG_MAINWINDOW
 #ifdef LOG_MAINWINDOW
 #   define LOG_MAINWINDOW_DEBUG qDebug()
 #else
 #   define LOG_MAINWINDOW_DEBUG nullDebug()
 #endif
 
-#define LOG_SCREENDESIGN
+//#define LOG_SCREENDESIGN
 #ifdef LOG_SCREENDESIGN
 #   define LOG_SCREENDESIGN_DEBUG qDebug()
 #else
@@ -115,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(networkConnection,SIGNAL(publishUrl(QString)),
             ui->urlLineEdit,SLOT(setText(QString)));
     connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
-            this,SLOT(onCameraStatusChanged(int,QString)));
+            this,SLOT(onConnectionStatusChanged(int,QString)));
     connect(networkConnection,SIGNAL(publishDeviceFound(QStringList)),
             this,SLOT(addConfigurationComboBoxItems(QStringList)));
 
@@ -135,6 +135,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(remote,SIGNAL(publishLiveViewBytes(QByteArray)),
             this,SLOT(drawLiveView(QByteArray)));
+
+    connect(remote,SIGNAL(publishCameraStatus(QString)),
+            this,SLOT(onCameraStatusChanged(QString)));
 
     connect(remote,SIGNAL(publishAvailableIsoSpeedRates(QStringList)),
         this,SLOT(addIsoSpeedRateComboBoxItems(QStringList)));
@@ -160,33 +163,33 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     connect(remote,SIGNAL(publishCurrentIsoSpeedRates(QString)),
-            ui->isoSpeedRateComboBox,SLOT(setCurrentText(QString)));
+            this,SLOT(isoSpeedRateComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentShutterSpeed(QString)),
-            ui->shutterSpeedComboBox,SLOT(setCurrentText(QString)));
+            this,SLOT(shutterSpeedComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentFNumber(QString)),
-            ui->fNumberComboBox,SLOT(setCurrentText(QString)));
+            this,SLOT(fNumberComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentWhiteBalanceModes(QString)),
-            ui->whiteBalanceComboBox,SLOT(setCurrentText(QString)));
+            this,SLOT(whiteBalanceComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentExposureMode(QString)),
-            ui->exposureModeComboBox,SLOT(setCurrentText(QString)));
+            this,SLOT(exposureModeComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishLiveViewStatus(bool)),
-            ui->startLiveViewPushButton,SLOT(setChecked(bool)));
+            this,SLOT(startLiveViewPushButton_setChecked(bool)));
     connect(remote,SIGNAL(publishCurrentSelfTimer(QString)),
-            ui->selfTimerComboBox,SLOT(setCurrentText(QString)));
+            this,SLOT(selfTimerComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentPostviewImageSize(QString)),
-            ui->postViewImageSizeComboBox,SLOT(setCurrentText(QString)));
+            this,SLOT(postViewImageSizeComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishZoomPosition(int)),
             this,SLOT(on_zoomPositionChanged(int)));
 
-    connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
-            remote,SLOT(setConnectionStatus(int,QString)));
+    //connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
+    //        remote,SLOT(setConnectionStatus(int,QString)));
 
     //! [Create Object Timelapse Control]
-    timelapse = new Timelapse;
-    connect(timelapse,SIGNAL(publishTakePicture()),
-            this,SLOT(on_takePicturePushButton_clicked()));
+    timelapse = new Timelapse(remote);
+    //connect(timelapse,SIGNAL(publishTimelapseState(bool)),
+    //        this,SLOT(setControlStates(bool)));
 
-    QTime defaultduration(0,1,0,0);
+    QTime defaultduration(0,50,0,0);
     QTime defaultinterval(0,0,1,0);
     ui->durationTimeEdit->setTime(defaultduration);
     ui->intervalTimeEdit->setTime(defaultinterval);
@@ -205,7 +208,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->configurationComboBox->addItems(availableNetworks);
     ui->configurationComboBox->setCurrentText(networkConnection->getActiveConfiguration().name());
 
-    remote->setDevice(friendlyName);
     remote->initialEvent();
 
     ui->toolBar->setVisible(false);
@@ -219,7 +221,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->LiveviewGraphicsView->setAttribute(Qt::WA_AcceptTouchEvents);
 #endif
 
+    setControlStates(false);
     readSettings();
+    ui->chooseFolderPushButton->setText(previewPath);
+
 }
 
 MainWindow::~MainWindow()
@@ -239,16 +244,19 @@ void MainWindow::closeEvent(QCloseEvent *event)
     LOG_MAINWINDOW_DEBUG << "Leave Application";
     remote->stopLiveview();
     remote->stopRecMode();
+    //if(!remote->getConnectionStatus())
+    while(remote->getConnectionStatus())
+        event->accept();
 }
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event){
     //qDebug() << "event: " << event->type() << "object " << object->objectName();
-#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
+//#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
     if (event->type() == QEvent::Resize){
         //qDebug() << "event: " << event->type() << "object " << object->objectName();
         if(!(this->size() == currentsize)){
             QSize orientedSize = this->size();
-            qDebug() << "resize: " << size();
+            LOG_SCREENDESIGN_DEBUG << "resize: " << size();
             QSize orientedInnerSize;
             orientedInnerSize.setHeight(size().height()-statusBarSize);
             orientedInnerSize.setWidth(size().width()- size().width()/60);
@@ -260,14 +268,14 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
         currentsize = this->size();
         return QMainWindow::eventFilter(object, event);
     }
-#endif
+//#endif
 
     if(object->objectName() == "LiveviewGraphicsView"){
 #if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
         if (event->type() == QEvent::MouseButtonPress){
             QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
             QPoint point = mouseEvent->pos();
-            qDebug() << "MouseButtonPress event: " << event->type() << "object " << object->objectName() <<"pos: " << point ;
+            LOG_SCREENDESIGN_DEBUG << "MouseButtonPress event: " << event->type() << "object " << object->objectName() <<"pos: " << point ;
             //return true;
             on_liveViewImageTouched(point);
             return QMainWindow::eventFilter(object, event);
@@ -282,7 +290,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
             //touchpoint.lastPos();
             //QPointF pointf = touchBeginEvent
             foreach(touchpoint,touchpoints){
-                qDebug() << "TouchBegin event: " << event->type() << "object " << object->objectName() <<"pos: " << touchpoint.lastPos() ;
+                LOG_SCREENDESIGN_DEBUG << "TouchBegin event: " << event->type() << "object " << object->objectName() <<"pos: " << touchpoint.lastPos() ;
             }
             //return true;
             on_liveViewImageTouched(touchpoint.lastPos());
@@ -464,8 +472,8 @@ void MainWindow::setupLandscapeScreen(QRect geo){
         }
     }
 
-    qDebug() << "ui->centralGridLayout->rowCount(): " << ui->centralGridLayout->rowCount();
-    qDebug() << "ui->centralGridLayout->columnCount(): " << ui->centralGridLayout->columnCount();
+    LOG_SCREENDESIGN_DEBUG << "ui->centralGridLayout->rowCount(): " << ui->centralGridLayout->rowCount();
+    LOG_SCREENDESIGN_DEBUG << "ui->centralGridLayout->columnCount(): " << ui->centralGridLayout->columnCount();
 
 
     ui->centralWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
@@ -579,11 +587,34 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     ui->takePicturePushButton->resize(ui->takePicturePushButton->width(),pushbuttonsize);
     ui->zoomPositionLabel->resize(ui->zoomPositionLabel->width(),pushbuttonsize);
 
+    //ui->loadPreviewPicCheckBox->resize(pushbuttonsize,pushbuttonsize);
+
    this->resize(orientedSize);
 }
 
+void MainWindow::onCameraStatusChanged(QString status){
+    qDebug() << "MainWindow::onCameraStatusChanged: " << status;
+    if(status == "NotReady"){
 
-void MainWindow::onCameraStatusChanged(int status,QString message){
+            setControlStates(false);
+            //remote->setRefreshInterval(1500);
+    }
+    else if(status == "StillCapturing"){
+        setControlStates(false);
+        //remote->setRefreshInterval(20000);
+    }
+    else if (status == "IDLE"){
+        if(timelapse->isActive())
+            setControlStates(false);
+         else{
+            setControlStates(true);
+            //remote->setRefreshInterval(20000);
+        }
+    }
+}
+
+
+void MainWindow::onConnectionStatusChanged(int status,QString message){
     QString temp4("Connected: ");
     QString temp6("Camera Detected: ");
     switch(status){
@@ -636,9 +667,10 @@ void MainWindow::on_configurationComboBox_activated(QString text){
 }
 
 void MainWindow::on_startRecModePushButton_clicked(bool checked){
+    qDebug()  << "on_startRecModePushButton_clicked";
     if(checked){
         remote->initActEnabelMethods();
-        //remote->startRecMode();
+        remote->startRecMode();
         ui->startRecModePushButton->setText("Disconnect");
     }
     else{
@@ -651,7 +683,15 @@ void MainWindow::on_startRecModePushButton_clicked(bool checked){
 }
 
 void MainWindow::on_takePicturePushButton_clicked(){
+    //ui->takePicturePushButton->setEnabled(false);
+    remote->getEvent("false");
     remote->actTakePicture();
+    remote->awaitTakePicture();
+
+
+     setControlStates(false);
+
+
 }
 
 void MainWindow::on_startLiveViewPushButton_clicked(bool checked){
@@ -682,10 +722,32 @@ void MainWindow::on_durationTimeEdit_timeChanged(const QTime &time){
 }
 
 void MainWindow::on_chooseFolderPushButton_clicked(){
-    QFileDialog dialog;
-    //dialog.setFixedSize(dialogsize);
-     dialog.setWindowState(dialog.windowState() | Qt::WindowMaximized);
-    previewPath = QFileDialog::getExistingDirectory(this,"select Locationd",previewPath);
+    QFileDialog dialog(this);
+
+     dialog.setWindowState(Qt::WindowFullScreen);
+    //dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint |
+    //            Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setOption(QFileDialog::ShowDirsOnly);
+    dialog.setOption(QFileDialog::DontResolveSymlinks);
+    dialog.setOption(QFileDialog::ReadOnly);
+    dialog.setOption(QFileDialog::HideNameFilterDetails);
+    //dialog.setMinimumSize(dialogsize);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.resize(dialogsize.width()-10,dialogsize.height()-10);
+    dialog.setDirectory("/sdcard/pictures/");
+    dialog.setContentsMargins(15,15,15,15);
+    //dialog.setLabelText("Location");
+    //if(dialog.exec())
+    //{
+    //QStringList fileName=dlg->selectedFiles();
+        previewPath = dialog.getExistingDirectory();
+
+    //}
+    ui->chooseFolderPushButton->setText(previewPath);
+
+ //QObject::tr("Open Image"), "/home/jana", QObject::tr("Image Files (*.png *.jpg *.bmp)"));
+    writeSettings();
 }
 
 void MainWindow::on_urlLineEdit_textEdited(QString url){
@@ -764,7 +826,7 @@ void MainWindow::on_liveViewImageTouched(QPointF pos){
     //size.width();
     float hsizefaktor = (float)size.height()/(float)liveviewimgsize.height();
     float wsizefaktor = (float)size.width()/(float)liveviewimgsize.width();
-    qDebug() << "on_liveViewImageTouched ui->LiveviewGraphicsView->size(): " << size<< "liveviewimgsize: " << liveviewimgsize;// << "sizefaktor: " << sizefaktor;
+    LOG_SCREENDESIGN_DEBUG << "on_liveViewImageTouched ui->LiveviewGraphicsView->size(): " << size<< "liveviewimgsize: " << liveviewimgsize;// << "sizefaktor: " << sizefaktor;
 
     //float xaxis = pos.x()/10;
     //float yaxis = pos.y()/10;
@@ -774,7 +836,7 @@ void MainWindow::on_liveViewImageTouched(QPointF pos){
     sxaxis.setNum(xaxis);
     QString syaxis;
     syaxis.setNum(yaxis);
-    qDebug() << "on_liveViewImageTouched: " << sxaxis << " " << syaxis << "hsizefaktor: " << hsizefaktor;
+    LOG_SCREENDESIGN_DEBUG << "on_liveViewImageTouched: " << sxaxis << " " << syaxis << "hsizefaktor: " << hsizefaktor;
     QByteArray param;
     //param.append("\"");
     param.append(sxaxis);
@@ -793,10 +855,15 @@ void MainWindow::on_zoomInPushButton_pressed()
 
     pressedBegin = clock();
     double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
-    if(elapsed_secs > 0){
-        cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
-    }
+    cout  << setprecision(8) << " ++++++++++++ TIME pressed+++++++:" << pressedBegin << endl;
+
+    //if(elapsed_secs > 0){
+    //    cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
+    //}
+    remote->getEvent("true");
+    remote->setRefreshInterval(500);
     if(!processingstate){
+
         QByteArray param;
         param.append("\"");
         param.append("in");
@@ -814,8 +881,13 @@ void MainWindow::on_zoomInPushButton_pressed()
 
 void MainWindow::on_zoomInPushButton_released()
 {
-    pressedEnd = clock();
-
+        pressedEnd = clock();
+        double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
+        if(elapsed_secs > 0){
+            cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
+        }
+        /*
+        remote->getEvent("true");
         QByteArray param;
         param.append("\"");
         param.append("in");
@@ -825,20 +897,21 @@ void MainWindow::on_zoomInPushButton_released()
         param.append("stop");
         param.append("\"");
         remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
-        double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
-        if(elapsed_secs > 0){
-            cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
-        }
+
+        */
 }
 
 void MainWindow::on_zoomOutPushButton_pressed()
 {
     pressedBegin = clock();
     double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
-    if(elapsed_secs > 0){
-        cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
-    }
-    if(!processingstate){
+    //if(elapsed_secs > 0){
+        cout  << setprecision(8) << " ++++++++++++ TIME pressedBegin+++++++:" << pressedBegin << endl;
+    //}
+        remote->getEvent("true");
+        remote->setRefreshInterval(500);
+        if(!processingstate){
+
         QByteArray param;
         param.append("\"");
         param.append("out");
@@ -856,12 +929,13 @@ void MainWindow::on_zoomOutPushButton_pressed()
 
 void MainWindow::on_zoomOutPushButton_released()
 {
+
     pressedEnd = clock();
     double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
     if(elapsed_secs > 0){
         cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
     }
-
+    /*
     QByteArray param;
     param.append("\"");
     param.append("out");
@@ -871,12 +945,16 @@ void MainWindow::on_zoomOutPushButton_released()
     param.append("stop");
     param.append("\"");
     remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+    */
 }
 
 void MainWindow::on_zoomPositionChanged(const int &text)
 {
+    //remote->getEvent();
+    //remote->setRefreshInterval(20000);
+
     if(!(ui->zoomPositionLabel->text().toInt() == text)){
-        //qDebug() << "on_zoomPositionChanged" << text<<  ui->zoomPositionLabel->text().toInt();
+        //LOG_SCREENDESIGN_DEBUG << "on_zoomPositionChanged" << text<<  ui->zoomPositionLabel->text().toInt();
         ui->zoomPositionLabel->setNum(text);
         processingstate = false;
         ui->zoomInPushButton->setEnabled(true);
@@ -955,35 +1033,36 @@ void MainWindow::addConfigurationComboBoxItems(QStringList items){
 }
 
 void MainWindow::isoSpeedRateComboBox_setCurrentText(QString text){
-    //ui->isoSpeedRateComboBox
+    ui->isoSpeedRateComboBox->setCurrentText(text);
 }
 
 void MainWindow::shutterSpeedComboBox_setCurrentText(QString text){
-    //ui->shutterSpeedComboBox
+    ui->shutterSpeedComboBox->setCurrentText(text);
 }
 
 void MainWindow::fNumberComboBox_setCurrentText(QString text){
-    //ui->fNumberComboBox
+    ui->fNumberComboBox->setCurrentText(text);
+
 }
 
 void MainWindow::whiteBalanceComboBox_setCurrentText(QString text){
-    //ui->whiteBalanceComboBox
+    ui->whiteBalanceComboBox->setCurrentText(text);
 }
 
 void MainWindow::exposureModeComboBox_setCurrentText(QString text){
-    //ui->exposureModeComboBox
+    ui->exposureModeComboBox->setCurrentText(text);
 }
 
 void MainWindow::startLiveViewPushButton_setChecked(bool status){
-    //ui->startLiveViewPushButton
+    ui->startLiveViewPushButton->setChecked(status);
 }
 
 void MainWindow::selfTimerComboBox_setCurrentText(QString text){
-    //ui->selfTimerComboBox
+    ui->selfTimerComboBox->setCurrentText(text);
 }
 
 void MainWindow::postViewImageSizeComboBox_setCurrentText(QString text){
-    //ui->postViewImageSizeComboBox
+    ui->postViewImageSizeComboBox->setCurrentText(text);
 }
 
 
@@ -992,6 +1071,8 @@ void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
     //LOG_SCREENDESIGN_DEBUG << "drawPreview";
     QByteArray bytes = reply->readAll();
     //QImage img;
+    if(!timelapse->isActive())
+        setControlStates(true);
 
     previewimg.loadFromData(bytes);
     if(!previewimg.isNull()){
@@ -1060,6 +1141,13 @@ void MainWindow::drawLiveView(QByteArray bytes){
         }
 }
 
+
+void MainWindow::setControlStates(bool on){
+    ui->takePicturePushButton->setEnabled(on);
+    ui->zoomInPushButton->setEnabled(on);
+    ui->zoomOutPushButton->setEnabled(on);
+
+}
 
 
 //!  +++++++++++++++++++++++++ [ SETTINGS ] +++++++++++++++++++++++++++
@@ -1164,3 +1252,13 @@ ui->takePicturePushButton->setStyleSheet("{height: 90px;}");
 
 
 
+
+void MainWindow::on_quitPushButton_clicked(bool checked)
+{
+    remote->stopLiveview();
+    remote->stopRecMode();
+    writeSettings();
+    qApp->closeAllWindows();
+
+
+}
