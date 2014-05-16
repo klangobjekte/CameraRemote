@@ -17,7 +17,7 @@
 #include <QButtonGroup>
 #include <QScreen>
 #include <QTimer>
-//#include <QStandardPaths>
+#include <QStandardPaths>
 #include <QMouseEvent>
 #include <QPoint>
 #include <QTouchEvent>
@@ -52,15 +52,24 @@ MainWindow::MainWindow(QWidget *parent) :
     pressedEnd = 0;
     processingstate = false;
 
-
-    //pictureLocation = QDir::homePath ();
+#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
+    homepath = QDir::homePath ();
     //pictureLocation = QStandardPaths::displayName(QStandardPaths::PicturesLocation);
     //pictureLocation = QStandardPaths::locate(QStandardPaths::PicturesLocation,"Pictures",QStandardPaths::LocateDirectory);
-    //pictureLocation.append("/Pictures/");
+    pictureLocation = "Pictures";
     //qDebug() << "homeLocation: " << QStandardPaths::displayName(QStandardPaths::HomeLocation);
-    //qDebug() << "pictureLocation: " << pictureLocation;
-    previewPath = pictureLocation;
+    qDebug() << "pictureLocation: " << pictureLocation;
+    qDebug() << "homepath: " << homepath;
+    previewPath = homepath +"/" + pictureLocation + "/preview";
 
+#elif defined Q_OS_ANDROID
+   previewPath = "/sdcard/Pictures/preview";
+#endif
+    qDebug() << "previewPath: " << previewPath;
+    QDir dir(previewPath);
+    if (!dir.exists()) {
+        dir.mkpath(previewPath);
+    }
 
     int dpi=QPaintDevice::physicalDpiX();
     qDebug() << "physical DPI of Screen: " << dpi;
@@ -735,15 +744,15 @@ void MainWindow::on_chooseFolderPushButton_clicked(){
     //dialog.setMinimumSize(dialogsize);
     dialog.setViewMode(QFileDialog::List);
     dialog.resize(dialogsize.width()-10,dialogsize.height()-10);
-    dialog.setDirectory("/sdcard/pictures/");
+    dialog.setDirectory(previewPath);
     dialog.setContentsMargins(15,15,15,15);
     //dialog.setLabelText("Location");
-    //if(dialog.exec())
-    //{
+    if(dialog.exec() == QFileDialog::Accepted)
+    {
     //QStringList fileName=dlg->selectedFiles();
-        previewPath = dialog.getExistingDirectory();
-
-    //}
+        //previewPath = dialog.getExistingDirectory(this);
+        previewPath = dialog.directory().absolutePath();
+    }
     ui->chooseFolderPushButton->setText(previewPath);
 
  //QObject::tr("Open Image"), "/home/jana", QObject::tr("Image Files (*.png *.jpg *.bmp)"));
@@ -1158,7 +1167,7 @@ void MainWindow::readSettings()
     networkConnection->setUrl(settings.value("url",QString("http://127.0.0.1")).toString());
     networkConnection->setPort(settings.value("port",8080).toString());
     friendlyName = settings.value("friendlyName",QString()).toString();
-    previewPath = settings.value("previewPath").toString();
+    previewPath = settings.value("previewPath",previewPath).toString();
     ui->loadPreviewPicCheckBox->setChecked(settings.value("loadpreviePic",true).toBool());
     QPoint pos = settings.value("pos", QPoint(200,200)).toPoint();
     QSize size = settings.value("size", QSize(300, 200)).toSize();

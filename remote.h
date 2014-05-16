@@ -273,6 +273,7 @@ private:
     QString previePicName;
     bool _loadpreviewpic;
     bool manualLiveViewStart;
+    bool liveviewstatus;
     bool liveViewStreamAlive;
     QStringList whiteBalanceModes;
     bool timelapsmode;
@@ -284,7 +285,6 @@ private:
     bool connecting;
     bool cameraready;
     QString camerastatus;
-    bool event66Happened;
     bool event77Happened;
     int connectionstatus;
 

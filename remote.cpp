@@ -32,7 +32,7 @@
 #   define LOG_SPECIAL_RESULT_DEBUG nullDebug()
 #endif
 
-//! Original
+//! Original:
 //#define LOG_RESPONSE
 #ifdef LOG_RESPONSE
 #   define LOG_RESPONSE_DEBUG qDebug()
@@ -40,8 +40,8 @@
 #   define LOG_RESPONSE_DEBUG nullDebug()
 #endif
 
-//! Zerlegt:
-//#define LOG_RESULT
+//! Decoded:
+#define LOG_RESULT
 #ifdef LOG_RESULT
 #   define LOG_RESULT_DEBUG qDebug()
 #else
@@ -68,16 +68,16 @@
 Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     QObject(parent)
 {
-
+    _networkConnection = networkConnection;
     connected = false;
     connecting = false;
     cameraready = false;
-    event66Happened = true;
+
     event77Happened = true;
     manualLiveViewStart = false;
     liveViewStreamAlive = false;
     connectionstatus = _CONNECTIONSTATE_DISCONNECTED;
-    _networkConnection = networkConnection;
+
     offset = 0;
     start=0;
     end=0;
@@ -91,12 +91,12 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     connect(timer,SIGNAL(timeout()), this,SLOT(buildLiveViewPic()));
 
     getEventTimerPeriodic = new QTimer;
-    getEventTimerPeriodic->setInterval(25000);
+    getEventTimerPeriodic->setInterval(20000);
     connect(getEventTimerPeriodic,SIGNAL(timeout()),
             this,SLOT(on_getEventTimerTimeout()));
 
     getEventTimerSingleshot = new QTimer;
-    getEventTimerSingleshot->setInterval(7000);
+    getEventTimerSingleshot->setInterval(6000);
     getEventTimerSingleshot->setSingleShot(true);
     connect(getEventTimerSingleshot,SIGNAL(timeout()),
             this,SLOT(on_getEventTimerTimeout()));
@@ -126,7 +126,8 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
 
 
     //! init the static methoods - map
-    methods["actEnableMethods"] = 1;
+    methods["initActEnableMethods"] = 1;
+    methods["actEnableMethods"] = 2;
     methods["getVersions"] = 5;
     methods["getMethodTypes"] = 6;
     methods["getApplicationInfo"] = 7;
@@ -186,11 +187,11 @@ void Remote::startDevice(){
 
 void Remote::on_getEventTimerTimeout(){
 
-    if(event77Happened){
+    //if(event77Happened){
         qDebug() << "on_getEventTimerTimeout ";
         getEvent("false",77);
         event77Happened = false;
-    }
+    //}
 }
 
 
@@ -359,6 +360,13 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     if(methods.key(id) == QString("stopRecMode")){
         //emit publishDiconnected();
         connected = false;
+        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+    }
+
+    if(methods.key(id) == QString("startRecMode")){
+        //emit publishDiconnected();
+        connected = true;
+        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
     }
 
     if(jErrorArray.at(1) == QString("Not Available Now")){
@@ -454,6 +462,14 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
     }
 
+    if(id == 77 || methods.key(id) == "getEvent"){
+        if(!getEventTimerPeriodic->isActive())
+            getEventTimerPeriodic->start();
+        if((!liveViewStreamAlive && connected && !timelapsmode) ||
+               ( !liveviewstatus && connected && !timelapsmode)){
+            startLiveview();
+        }
+    }
 
     if(methods.key(id) == "actEnableMethods"){
         connecting = true;
@@ -498,7 +514,6 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //qDebug() << "jobject2" << jobject2.toVariantMap() << "i: " << i ;
         //qDebug() << "jobject2.keys()" << jobject2.keys();
         if(jobject2.value(QString("type")) ==(QString("availableApiList"))){
-
             availableMetods.clear();
             QVariantList vlist = jobject2.value("names").toArray().toVariantList();
 
@@ -564,15 +579,18 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         if(jobject2.value(QString("type")) == QString("liveviewStatus")){
             LOG_RESULT_DEBUG << "liveviewStatus: " << jobject2.value(QString("liveviewStatus")).toBool();
             LOG_SPECIAL_RESULT_DEBUG << "liveviewStatus: " << jobject2.value(QString("liveviewStatus")).toBool();
-            bool status = jobject2.value(QString("liveviewStatus")).toBool();
-            if(status && !liveViewStreamAlive){
+            liveviewstatus = jobject2.value(QString("liveviewStatus")).toBool();
+            if(liveviewstatus && !liveViewStreamAlive){
                 stopLiveview();
-                status = "false";
+                liveviewstatus = "false";
+                connected = true;
+                LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
             }
-            if((connected && !liveViewStreamAlive)){
+            if((connected && !liveViewStreamAlive && !timelapsmode) ||
+                    (connected && !liveviewstatus && !timelapsmode)){
                 startLiveview(methods.value("startLiveview"));
             }
-            emit publishLiveViewStatus(status);
+            emit publishLiveViewStatus(liveviewstatus);
         }
         if(jobject2.value(QString("type")) == QString("exposureMode")){
             QVariantList vlist = jobject2.value("exposureModeCandidates").toArray().toVariantList();
@@ -704,9 +722,6 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 emit publishCurrentWhiteBalanceModes(currentWhiteBalanceMode);
                 if(whiteBalanceModes.size()<2 && connected && !timelapsmode)
                     getAvailableWhiteBalance(methods.value("getAvailableWhiteBalance"));
-                //connected = true;
-                //if(!getEventTimerPeriodic->isActive())
-                //    getEventTimerPeriodic->start();
             }
         }
         if(jobject2.value(QString("type")) == (QString("touchAFPosition"))){
@@ -728,7 +743,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         if(result.isValid()){
             //qDebug() << "result.type: " << result.type();
             switch(result.type()){
-            case QVariant::Double:
+            //case QVariant::Double:
                 //! Recognize startRecMode
                 if(methods.value("startRecMode") == id){
                     qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
@@ -738,18 +753,22 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                     if(!getEventTimerPeriodic->isActive())
                         getEventTimerPeriodic->start();
                     connected = true;
+                    LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
 
                 }
                 if(methods.value("setCameraFunction") == id){
                     qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                                "\nsetCameraFunction finished\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
+                    if(!getEventTimerPeriodic->isActive())
+                        getEventTimerPeriodic->start();
                     connected = true;
+                    LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
                 }
 
 
-                break;
+                //break;
 
-            case QVariant::List:
+            //case QVariant::List:
                 sresults = result.toStringList();
                 if(methods.value("actTakePicture") == id && _loadpreviewpic){
                     foreach (QString sresult, sresults) {
@@ -766,8 +785,8 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                         LOG_RESULT_DEBUG << "result: " << sresult << "id: "<<  methods.value(sresult);
                     }
                 }
-                break;
-            case QVariant::String:
+            //   break;
+            //case QVariant::String:
                 if(methods.value("startLiveview")  == id){
                         liveViewRequest = result.toString();
                         qDebug() << "liveViewRequest: " << liveViewRequest;
@@ -775,7 +794,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                         streamReply = liveViewManager->get(QNetworkRequest(QUrl(liveViewRequest)));
                         connect(streamReply, SIGNAL(readyRead()), this, SLOT(onLiveViewManagerReadyRead()));
                 }
-                break;
+             //   break;
             case QVariant::Map:
                 //! actEnableMethods2
                 if(result.toMap().keys().contains("dg")){
@@ -800,6 +819,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                             if(!getEventTimerPeriodic->isActive())
                                 getEventTimerPeriodic->start();
                             connected = true;
+                            LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
 
                         }
                     }
@@ -1009,6 +1029,7 @@ void Remote::stopRecMode(int id){
     connecting = false;
     getEventTimerPeriodic->stop();
     _networkConnection->notifyConnectionStatus();
+    LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
 }
 
 void Remote::startLiveview(int id){

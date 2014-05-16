@@ -126,6 +126,7 @@ private:
     QString previewPath;
     QString friendlyName;
     QString pictureLocation;
+    QString homepath;
 
     void savePreviewFile(QByteArray bytes,QString previePicName);
     void readSettings();
