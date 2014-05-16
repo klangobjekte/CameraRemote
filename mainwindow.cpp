@@ -678,7 +678,7 @@ void MainWindow::on_configurationComboBox_activated(QString text){
 void MainWindow::on_startRecModePushButton_clicked(bool checked){
     qDebug()  << "on_startRecModePushButton_clicked";
     if(checked){
-        remote->initActEnabelMethods();
+        remote->initActEnableMethods();
         remote->startRecMode();
         ui->startRecModePushButton->setText("Disconnect");
     }
@@ -705,13 +705,17 @@ void MainWindow::on_takePicturePushButton_clicked(){
 
 void MainWindow::on_startLiveViewPushButton_clicked(bool checked){
     if(checked){
-        remote->getAvailableLiveviewSize(remote->getMethods().value("getAvailableLiveviewSize"));
-        remote->startLiveview();
+        //remote->getAvailableLiveviewSize(remote->getMethods().value("getAvailableLiveviewSize"));
+        if(remote->liveviewStatus()){
+            remote->stopLiveview();
+            liveviewScene->clear();
+        }
     }
     else{
-        remote->stopLiveview();
-        liveviewScene->clear();
-        remote->setLiveViewStartToManual();
+        if(!remote->liveviewStatus())
+            remote->startLiveview();
+        //liveviewScene->clear();
+        //remote->setLiveViewStartToManual();
     }
 }
 
@@ -1164,7 +1168,7 @@ void MainWindow::setControlStates(bool on){
 void MainWindow::readSettings()
 {
     QSettings settings("KlangObjekte.", "CameraRemote");
-    networkConnection->setUrl(settings.value("url",QString("http://127.0.0.1")).toString());
+    networkConnection->setUrl(settings.value("url",QString("http://192.168.122.1")).toString());
     networkConnection->setPort(settings.value("port",8080).toString());
     friendlyName = settings.value("friendlyName",QString()).toString();
     previewPath = settings.value("previewPath",previewPath).toString();

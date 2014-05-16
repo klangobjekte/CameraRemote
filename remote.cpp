@@ -33,7 +33,7 @@
 #endif
 
 //! Original:
-//#define LOG_RESPONSE
+#define LOG_RESPONSE
 #ifdef LOG_RESPONSE
 #   define LOG_RESPONSE_DEBUG qDebug()
 #else
@@ -72,6 +72,7 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     connected = false;
     connecting = false;
     cameraready = false;
+    inited = false;
 
     event77Happened = true;
     manualLiveViewStart = false;
@@ -107,8 +108,7 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     initialEventTimer->setInterval(1000);
     connect(initialEventTimer,SIGNAL(timeout()),
             this,SLOT(initialEvent()));
-    //connect(initialEventTimer,SIGNAL(timeout()),
-    //        this,SLOT(initActEnabelMethods()));
+
 
 
     manager = new QNetworkAccessManager;
@@ -175,14 +175,7 @@ QMap<QString,int> Remote::getMethods(){
     return methods;
 }
 
-/*
-void Remote::startDevice(){
-    qDebug() << "start Device ++++++++++++++++++++++++++++++++++" << connected;
-    if(!connected){
-        initActEnabelMethods();
-    }
-}
-*/
+
 
 
 void Remote::on_getEventTimerTimeout(){
@@ -234,29 +227,51 @@ bool Remote::getConnectionStatus(){
 }
 
 
-void Remote::initActEnabelMethods(){
-
+void Remote::initActEnableMethods(bool manual){
+    inited = true;
     QByteArray jSonString = "{\"version\": \"1.0\", \"params\": [{\"developerName\": \"\", \"sg\": \"\", \"methods\": \"\", \"developerID\": \"\"}], \"method\": \"actEnableMethods\", \"id\": 1}";
     QByteArray postDataSize = QByteArray::number(jSonString.size());
     QNetworkRequest request = constructAccessControlRequest(postDataSize);
-    LOG_REQUEST_DEBUG << "initActEnabelMethods request: " << jSonString << "\n";
+    LOG_REQUEST_DEBUG << "initActEnableMethods request: " << jSonString << "\n";
 
     manager->post(request,jSonString);
 
 }
 
-void Remote::actEnabelMethods(QByteArray key){
+void Remote::actEnableMethods(QByteArray key){
     QByteArray jSonString2 = "{\"version\": \"1.0\", \"params\": [{\"developerName\": \"Sony Corporation\", ";
     jSonString2.append("\"sg\": \"");
     jSonString2.append(key);
     jSonString2.append("\", ");
-    jSonString2.append("\"methods\": \"camera/setFlashMode:camera/getFlashMode:camera/getSupportedFlashMode:camera/getAvailableFlashMode:camera/setExposureCompensation:camera/getExposureCompensation:camera/getSupportedExposureCompensation:camera/getAvailableExposureCompensation:camera/setSteadyMode:camera/getSteadyMode:camera/getSupportedSteadyMode:camera/getAvailableSteadyMode:camera/setViewAngle:camera/getViewAngle:camera/getSupportedViewAngle:camera/getAvailableViewAngle:camera/setMovieQuality:camera/getMovieQuality:camera/getSupportedMovieQuality:camera/getAvailableMovieQuality:camera/setFocusMode:camera/getFocusMode:camera/getSupportedFocusMode:camera/getAvailableFocusMode:camera/setStillSize:camera/getStillSize:camera/getSupportedStillSize:camera/getAvailableStillSize:camera/setBeepMode:camera/getBeepMode:camera/getSupportedBeepMode:camera/getAvailableBeepMode:camera/setCameraFunction:camera/getCameraFunction:camera/getSupportedCameraFunction:camera/getAvailableCameraFunction:camera/setLiveviewSize:camera/getLiveviewSize:camera/getSupportedLiveviewSize:camera/getAvailableLiveviewSize:camera/setTouchAFPosition:camera/getTouchAFPosition:camera/cancelTouchAFPosition:camera/setFNumber:camera/getFNumber:camera/getSupportedFNumber:camera/getAvailableFNumber:camera/setShutterSpeed:camera/getShutterSpeed:camera/getSupportedShutterSpeed:camera/getAvailableShutterSpeed:camera/setIsoSpeedRate:camera/getIsoSpeedRate:camera/getSupportedIsoSpeedRate:camera/getAvailableIsoSpeedRate:camera/setExposureMode:camera/getExposureMode:camera/getSupportedExposureMode:camera/getAvailableExposureMode:camera/setWhiteBalance:camera/getWhiteBalance:camera/getSupportedWhiteBalance:camera/getAvailableWhiteBalance:camera/setProgramShift:camera/getSupportedProgramShift:camera/getStorageInformation:camera/startLiveviewWithSize:camera/startIntervalStillRec:camera/stopIntervalStillRec:camera/actFormatStorage:system/setCurrentTime\", \"developerID\": \"7DED695E-75AC-4ea9-8A85-E5F8CA0AF2F3\"}], \"method\": \"actEnableMethods\", \"id\": 2}");
+    jSonString2.append("\"methods\": \"camera/setFlashMode:camera/getFlashMode:camera/getSupportedFlashMode:"
+                       "camera/getAvailableFlashMode:camera/setExposureCompensation:camera/getExposureCompensation:"
+                       "camera/getSupportedExposureCompensation:camera/getAvailableExposureCompensation:camera/setSteadyMode:"
+                       "camera/getSteadyMode:camera/getSupportedSteadyMode:camera/getAvailableSteadyMode:camera/setViewAngle:"
+                       "camera/getViewAngle:camera/getSupportedViewAngle:camera/getAvailableViewAngle:camera/setMovieQuality:"
+                       "camera/getMovieQuality:camera/getSupportedMovieQuality:camera/getAvailableMovieQuality:camera/setFocusMode:"
+                       "camera/getFocusMode:camera/getSupportedFocusMode:camera/getAvailableFocusMode:camera/setStillSize:"
+                       "camera/getStillSize:camera/getSupportedStillSize:camera/getAvailableStillSize:camera/setBeepMode:"
+                       "camera/getBeepMode:camera/getSupportedBeepMode:camera/getAvailableBeepMode:camera/setCameraFunction:"
+                       "camera/getCameraFunction:camera/getSupportedCameraFunction:camera/getAvailableCameraFunction:"
+                       "camera/setLiveviewSize:camera/getLiveviewSize:camera/getSupportedLiveviewSize:camera/getAvailableLiveviewSize:"
+                       "camera/setTouchAFPosition:camera/getTouchAFPosition:camera/cancelTouchAFPosition:camera/setFNumber:"
+                       "camera/getFNumber:camera/getSupportedFNumber:camera/getAvailableFNumber:camera/setShutterSpeed:"
+                       "camera/getShutterSpeed:camera/getSupportedShutterSpeed:camera/getAvailableShutterSpeed:camera/setIsoSpeedRate:"
+                       "camera/getIsoSpeedRate:camera/getSupportedIsoSpeedRate:camera/getAvailableIsoSpeedRate:camera/setExposureMode:"
+                       "camera/getExposureMode:camera/getSupportedExposureMode:camera/getAvailableExposureMode:camera/setWhiteBalance:"
+                       "camera/getWhiteBalance:camera/getSupportedWhiteBalance:camera/getAvailableWhiteBalance:camera/setProgramShift:"
+                       "camera/getSupportedProgramShift:camera/getStorageInformation:camera/startLiveviewWithSize:"
+                       "camera/startIntervalStillRec:camera/stopIntervalStillRec:camera/actFormatStorage:system/setCurrentTime\", "
+                       "\"developerID\": \"7DED695E-75AC-4ea9-8A85-E5F8CA0AF2F3\"}], \"method\": \"actEnableMethods\", \"id\": 2}");
+
+
+
     //jSonString2.append("\"methods\": \"camera/actTakePicture:system/getSystemInformation\", \"developerID\": \"34567890-1234-1010-8000-5c6d20c00961\"}], \"method\": \"actEnableMethods\", \"id\": 2}");
 
     //qDebug() << "\njSonString2: "<< jSonString2 << "\n";
     QByteArray postDataSize2 = QByteArray::number(jSonString2.size());
     QNetworkRequest request2 = constructAccessControlRequest(postDataSize2);
-    LOG_REQUEST_DEBUG << "actEnabelMethods request: " << jSonString2 << "\n";
+    LOG_REQUEST_DEBUG << "actEnableMethods request: " << jSonString2 << "\n";
     manager->post(request2,jSonString2);
 }
 
@@ -357,17 +372,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     //Remote::onManagerFinished jError:  QJsonValue(array, QJsonArray([503,"service unavailable"]) )
     //Remote::onManagerFinished jError:  QJsonValue(array, QJsonArray([5,"illegal request"]) )
 
-    if(methods.key(id) == QString("stopRecMode")){
-        //emit publishDiconnected();
-        connected = false;
-        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
-    }
 
-    if(methods.key(id) == QString("startRecMode")){
-        //emit publishDiconnected();
-        connected = true;
-        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
-    }
 
     if(jErrorArray.at(1) == QString("Not Available Now")){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR: Not Available Now";
@@ -377,7 +382,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     if(jErrorArray.at(1) == QString("illegal request")){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR: illegal request";
         cameraready = false;
-        getEvent();
+        //getEvent();
     }
     if(jErrorArray.at(1) == QString("illegal argument")){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR:  illegal argument";
@@ -462,13 +467,25 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
     }
 
+    if(methods.key(id) == QString("stopRecMode")){
+        //emit publishDiconnected();
+        connected = false;
+        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+    }
+
+    //if(methods.key(id) == QString("startRecMode")){
+        //emit publishDiconnected();
+    //    connected = true;
+    //    LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+    //}
+
     if(id == 77 || methods.key(id) == "getEvent"){
-        if(!getEventTimerPeriodic->isActive())
-            getEventTimerPeriodic->start();
-        if((!liveViewStreamAlive && connected && !timelapsmode) ||
-               ( !liveviewstatus && connected && !timelapsmode)){
-            startLiveview();
-        }
+        //if(!getEventTimerPeriodic->isActive())
+        //    getEventTimerPeriodic->start();
+        //if((!liveViewStreamAlive && connected && !timelapsmode) ||
+        //       ( !liveviewstatus && connected && !timelapsmode)){
+        //    startLiveview();
+        //}
     }
 
     if(methods.key(id) == "actEnableMethods"){
@@ -528,7 +545,15 @@ void Remote::onManagerFinished(QNetworkReply* reply){
              }
              //qDebug() << "availableMetods: " << availableMetods << "\n";
              if(id == 66 && !availableMetods.isEmpty()){
-                    initActEnabelMethods();
+                    if(!inited && availableMetods.size() < 20){
+                        initActEnableMethods();
+                    }
+                    else{
+                        getEvent("false",77);
+                        getEventTimerPeriodic->start();
+                        getEventTimerSingleshot->start();
+                        connected = true;
+                    }
                     return;
              }
              else if(id == 66 &&availableMetods.isEmpty() ){
@@ -537,7 +562,6 @@ void Remote::onManagerFinished(QNetworkReply* reply){
              }
 
              if(id == 88 && availableMetods.isEmpty()){
-             //if(id == 88){
                  getEvent("false",99);
                  return;
              }
@@ -546,10 +570,11 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 return;
              }
              if(id == 99 && !availableMetods.isEmpty()){
-            //if(id == 99){
-                 initActEnabelMethods();
+                 if(!inited)
+                    initActEnableMethods();
                  return;
              }
+
              _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTET);
         }
         if(jobject2.value(QString("type")) == QString("cameraStatus")){
@@ -561,12 +586,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             }
             if(camerastatus == QString("NotReady")){
                 cameraready = false;
-                //getEvent("false",66);
-                //return;
+                getEvent();
             }
             if(camerastatus == QString("StillCapturing")){
                 cameraready = false;
-                   //return;
             }
         }
         if(jobject2.value(QString("type")) == QString("zoomInformation")){
@@ -577,20 +600,25 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             emit publishZoomPosition(jobject2.value(QString("zoomPositionCurrentBox")).toInt());
         }
         if(jobject2.value(QString("type")) == QString("liveviewStatus")){
-            LOG_RESULT_DEBUG << "liveviewStatus: " << jobject2.value(QString("liveviewStatus")).toBool();
-            LOG_SPECIAL_RESULT_DEBUG << "liveviewStatus: " << jobject2.value(QString("liveviewStatus")).toBool();
             liveviewstatus = jobject2.value(QString("liveviewStatus")).toBool();
+            LOG_RESULT_DEBUG << "liveviewStatus: " << liveviewstatus;
+            LOG_SPECIAL_RESULT_DEBUG << "liveviewStatus: " << liveviewstatus;
             if(liveviewstatus && !liveViewStreamAlive){
                 stopLiveview();
                 liveviewstatus = "false";
-                connected = true;
                 LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+                emit publishLiveViewStatus(liveviewstatus);
+                //return;
             }
-            if((connected && !liveViewStreamAlive && !timelapsmode) ||
+            if((!liveviewstatus && connected && !liveViewStreamAlive && !timelapsmode) ||
                     (connected && !liveviewstatus && !timelapsmode)){
-                startLiveview(methods.value("startLiveview"));
+                if(id == 77){
+                    getEvent();
+                    startLiveview();
+                    emit publishLiveViewStatus(liveviewstatus);
+                }
             }
-            emit publishLiveViewStatus(liveviewstatus);
+
         }
         if(jobject2.value(QString("type")) == QString("exposureMode")){
             QVariantList vlist = jobject2.value("exposureModeCandidates").toArray().toVariantList();
@@ -742,16 +770,16 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //qDebug() << "Variant: result: "  << result;
         if(result.isValid()){
             //qDebug() << "result.type: " << result.type();
-            switch(result.type()){
-            //case QVariant::Double:
-                //! Recognize startRecMode
+            //switch(result.type()){
+
+                //! Recognize startRecMode result.type: QVariant::Double
                 if(methods.value("startRecMode") == id){
                     qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                                "\nstartRecMode finished\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
                     _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
-                    getEventTimerSingleshot->start();
-                    if(!getEventTimerPeriodic->isActive())
-                        getEventTimerPeriodic->start();
+                    //getEventTimerSingleshot->start();
+                    //if(!getEventTimerPeriodic->isActive())
+                    //    getEventTimerPeriodic->start();
                     connected = true;
                     LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
 
@@ -759,16 +787,13 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 if(methods.value("setCameraFunction") == id){
                     qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                                "\nsetCameraFunction finished\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
-                    if(!getEventTimerPeriodic->isActive())
-                        getEventTimerPeriodic->start();
+                    //if(!getEventTimerPeriodic->isActive())
+                    //    getEventTimerPeriodic->start();
                     connected = true;
                     LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
                 }
 
-
-                //break;
-
-            //case QVariant::List:
+                //! result.type: QVariant::List:
                 sresults = result.toStringList();
                 if(methods.value("actTakePicture") == id && _loadpreviewpic){
                     foreach (QString sresult, sresults) {
@@ -785,8 +810,8 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                         LOG_RESULT_DEBUG << "result: " << sresult << "id: "<<  methods.value(sresult);
                     }
                 }
-            //   break;
-            //case QVariant::String:
+
+                //! result.type: QVariant::String:
                 if(methods.value("startLiveview")  == id){
                         liveViewRequest = result.toString();
                         qDebug() << "liveViewRequest: " << liveViewRequest;
@@ -794,38 +819,44 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                         streamReply = liveViewManager->get(QNetworkRequest(QUrl(liveViewRequest)));
                         connect(streamReply, SIGNAL(readyRead()), this, SLOT(onLiveViewManagerReadyRead()));
                 }
-             //   break;
-            case QVariant::Map:
-                //! actEnableMethods2
-                if(result.toMap().keys().contains("dg")){
-                    QByteArray KEYDG="90adc8515a40558968fe8318b5b023fdd48d3828a2dda8905f3b93a3cd8e58dc";
-                    KEYDG.append(result.toMap().value("dg").toByteArray());
-                    //qDebug()<< "onManagerFinished result: " << result.toMap().value("dg").toString();
-                    //qDebug()<< "onManagerFinished result: " << KEYDG;
-                    QByteArray encoded = QCryptographicHash::hash(KEYDG, QCryptographicHash::Sha256);
+
+            //case QVariant::Map:
+                //! actEnableMethods2  result.type: QVariant::Map
+                //if(result.toMap().keys().contains("dg")){
+
                     if(id==1){
-                        actEnabelMethods(encoded.toBase64());
+                        QByteArray KEYDG="90adc8515a40558968fe8318b5b023fdd48d3828a2dda8905f3b93a3cd8e58dc";
+                        KEYDG.append(result.toMap().value("dg").toByteArray());
+                        qDebug()<< "onManagerFinished result: " << result.toMap().value("dg").toString();
+                        qDebug()<< "onManagerFinished result: " << KEYDG;
+                        QByteArray encoded = QCryptographicHash::hash(KEYDG, QCryptographicHash::Sha256);
+                        actEnableMethods(encoded.toBase64());
 
                     }
                     if(id==2){
                         if(availableMetods.contains("startRecMode")){
+                            getEvent("false");
                             startRecMode();
-                        }
-                        else{
-                            setCameraFunction();
-                            _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
-                            getEventTimerSingleshot->setInterval(500);
                             getEventTimerSingleshot->start();
                             if(!getEventTimerPeriodic->isActive())
                                 getEventTimerPeriodic->start();
+                        }
+                        else{
+                            //getEvent();
+                            //setCameraFunction();
+                            //_networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
+
+                            //getEventTimerSingleshot->start();
+                            //if(!getEventTimerPeriodic->isActive())
+                            //    getEventTimerPeriodic->start();
                             connected = true;
                             LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
 
                         }
                     }
-                }
-                break;
-            }
+                //}
+                //break;
+            //}
         }
     }
 }
@@ -1230,5 +1261,8 @@ void Remote::setLiveViewStartToManual(){
     manualLiveViewStart = true;
 }
 
+bool Remote::liveviewStatus(){
+    return liveviewstatus;
+}
 
 

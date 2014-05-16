@@ -89,7 +89,7 @@ public:
     void setTimeLapsMode(bool on);
 
 
-    void actEnabelMethods(QByteArray key);
+    void actEnableMethods(QByteArray key);
     void commandFabrikMethod(QByteArray command, int id, QByteArray params = QByteArray());
 
     QMap<QString,int> getMethods();
@@ -177,6 +177,7 @@ public:
 
     QString cameraStatus();
     bool cameraReady();
+    bool liveviewStatus();
 
 signals:
     void publishDiconnected();
@@ -228,9 +229,10 @@ signals:
 
 
 
+
 public slots:
     void initialEvent();
-    void initActEnabelMethods();
+    void initActEnableMethods(bool manual = false);
     void setConnectionStatus(int status = _CONNECTIONSTATE_DISCONNECTED, QString message = QString());
     //void startDevice();
     void getAvailableApiList(int id = 8);
@@ -271,6 +273,7 @@ private:
 
     QString liveViewRequest;
     QString previePicName;
+    bool inited;
     bool _loadpreviewpic;
     bool manualLiveViewStart;
     bool liveviewstatus;
