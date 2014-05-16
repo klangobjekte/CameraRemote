@@ -88,6 +88,7 @@ public:
     bool getConnectionStatus();
     void setTimeLapsMode(bool on);
 
+    void getEventDelayed(int ms);
 
     void actEnableMethods(QByteArray key);
     void commandFabrikMethod(QByteArray command, int id, QByteArray params = QByteArray());
@@ -290,6 +291,8 @@ private:
     QString camerastatus;
     bool event77Happened;
     int connectionstatus;
+    bool liveviewsStartingInProgress;
+
 
 };
 

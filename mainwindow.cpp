@@ -130,6 +130,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     networkConnection->init();
 
+    disablTimer = new QTimer;
+    disablTimer->setSingleShot(true);
+    disablTimer->setInterval(1000);
+    connect(disablTimer,SIGNAL(timeout()),
+            this,SLOT(on_disablTimer_timeout()));
+
 
     //! [Create Object QGraphicsScene for Preview]
     previewScene = new QGraphicsScene;
@@ -195,8 +201,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //! [Create Object Timelapse Control]
     timelapse = new Timelapse(remote);
-    //connect(timelapse,SIGNAL(publishTimelapseState(bool)),
-    //        this,SLOT(setControlStates(bool)));
 
     QTime defaultduration(0,50,0,0);
     QTime defaultinterval(0,0,1,0);
@@ -604,31 +608,29 @@ void MainWindow::resizeWindow(QSize  orientedSize,
 void MainWindow::onCameraStatusChanged(QString status){
     qDebug() << "MainWindow::onCameraStatusChanged: " << status;
     if(status == "NotReady"){
-
             setControlStates(false);
-            //remote->setRefreshInterval(1500);
     }
     else if(status == "StillCapturing"){
         setControlStates(false);
-        //remote->setRefreshInterval(20000);
     }
     else if (status == "IDLE"){
         if(timelapse->isActive())
             setControlStates(false);
          else{
             setControlStates(true);
-            //remote->setRefreshInterval(20000);
         }
     }
 }
 
 
 void MainWindow::onConnectionStatusChanged(int status,QString message){
-    QString temp4("Connected: ");
-    QString temp6("Camera Detected: ");
+    qDebug() << "onConnectionStatusChanged             :  "<< status << " "<< message;
+    QString temp4("Connected ");
+    QString temp6("Camera Detected ");
     switch(status){
     case _CONNECTIONSTATE_DISCONNECTED:
         statusBar()->showMessage(tr("Disconnected"));
+
         ui->fNumberComboBox->clear();
         ui->shutterSpeedComboBox->clear();
         ui->whiteBalanceComboBox->clear();
@@ -636,9 +638,11 @@ void MainWindow::onConnectionStatusChanged(int status,QString message){
         ui->exposureModeComboBox->clear();
         ui->startLiveViewPushButton->setChecked(false);
         ui->startRecModePushButton->setChecked(false);
+
         break;
     case _CONNECTIONSTATE_WATING:
         statusBar()->showMessage(tr("Listening..."));
+
         ui->fNumberComboBox->clear();
         ui->shutterSpeedComboBox->clear();
         ui->whiteBalanceComboBox->clear();
@@ -646,23 +650,30 @@ void MainWindow::onConnectionStatusChanged(int status,QString message){
         ui->exposureModeComboBox->clear();
         ui->startLiveViewPushButton->setChecked(false);
         ui->startRecModePushButton->setChecked(false);
+
         break;
     case _CONNECTIONSTATE_CONNECTING:
         statusBar()->showMessage(tr("Connecting..."));
         break;
-    case _CONNECTIONSTATE_CONNECTET:
+    case _CONNECTIONSTATE_CONNECTET://2
+        if(friendlyName.isEmpty())
+            friendlyName = message;
         temp4.append(friendlyName);
+
         statusBar()->showMessage(temp4);
+        /*
         ui->startRecModePushButton->setChecked(true);
         ui->startRecModePushButton->setText("Disconnect");
+        */
         break;
-    case _CONNECTIONSTATE_SSDP_ALIVE_RECEIVED:
+    case _CONNECTIONSTATE_SSDP_ALIVE_RECEIVED://5
         if(!remote->getConnectionStatus())
-            statusBar()->showMessage(tr("Device Detected"));
+            statusBar()->showMessage(tr("Device Detected "));
         break;
-    case _CONNECTIONSTATE_CAMERA_DETECTED:
+    case _CONNECTIONSTATE_CAMERA_DETECTED://7
         if(!remote->getConnectionStatus()){
-            friendlyName = message;
+            if(friendlyName.isEmpty())
+                friendlyName = message;
             temp6.append(friendlyName);
             statusBar()->showMessage(temp6);
         }
@@ -692,30 +703,23 @@ void MainWindow::on_startRecModePushButton_clicked(bool checked){
 }
 
 void MainWindow::on_takePicturePushButton_clicked(){
-    //ui->takePicturePushButton->setEnabled(false);
-    remote->getEvent("false");
+    //remote->getEvent("false");
     remote->actTakePicture();
-    remote->awaitTakePicture();
-
-
+    //remote->awaitTakePicture();
      setControlStates(false);
-
-
 }
 
 void MainWindow::on_startLiveViewPushButton_clicked(bool checked){
-    if(checked){
-        //remote->getAvailableLiveviewSize(remote->getMethods().value("getAvailableLiveviewSize"));
-        if(remote->liveviewStatus()){
+    ui->startLiveViewPushButton->setCheckable(false);
+    disablTimer->setInterval(2000);
+    disablTimer->start();
+    qDebug()  << "on_startLiveViewPushButton_clicked    :   checked: "  << checked << "liveviewStatus:  " << remote->liveviewStatus();
+    if(!checked){
             remote->stopLiveview();
             liveviewScene->clear();
-        }
     }
     else{
-        if(!remote->liveviewStatus())
             remote->startLiveview();
-        //liveviewScene->clear();
-        //remote->setLiveViewStartToManual();
     }
 }
 
@@ -870,12 +874,7 @@ void MainWindow::on_zoomInPushButton_pressed()
     double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
     cout  << setprecision(8) << " ++++++++++++ TIME pressed+++++++:" << pressedBegin << endl;
 
-    //if(elapsed_secs > 0){
-    //    cout  << setprecision(8) << " ++++++++++++ TIME elapsed+++++++:" << elapsed_secs << endl;
-    //}
-    remote->getEvent("true");
-    remote->setRefreshInterval(500);
-    if(!processingstate){
+    //! async Event is lost??
 
         QByteArray param;
         param.append("\"");
@@ -885,11 +884,12 @@ void MainWindow::on_zoomInPushButton_pressed()
         param.append("\"");
         param.append("1shot");
         param.append("\"");
-        remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
-        processingstate = true;
-        ui->zoomInPushButton->setEnabled(false);
-        ui->zoomOutPushButton->setEnabled(false);
-    }
+        if(ui->zoomPositionLabel->text().toInt()<100){
+            remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+            setControlStates(false);
+            //remote->getEvent("false",20);
+            remote->getEventDelayed(800);
+        }
 }
 
 void MainWindow::on_zoomInPushButton_released()
@@ -918,13 +918,10 @@ void MainWindow::on_zoomOutPushButton_pressed()
 {
     pressedBegin = clock();
     double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
-    //if(elapsed_secs > 0){
-        cout  << setprecision(8) << " ++++++++++++ TIME pressedBegin+++++++:" << pressedBegin << endl;
-    //}
-        remote->getEvent("true");
-        remote->setRefreshInterval(500);
-        if(!processingstate){
 
+        cout  << setprecision(8) << " ++++++++++++ TIME pressedBegin+++++++:" << pressedBegin << endl;
+         //! async Event is lost??
+        //remote->getEvent("false",20);
         QByteArray param;
         param.append("\"");
         param.append("out");
@@ -933,11 +930,13 @@ void MainWindow::on_zoomOutPushButton_pressed()
         param.append("\"");
         param.append("1shot");
         param.append("\"");
-        remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
-        processingstate = true;
-        ui->zoomInPushButton->setEnabled(false);
-        ui->zoomOutPushButton->setEnabled(false);
-    }
+        if(ui->zoomPositionLabel->text().toInt() > 0){
+            remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
+            setControlStates(false);
+            //remote->getEvent("false",20);
+            remote->getEventDelayed(800);
+        }
+
 }
 
 void MainWindow::on_zoomOutPushButton_released()
@@ -963,16 +962,13 @@ void MainWindow::on_zoomOutPushButton_released()
 
 void MainWindow::on_zoomPositionChanged(const int &text)
 {
-    //remote->getEvent();
-    //remote->setRefreshInterval(20000);
 
-    if(!(ui->zoomPositionLabel->text().toInt() == text)){
+    setControlStates(true);
+    //if(!(ui->zoomPositionLabel->text().toInt() == text)){
         //LOG_SCREENDESIGN_DEBUG << "on_zoomPositionChanged" << text<<  ui->zoomPositionLabel->text().toInt();
         ui->zoomPositionLabel->setNum(text);
-        processingstate = false;
-        ui->zoomInPushButton->setEnabled(true);
-        ui->zoomOutPushButton->setEnabled(true);
-    }
+
+    //}
 }
 
 
@@ -1067,6 +1063,7 @@ void MainWindow::exposureModeComboBox_setCurrentText(QString text){
 }
 
 void MainWindow::startLiveViewPushButton_setChecked(bool status){
+    qDebug() << "startLiveViewPushButton_setChecked " << status;
     ui->startLiveViewPushButton->setChecked(status);
 }
 
@@ -1082,11 +1079,9 @@ void MainWindow::postViewImageSizeComboBox_setCurrentText(QString text){
 
 void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
     //LOG_SCREENDESIGN_DEBUG << "drawPreview";
-    QByteArray bytes = reply->readAll();
-    //QImage img;
     if(!timelapse->isActive())
         setControlStates(true);
-
+    QByteArray bytes = reply->readAll();
     previewimg.loadFromData(bytes);
     if(!previewimg.isNull()){
         QSize size = previewimg.size();
@@ -1124,6 +1119,7 @@ void MainWindow::savePreviewFile(QByteArray bytes,QString previePicName){
 
 void MainWindow::drawLiveView(QByteArray bytes){
     //LOG_SCREENDESIGN_DEBUG << "drawLiveView";
+    ui->startLiveViewPushButton->setChecked(true);
 #ifdef __STORE__SINGLE_PREVIEW_PICS
     static int number = 0;
     QFile file("testpic"+QString::number(number)+".jpeg");
@@ -1274,4 +1270,8 @@ void MainWindow::on_quitPushButton_clicked(bool checked)
     qApp->closeAllWindows();
 
 
+}
+
+void MainWindow::on_disablTimer_timeout(){
+    ui->startLiveViewPushButton->setCheckable(true);
 }

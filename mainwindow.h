@@ -63,7 +63,7 @@ private slots:
     void on_postViewImageSizeComboBox_activated(QString text);
     void on_selfTimerComboBox_activated(QString text);
     void on_liveViewImageTouched(QPointF pos);
-
+    void on_disablTimer_timeout();
 
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
@@ -105,7 +105,7 @@ private slots:
 private:
 
     Ui::MainWindow *ui;
-    QTimer *zoomBoxTimer;
+    QTimer *disablTimer;
 
     NetworkConnection *networkConnection;
     Remote *remote;

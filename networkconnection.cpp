@@ -267,7 +267,7 @@ void NetworkConnection::setActiveNetwork(QString networkName){
 }
 
 void NetworkConnection::notifyConnectionStatus(int status,QString message){
-    //LOG_NETWORKCONNECTION_DEBUG << "NetworkConnection::notifyConnectionStatus" << status;
+    LOG_NETWORKCONNECTION_DEBUG << "NetworkConnection::notifyConnectionStatus" << status << message;
     emit publishConnectionStatus(status,message);
 }
 

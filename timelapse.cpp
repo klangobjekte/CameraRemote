@@ -18,6 +18,8 @@ Timelapse::Timelapse(Remote *remote,QObject *parent) :
     _duration =0;
     timer = new QTimer;
     time = new QTime;
+    tmpinterval = 0;
+    timerresolution = 50;
     connect(timer,SIGNAL(timeout()), this,SLOT(timeOut()));
 }
 
@@ -29,9 +31,10 @@ Timelapse::~Timelapse(){
 
 void Timelapse::setInterval(const QTime &time){
 
-    interval = time.second()*1000+time.msec();
+    realinterval = interval = time.second()*1000+time.msec();
     LOG_TIMELAPSE_DEBUG << "Timelapse setInterval: " << time.second()  << time.msec() << interval;
-    timer->setInterval(interval);
+
+    timer->setInterval(timerresolution);
 }
 
 void Timelapse::setDuration(const QTime &time){
@@ -42,15 +45,7 @@ void Timelapse::setDuration(const QTime &time){
 
 void Timelapse::start(){
     LOG_TIMELAPSE_DEBUG << "Timelapse::start: ";
-    if(_remote->cameraReady()){
-
-        _remote->setTimeLapsMode(true);
-        _remote->getEvent("false");
-        _remote->actTakePicture();
-        //_remote->awaitTakePicture();
-
-        //emit publishTimelapseState(true);
-    }
+    _remote->setTimeLapsMode(true);
     timer->start();
     time->start();
 }
@@ -60,33 +55,24 @@ void Timelapse::stop(){
     _remote->setTimeLapsMode(false);
     timer->stop();
     timer->stop();
-    //emit publishTimelapseState(false);
 }
 
 void Timelapse::timeOut(){
-   //LOG_TIMELAPSE_DEBUG << "Timelapse::timeOut()" << time->elapsed() << "interval: " << timer->interval();
-    timer->setInterval(interval);
+    static int number = 0;
     if(time->elapsed() > _duration){
         stop();
     }
     else{
          if(_remote->cameraReady()){
-            _remote->setTimeLapsMode(true);
-            _remote->getEvent("false");
-            _remote->actTakePicture();
-            //_remote->awaitTakePicture();
-
-
+             if(realinterval >= interval){
+                _remote->actTakePicture();
+                number++;
+                //! alte Zeit zum Zeitpunkt der letzten Auslösung
+                tmpinterval = time->elapsed();
+                LOG_TIMELAPSE_DEBUG << "Timelapse                             :  elapsed: " << time->elapsed() << "       realinterval: " << realinterval << "       pictureNumber: " << number;
+             }
         }
-        else{
-            //_remote->getEvent();
-
-            timer->setInterval(100);
-            timer->stop();
-            timer->start();
-
-
-        }
+        realinterval = time->elapsed() - tmpinterval;
     }
 }
 

@@ -27,8 +27,12 @@ private:
     Remote *_remote;
     QTimer *timer;
     QTime *time;
+
     long _duration;
     int interval;
+    int realinterval;
+    int tmpinterval;
+    int timerresolution;
 private slots:
     void timeOut();
 
