@@ -343,7 +343,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
     LOG_RESULT_DEBUG << "jError "<< jError;
     QJsonArray jErrorArray = jError.toArray();
-
+    QJsonArray jResultArray = jResult.toArray();
 
     double id = jid.toDouble();
     //!to minimize whitebalance requests
@@ -352,8 +352,6 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //LOG_SPECIAL_RESULT_DEBUG << "\n\n+++++++++++++++++++++++++++++++  onManagerFinished:   +++++++++++++++++++++++++++++++++\n"
         //            << methods.key(id) << reply->url() << "\n"<< str
         //            << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-
-
     }
 
 
@@ -485,7 +483,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
     }
 
-    QJsonArray resultJarray = jResult.toArray();
+
     if(methods.value("getAvailableWhiteBalance") == id){
         QStringList wbCandidates;
         for(int i = 0; i< jResult.toArray().size();i++){
@@ -507,8 +505,8 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
     }
 
-    for(int i =0;i<resultJarray.size();i++){
-        QJsonObject jobject2 = resultJarray[i].toObject();
+    for(int i =0;i<jResultArray.size();i++){
+        QJsonObject jobject2 = jResultArray[i].toObject();
         if(jobject2.value(QString("type")) ==(QString("availableApiList"))){
             availableMetods.clear();
             QVariantList vlist = jobject2.value("names").toArray().toVariantList();
@@ -734,8 +732,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
     }
 
-    QVariantList results = resultJarray.toVariantList();
-    QStringList sresults;
+    QVariantList results = jResultArray.toVariantList();
     foreach (QVariant result, results) {
         //qDebug() << "Variant: result: "  << result;
         if(result.isValid()){
@@ -743,7 +740,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             //! Recognize startRecMode result.type: QVariant::Double
             if(methods.value("startRecMode") == id){
                 qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-                           "\nstartRecMode finished\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
+                           "\nstartRecMode response\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
                 _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
                 connected = true;
                 LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
@@ -751,11 +748,12 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             }
             if(methods.value("setCameraFunction") == id){
                 qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-                           "\nsetCameraFunction finished\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
+                           "\nsetCameraFunction response\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
                 connected = true;
                 LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
             }
             //! result.type: QVariant::List:
+            QStringList sresults;
             sresults = result.toStringList();
             if(methods.value("actTakePicture") == id && _loadpreviewpic){
                 foreach (QString sresult, sresults) {
@@ -772,7 +770,6 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                     LOG_RESULT_DEBUG << "result: " << sresult << "id: "<<  methods.value(sresult);
                 }
             }
-
             if(methods.value("startLiveview")  == id){
                     liveViewRequest = result.toString();
                     qDebug() << "liveViewRequest                       :  " << liveViewRequest;
@@ -824,18 +821,12 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
 void Remote::onLiveViewManagerReadyRead(){
 
-
     liveViewStreamAlive = false;
     if(streamReply->isRunning())
     {
         liveviewsStartingInProgress = false;
         liveViewStreamAlive = true;
-
     }
-
-
-
-
     inputStream.append(streamReply->readAll());
 
 #ifdef __STORESTREAM
