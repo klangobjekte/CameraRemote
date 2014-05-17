@@ -34,7 +34,7 @@ NetworkConnection::NetworkConnection()
 
     //treeWidget = new QTreeWidget;
 
-
+    networkSession = NULL;
 
     QByteArray ssdpRequest = "M-SEARCH * HTTP/1.1\r\nHOST: ";
             ssdpRequest.append(SSDP_ADDR);
@@ -129,7 +129,7 @@ NetworkConnection::NetworkConnection()
             this,SLOT(onconfigurationRemoved(QNetworkConfiguration)));
 
     //networkSession = new QNetworkSession(activeConfiguration);
-    LOG_NETWORKCONNECTION_DEBUG << "Network Session State:" << networkSession->state();
+    //LOG_NETWORKCONNECTION_DEBUG << "Network Session State:" << networkSession->state();
 
 
     downloadManager = new QNetworkAccessManager;
@@ -213,7 +213,7 @@ void NetworkConnection::onUpdateCompleted(){
                 << "NetworkSessionRequired:    " << NetworkSessionRequired << "\n";
 
 
-
+    if(networkSession){
     if(!networkSession->state() == QNetworkSession::Connected){
         delete networkSession;
         const bool canStartIAP = (networkConfigurationManager->capabilities()
@@ -234,6 +234,7 @@ void NetworkConnection::onUpdateCompleted(){
             LOG_NETWORKCONNECTION_DEBUG << "Network Session State:" << networkSession->state();
         }
 
+    }
     }
     LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface(): " << networkSession->interface() << "\n\n";
     publishDeviceFound(_availableNetworks);

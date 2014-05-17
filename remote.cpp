@@ -129,8 +129,11 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
 
 
     //! init the static methoods - map
+    methods["Reserved0"] = 0;
     methods["initActEnableMethods"] = 1;
     methods["actEnableMethods"] = 2;
+    methods["Reserved3"] = 3;
+    methods["Reserved4"] = 4;
     methods["getVersions"] = 5;
     methods["getMethodTypes"] = 6;
     methods["getApplicationInfo"] = 7;
@@ -332,7 +335,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
     //camerastate = false;
     static int buildid = 20;
-
+    //getAvailableApiList();
     cameraready = false;
     QJsonDocument jdocument = QJsonDocument::fromJson(str.toUtf8());
     QJsonObject jobject = jdocument.object();
@@ -348,10 +351,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     double id = jid.toDouble();
     //!to minimize whitebalance requests
 
-    if(id == 20){
-        //LOG_SPECIAL_RESULT_DEBUG << "\n\n+++++++++++++++++++++++++++++++  onManagerFinished:   +++++++++++++++++++++++++++++++++\n"
-        //            << methods.key(id) << reply->url() << "\n"<< str
-        //            << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    if(methods.key(id) == QString("actTakePicture")){
+        LOG_SPECIAL_RESULT_DEBUG << "\n\n+++++++++++++++++++++++++++++++  onManagerFinished:   +++++++++++++++++++++++++++++++++\n"
+                    << methods.key(id) << reply->url() << "\n"<< str
+                    << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
     }
 
 
@@ -374,6 +377,9 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR: Not Available Now";
         connecting = false;
         cameraready = false;
+        QString method = methods.key(id);
+        if(!id==0)
+            commandFabrikMethod(method.toUtf8(),id);
 
     }
     if(jErrorArray.at(1) == QString("illegal request")){
@@ -462,17 +468,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
     }
 
-    if(methods.key(id) == QString("stopRecMode")){
-        //emit publishDiconnected();
-        connected = false;
-        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
-    }
-
-    if(methods.key(id) == "actEnableMethods"){
-        connecting = true;
-        initialEventTimer->stop();
-    }
-
+    //! choose  getEvent Case
     if((id == 9 || id == 77)
             && connected
             && !liveViewStreamAlive
@@ -483,10 +479,131 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
     }
 
+    //! initActEnableMethods  result.type: QVariant::Map
+    if(methods.key(id) == "initActEnableMethods"){
+    //if(id==1){
+        //LOG_SPECIAL_RESULT_DEBUG << "initActEnableMethods jdg                    : " << jdg;
+        //LOG_SPECIAL_RESULT_DEBUG << "initActEnableMethods jResult                : " << jResult;
+        //LOG_SPECIAL_RESULT_DEBUG << "initActEnableMethods jResult.type()         : " << jResult.type();
+        //LOG_SPECIAL_RESULT_DEBUG << "initActEnableMethods jResultArray           : " << jResultArray;
+        for(int i= 0;i<jResultArray.size();i++){
+            QJsonArray array = jResult.toArray().at(i).toArray();
+            LOG_SPECIAL_RESULT_DEBUG << "jResultArray.at(i).type(): "<<jResultArray.at(i).type();
+            LOG_SPECIAL_RESULT_DEBUG << "jResultArray.at(i): "<<jResultArray.at(i);
+            LOG_SPECIAL_RESULT_DEBUG << "jResult.toArray().at(i).toArray(): "<<jResult.toArray().at(i).toArray();
+            QJsonObject jobject3 = jResultArray[i].toObject();
+            QString keyanswer = jobject3.value("dg").toString();
+            LOG_SPECIAL_RESULT_DEBUG << "jobject3.value(dg): "<< keyanswer;
+            //! Calculate the KEY
+            QByteArray KEYDG="90adc8515a40558968fe8318b5b023fdd48d3828a2dda8905f3b93a3cd8e58dc";
+            KEYDG.append(keyanswer);
+            qDebug()<< "initActEnableMethods result: " << keyanswer;
+            qDebug()<< "initActEnableMethods result: " << KEYDG;
+            QByteArray encoded = QCryptographicHash::hash(KEYDG, QCryptographicHash::Sha256);
+            actEnableMethods(encoded.toBase64());
+        }
+    }
+    //! actEnableMethods - set the Forbidden to Allowed - id 2!
+    if(methods.key(id) == "actEnableMethods"){
+    //if(id==2){
+        if(availableMetods.contains("startRecMode")){
+            startRecMode();
+            getEvent("false");
+            if(!getEventTimerSingleshot->isActive()){
+                getEventTimerSingleshot->setInterval(6000);
+                getEventTimerSingleshot->start();
+            }
+            if(!getEventTimerPeriodic->isActive())
+                getEventTimerPeriodic->start();
+        }
+        else{
+            if(!getEventTimerSingleshot->isActive()){
+                getEventTimerSingleshot->setInterval(2000);
+                getEventTimerSingleshot->start();
+            }
+            if(!getEventTimerPeriodic->isActive())
+                getEventTimerPeriodic->start();
+            connected = true;
+            LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+        }
+        connecting = true;
+        initialEventTimer->stop();
+    }
+
+
+
+    if(methods.key(id) == "getAvailableApiList"){
+    //if(methods.value("getAvailableApiList")==id){
+        //LOG_SPECIAL_RESULT_DEBUG << "jResult     : " << jResult << "id: "<<  id;
+        //LOG_SPECIAL_RESULT_DEBUG << "jResultArray: " << jResultArray << "id: "<<  id;
+        for(int i= 0;i<jResultArray.size();i++){
+            QJsonArray array = jResult.toArray().at(i).toArray();
+            for(int y = 0; y<array.size();y++){
+                QString sresult = array.at(y).toString();
+                if(!methods.keys().contains(sresult)){
+                    methods[sresult] = buildid;
+
+                    LOG_SPECIAL_RESULT_DEBUG << "getAvailableApiList append to methods: "<< methods.key(id) << buildid;
+                    buildid++;
+                }
+            }
+        }
+    }
+
+    if(methods.key(id) == "actTakePicture" && _loadpreviewpic){
+    //if(methods.value("actTakePicture") == id && _loadpreviewpic){
+        for(int i= 0;i<jResultArray.size();i++){
+            QJsonArray array = jResult.toArray().at(i).toArray();
+            for(int y = 0; y<array.size();y++){
+                QString picurl = array.at(y).toString();
+                buildPreviewPicName(picurl);
+                picmanager->get(QNetworkRequest(QUrl(picurl)));
+                LOG_SPECIAL_RESULT_DEBUG << "array.at(y).toString(): "<<picurl;
+            }
+        }
+    }
+
+    if(methods.key(id) == "startLiveview"){
+    //if(methods.value("startLiveview")  == id){
+        for(int i= 0;i<jResultArray.size();i++){
+            liveViewRequest = jResultArray.at(i).toString();
+            qDebug() << "liveViewRequest                       :  " << liveViewRequest;
+            //liveViewRequest = "http://192.168.122.1:8080/liveview/liveviewstream.JPG?%211234%21http%2dget%3a%2a%3aimage%2fjpeg%3a%2a%21%21%21%21%21";
+            streamReply = liveViewManager->get(QNetworkRequest(QUrl(liveViewRequest)));
+            connect(streamReply, SIGNAL(readyRead()), this, SLOT(onLiveViewManagerReadyRead()));
+        }
+    }
+
+
+
+    //! Recognize startRecMode result.type: QVariant::Double
+    if(methods.value("startRecMode") == id){
+        qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                   "\nstartRecMode response\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
+        _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
+        connected = true;
+        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+
+    }
+
+    if(methods.key(id) == QString("stopRecMode")){
+        //emit publishDiconnected();
+        connected = false;
+        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+    }
+
+
+    if(methods.value("setCameraFunction") == id){
+        qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                   "\nsetCameraFunction response\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
+        connected = true;
+        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+    }
+
 
     if(methods.value("getAvailableWhiteBalance") == id){
         QStringList wbCandidates;
-        for(int i = 0; i< jResult.toArray().size();i++){
+        for(int i = 0; i< jResultArray.size();i++){
             if(jResult.toArray().at(i).isArray()){
                 QJsonArray array = jResult.toArray().at(i).toArray();
                 //qDebug() << "HAHA: "<<  jResult.toArray().at(i) << "size: " << array.size();
@@ -505,6 +622,9 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
     }
 
+
+
+
     for(int i =0;i<jResultArray.size();i++){
         QJsonObject jobject2 = jResultArray[i].toObject();
         if(jobject2.value(QString("type")) ==(QString("availableApiList"))){
@@ -514,6 +634,8 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 availableMetods.append(var.toString());
                 if(!methods.keys().contains(var.toString())){
                     methods[var.toString()] = buildid;
+                    //LOG_SPECIAL_RESULT_DEBUG << "getAvailableApiList append to methods: "<< methods.key(buildid) << buildid;
+
                     buildid++;
                 }
                 LOG_RESULT_DEBUG << "names: " << var.toString() << "id: "<<  methods.value(var.toString());
@@ -714,7 +836,8 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 emit publishAvailableWhiteBalanceModes(whiteBalanceModes);
                 emit publishCurrentWhiteBalanceModes(currentWhiteBalanceMode);
                 if(whiteBalanceModes.size()<2 && connected && !timelapsmode)
-                    getAvailableWhiteBalance(methods.value("getAvailableWhiteBalance"));
+                    if(methods.value("getAvailableWhiteBalance") != 0)
+                        getAvailableWhiteBalance(methods.value("getAvailableWhiteBalance"));
             }
         }
         if(jobject2.value(QString("type")) == (QString("touchAFPosition"))){
@@ -737,39 +860,33 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //qDebug() << "Variant: result: "  << result;
         if(result.isValid()){
             //qDebug() << "result.type: " << result.type();
-            //! Recognize startRecMode result.type: QVariant::Double
-            if(methods.value("startRecMode") == id){
-                qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-                           "\nstartRecMode response\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
-                _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
-                connected = true;
-                LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
-
-            }
-            if(methods.value("setCameraFunction") == id){
-                qDebug() <<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-                           "\nsetCameraFunction response\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
-                connected = true;
-                LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
-            }
             //! result.type: QVariant::List:
-            QStringList sresults;
-            sresults = result.toStringList();
+            //QStringList sresults;
+            //sresults = result.toStringList();
+            /*
             if(methods.value("actTakePicture") == id && _loadpreviewpic){
                 foreach (QString sresult, sresults) {
                     buildPreviewPicName(sresult);
                     picmanager->get(QNetworkRequest(QUrl(sresult)));
+                    LOG_SPECIAL_RESULT_DEBUG << "result: " << sresult << "id: "<<  methods.value(sresult);
+
                 }
+                LOG_SPECIAL_RESULT_DEBUG << "sresults: " << sresults;
+
             }
+            */
+            /*
             if(methods.value("getAvailableApiList")==id){
                 foreach (QString sresult, sresults){
                     if(!methods.keys().contains(sresult)){
                         methods[sresult] = buildid;
                         buildid++;
                     }
-                    LOG_RESULT_DEBUG << "result: " << sresult << "id: "<<  methods.value(sresult);
+                    LOG_SPECIAL_RESULT_DEBUG << "result: " << sresult << "id: "<<  methods.value(sresult);
                 }
             }
+            */
+            /*
             if(methods.value("startLiveview")  == id){
                     liveViewRequest = result.toString();
                     qDebug() << "liveViewRequest                       :  " << liveViewRequest;
@@ -777,19 +894,22 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                     streamReply = liveViewManager->get(QNetworkRequest(QUrl(liveViewRequest)));
                     connect(streamReply, SIGNAL(readyRead()), this, SLOT(onLiveViewManagerReadyRead()));
             }
+            */
+            /*
             //! initActEnableMethods  result.type: QVariant::Map
             if(id==1){
                 if(result.toMap().keys().contains("dg")){
                     //! Calculate the KEY
                     QByteArray KEYDG="90adc8515a40558968fe8318b5b023fdd48d3828a2dda8905f3b93a3cd8e58dc";
                     KEYDG.append(result.toMap().value("dg").toByteArray());
-                    qDebug()<< "onManagerFinished result: " << result.toMap().value("dg").toString();
-                    qDebug()<< "onManagerFinished result: " << KEYDG;
+                    //qDebug()<< "initActEnableMethods result: " << result.toMap().value("dg").toString();
+                    qDebug()<< "initActEnableMethods result: " << KEYDG;
                     QByteArray encoded = QCryptographicHash::hash(KEYDG, QCryptographicHash::Sha256);
                     actEnableMethods(encoded.toBase64());
                 }
 
             }
+
             //! actEnableMethods - set the Forbidden to Allowed
             if(id==2){
                 if(availableMetods.contains("startRecMode")){
@@ -813,6 +933,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                     LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
                 }
             }
+            */
         }
     }
 }
