@@ -85,7 +85,9 @@ public:
     ~Remote();
 
     void setActiveNetworkConnection();
-    bool getConnectionStatus();
+    int getConnectionStatus();
+    void setConnetcionState(bool state);
+    bool getConnectionState();
     void setTimeLapsMode(bool on);
 
     void getEventDelayed(int ms);
@@ -173,15 +175,17 @@ public:
     void getSupportedWhiteBalance(int id = 59);
     void getAvailableWhiteBalance(int id = 60);
     void getSupportedFlashMode(int id = 61);
-    void setLiveViewStartToManual();
+    void setLiveViewStartToManual(bool state);
     void setRefreshInterval(int ms);
 
     QString cameraStatus();
     bool cameraReady();
     bool liveviewStatus();
+    void getCommand(int id);
 
 signals:
     void publishDiconnected();
+    void publishConnetionError(QString message);
 
     void publishLoadPreview(QNetworkReply* reply,QString previePicName);
 
@@ -246,12 +250,14 @@ public slots:
 private slots:
     void on_getEventTimerTimeout();
     void onManagerFinished(QNetworkReply* reply);
+    void onManagerReadyRead();
     void onPicmanagerFinished(QNetworkReply* reply);
     void onLiveViewManagerReadyRead();
     void buildLiveViewPic();
 
 private:
     void buildPreviewPicName(QString url);
+
 
     NetworkConnection *_networkConnection;
     QNetworkAccessManager *picmanager;
@@ -260,11 +266,14 @@ private:
     QNetworkRequest construcCameraRequest(QByteArray postDataSize);
     QNetworkRequest constructAccessControlRequest(QByteArray postDataSize);
     QNetworkReply *streamReply;
+    QNetworkReply* _reply;
+
     QTimer *timer;
     QTimer *getEventTimerSingleshot;
     QTimer *getEventTimerPeriodic;
-
     QTimer *initialEventTimer;
+    QTime *time;
+
     QByteArray inputStream;
     QByteArray imageArray;
     QString currentWhiteBalanceMode;
@@ -291,7 +300,10 @@ private:
     QString camerastatus;
     bool event77Happened;
     int connectionstatus;
-    bool liveviewsStartingInProgress;
+    bool startLiveviewInProgress;
+    int connectionErrorCounterTimeOut;
+    int connectionErrorCounterOffset;
+    bool getAvailableWhiteBalanceInProgress;
 
 
 };

@@ -76,15 +76,12 @@ NetworkConnection::NetworkConnection()
     QNetworkConfigurationManager ncm;
     auto nc = ncm.allConfigurations();
 
-    for (auto &x : nc)
-    {
-        if (x.bearerType() == QNetworkConfiguration::BearerWLAN)
-        {
+    for (auto &x : nc){
+        if (x.bearerType() == QNetworkConfiguration::BearerWLAN){
             //if (x.name() == "YouDesiredNetwork")
                 //cfg = x;
         }
         qDebug() << "auto: " << x.name() << x.bearerType();
-
     }
 
     //auto session = new QNetworkSession(cfg, this);
@@ -214,29 +211,32 @@ void NetworkConnection::onUpdateCompleted(){
 
 
     if(networkSession){
-    if(!networkSession->state() == QNetworkSession::Connected){
-        delete networkSession;
-        const bool canStartIAP = (networkConfigurationManager->capabilities()
-                                     & QNetworkConfigurationManager::CanStartAndStopInterfaces);
-        QNetworkConfiguration cfg = networkConfigurationManager->defaultConfiguration();
-        activeConfiguration =  cfg;
-        if (!cfg.isValid() || (!canStartIAP && cfg.state() != QNetworkConfiguration::Active)) {
-            //QMessageBox::information(this, tr("Network"), tr("No Access Point found."));
-            LOG_NETWORKCONNECTION_DEBUG << "No Access Point found";
-            //networkConfigurationManager->updateConfigurations();
+        if(networkSession->state() != QNetworkSession::Connected){
+            delete networkSession;
+            const bool canStartIAP = (networkConfigurationManager->capabilities()
+                                         & QNetworkConfigurationManager::CanStartAndStopInterfaces);
+            QNetworkConfiguration cfg = networkConfigurationManager->defaultConfiguration();
+            activeConfiguration =  cfg;
+            if (!cfg.isValid() || (!canStartIAP && cfg.state() != QNetworkConfiguration::Active)) {
+                //QMessageBox::information(this, tr("Network"), tr("No Access Point found."));
+                LOG_NETWORKCONNECTION_DEBUG << "No Access Point found";
+                //networkConfigurationManager->updateConfigurations();
+
+            }
+            else{
+                activeConfiguration = cfg;
+                networkSession = new QNetworkSession(cfg, this);
+                networkSession->open();
+                networkSession->waitForOpened(-1);
+                LOG_NETWORKCONNECTION_DEBUG << "Network Session State:" << networkSession->state();
+            }
 
         }
-        else{
-            activeConfiguration = cfg;
-            networkSession = new QNetworkSession(cfg, this);
-            networkSession->open();
-            networkSession->waitForOpened(-1);
-            LOG_NETWORKCONNECTION_DEBUG << "Network Session State:" << networkSession->state();
-        }
+        LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface(): " << networkSession->interface() << "\n\n";
 
     }
-    }
-    LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface(): " << networkSession->interface() << "\n\n";
+    else
+        LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface(): \n\n";
     publishDeviceFound(_availableNetworks);
 
 }

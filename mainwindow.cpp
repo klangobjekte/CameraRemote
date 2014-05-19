@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QWidget>
 #include <QFileDialog>
+#include <QVBoxLayout>
 #include <QNetworkConfigurationManager>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -23,8 +25,16 @@
 #include <QTouchEvent>
 #include "iostream"
 #include "iomanip"
+#include <QMessageBox>
 
 using namespace std;
+
+//I/SurfaceView(28761): Locking canvas... stopped=false, win=android.view.SurfaceView$MyWindow@41b67540
+//I/SurfaceView(28761): Returned canvas: android.view.Surface$CompatibleCanvas@41b517a8
+//D/dalvikvm(28761): GC_CONCURRENT freed 3775K (141), 35% free 6976K/10600K, paused 1ms+2ms, total 22ms
+//F/libc    (28761): Fatal signal 11 (SIGSEGV) at 0x62860208 (code=1), thread 28776 (le.CameraRemote)
+//F/libc    (28761): Send stop signal to pid:28761 in debugger_signal_handler
+
 
 //#define LOG_MAINWINDOW
 #ifdef LOG_MAINWINDOW
@@ -51,6 +61,8 @@ MainWindow::MainWindow(QWidget *parent) :
     pressedBegin = 0;
     pressedEnd = 0;
     processingstate = false;
+    quitaccepted = false;
+    manualdisconnect = false;
 
 #if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
     homepath = QDir::homePath ();
@@ -97,6 +109,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
+    infoDialog = new QDialog(this,Qt::SplashScreen);
+    infoDialog->setObjectName("infoDialog");
+    shutDownLabel = new QLabel(infoDialog);
+    shutDownLabel->setText("Shutting Down...");
+    QVBoxLayout *infoLayout = new QVBoxLayout(infoDialog); ;
+    infoLayout->addWidget(shutDownLabel);
+    infoDialog->setLayout(infoLayout);
+
 
     buttonGroup = new QButtonGroup(this);
     buttonGroup->addButton(ui->pushButton_1);
@@ -135,6 +155,12 @@ MainWindow::MainWindow(QWidget *parent) :
     disablTimer->setInterval(1000);
     connect(disablTimer,SIGNAL(timeout()),
             this,SLOT(on_disablTimer_timeout()));
+
+    timeoutTimer = new QTimer;
+    timeoutTimer->setSingleShot(true);
+    timeoutTimer->setInterval(5000);
+    connect(timeoutTimer,SIGNAL(timeout()),
+            this,SLOT(on_Quit_Accepted()));
 
 
     //! [Create Object QGraphicsScene for Preview]
@@ -196,6 +222,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(remote,SIGNAL(publishZoomPosition(int)),
             this,SLOT(on_zoomPositionChanged(int)));
 
+    connect(remote,SIGNAL(publishDiconnected()),
+            this,SLOT(on_Quit_Accepted()));
+    connect(remote,SIGNAL(publishConnetionError(QString)),
+            this,SLOT(on_remote_publishConnetionError(QString)));
+
     //connect(networkConnection,SIGNAL(publishConnectionStatus(int,QString)),
     //        remote,SLOT(setConnectionStatus(int,QString)));
 
@@ -221,7 +252,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->configurationComboBox->addItems(availableNetworks);
     ui->configurationComboBox->setCurrentText(networkConnection->getActiveConfiguration().name());
 
-    remote->initialEvent();
+
 
     ui->toolBar->setVisible(false);
     ui->mainToolBar->setVisible(false);
@@ -235,9 +266,10 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     setControlStates(false);
+
     readSettings();
     ui->chooseFolderPushButton->setText(previewPath);
-
+    remote->initialEvent();
 }
 
 MainWindow::~MainWindow()
@@ -252,14 +284,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    Q_UNUSED(event);
+    //Q_UNUSED(event);
     writeSettings();
     LOG_MAINWINDOW_DEBUG << "Leave Application";
-    remote->stopLiveview();
-    remote->stopRecMode();
-    //if(!remote->getConnectionStatus())
-    while(remote->getConnectionStatus())
+    on_quitPushButton_clicked(true);
+    if(quitaccepted)
         event->accept();
+    else
+        event->ignore();
+
+
 }
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event){
@@ -312,7 +346,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
 #endif
 
     }
-    //return true;
+    return false;
 }
 
 void MainWindow::on_buttonGroup_buttonClicked(int index){
@@ -661,17 +695,17 @@ void MainWindow::onConnectionStatusChanged(int status,QString message){
         temp4.append(friendlyName);
 
         statusBar()->showMessage(temp4);
-        /*
+
         ui->startRecModePushButton->setChecked(true);
         ui->startRecModePushButton->setText("Disconnect");
-        */
+
         break;
     case _CONNECTIONSTATE_SSDP_ALIVE_RECEIVED://5
-        if(!remote->getConnectionStatus())
+        if(!remote->getConnectionState())
             statusBar()->showMessage(tr("Device Detected "));
         break;
     case _CONNECTIONSTATE_CAMERA_DETECTED://7
-        if(!remote->getConnectionStatus()){
+        if(!remote->getConnectionState()){
             if(friendlyName.isEmpty())
                 friendlyName = message;
             temp6.append(friendlyName);
@@ -689,15 +723,26 @@ void MainWindow::on_configurationComboBox_activated(QString text){
 void MainWindow::on_startRecModePushButton_clicked(bool checked){
     qDebug()  << "on_startRecModePushButton_clicked";
     if(checked){
-        remote->initActEnableMethods();
+        //remote->initActEnableMethods();
+        manualdisconnect = false;
+        remote->initialEvent();
         remote->startRecMode();
+
+        remote->getEventDelayed(2000);
+        remote->setRefreshInterval(10000);
         ui->startRecModePushButton->setText("Disconnect");
+        remote->startLiveview();
     }
     else{
+        manualdisconnect = true;
         remote->stopLiveview();
         remote->stopRecMode();
         liveviewScene->clear();
         previewScene->clear();
+        remote->setConnetcionState(false);
+        remote->setConnectionStatus(_CONNECTIONSTATE_DISCONNECTED);
+        this->onConnectionStatusChanged(_CONNECTIONSTATE_DISCONNECTED);
+
         ui->startRecModePushButton->setText("Connect");
     }
 }
@@ -717,9 +762,11 @@ void MainWindow::on_startLiveViewPushButton_clicked(bool checked){
     if(!checked){
             remote->stopLiveview();
             liveviewScene->clear();
+            remote->setLiveViewStartToManual(true);
     }
     else{
             remote->startLiveview();
+            remote->setLiveViewStartToManual(false);
     }
 }
 
@@ -778,7 +825,8 @@ void MainWindow::on_isoSpeedRateComboBox_activated(QString text){
     index.append("\"");
     index.append(text);
     index.append("\"");
-    remote->commandFabrikMethod("setIsoSpeedRate",remote->getMethods().value("setIsoSpeedRate"),index);
+    if(remote->getMethods().value("setIsoSpeedRate") != 0)
+        remote->commandFabrikMethod("setIsoSpeedRate",remote->getMethods().value("setIsoSpeedRate"),index);
 }
 
 void MainWindow::on_shutterSpeedComboBox_activated(QString text){
@@ -787,7 +835,8 @@ void MainWindow::on_shutterSpeedComboBox_activated(QString text){
     index.append("\"");
     index.append(text);
     index.append("\"");
-    remote->commandFabrikMethod("setShutterSpeed",remote->getMethods().value("setShutterSpeed"),index);
+    if(remote->getMethods().value("setShutterSpeed") != 0)
+        remote->commandFabrikMethod("setShutterSpeed",remote->getMethods().value("setShutterSpeed"),index);
 }
 
 void MainWindow::on_fNumberComboBox_activated(QString text){
@@ -795,7 +844,8 @@ void MainWindow::on_fNumberComboBox_activated(QString text){
     param.append("\"");
     param.append(text);
     param.append("\"");
-    remote->commandFabrikMethod("setFNumber",remote->getMethods().value("setFNumber"),param);
+    if(remote->getMethods().value("setFNumber") != 0)
+        remote->commandFabrikMethod("setFNumber",remote->getMethods().value("setFNumber"),param);
 }
 
 void MainWindow::on_whiteBalanceComboBox_activated(QString text){
@@ -806,7 +856,8 @@ void MainWindow::on_whiteBalanceComboBox_activated(QString text){
     index.append("true");
     index.append(",");
     index.append("0");
-    remote->commandFabrikMethod("setWhiteBalance",remote->getMethods().value("setWhiteBalance"),index);
+    if(remote->getMethods().value("setWhiteBalance") != 0)
+        remote->commandFabrikMethod("setWhiteBalance",remote->getMethods().value("setWhiteBalance"),index);
 }
 
 void MainWindow::on_exposureModeComboBox_activated(QString text){
@@ -814,7 +865,8 @@ void MainWindow::on_exposureModeComboBox_activated(QString text){
     param.append("\"");
     param.append(text);
     param.append("\"");
-    remote->commandFabrikMethod("setExposureMode",remote->getMethods().value("setExposureMode"),param);
+    if(remote->getMethods().value("setExposureMode") != 0)
+        remote->commandFabrikMethod("setExposureMode",remote->getMethods().value("setExposureMode"),param);
 }
 
 void MainWindow::on_selfTimerComboBox_activated(QString text){
@@ -825,7 +877,8 @@ void MainWindow::on_selfTimerComboBox_activated(QString text){
     //param.append("\"");
     //param.append(parachar);
     //param = para;
-    remote->commandFabrikMethod("setSelfTimer",remote->getMethods().value("setSelfTimer"),param);
+    if(remote->getMethods().value("setSelfTimer") != 0)
+        remote->commandFabrikMethod("setSelfTimer",remote->getMethods().value("setSelfTimer"),param);
 }
 
 void MainWindow::on_postViewImageSizeComboBox_activated(QString text){
@@ -833,7 +886,8 @@ void MainWindow::on_postViewImageSizeComboBox_activated(QString text){
     param.append("\"");
     param.append(text);
     param.append("\"");
-    remote->commandFabrikMethod("setPostviewImageSize",remote->getMethods().value("setPostviewImageSize"),param);
+    if(remote->getMethods().value("setPostviewImageSize") != 0)
+        remote->commandFabrikMethod("setPostviewImageSize",remote->getMethods().value("setPostviewImageSize"),param);
 }
 
 void MainWindow::on_liveViewImageTouched(QPointF pos){
@@ -862,7 +916,8 @@ void MainWindow::on_liveViewImageTouched(QPointF pos){
     //param.append("\"");
     param.append(syaxis);
     //param.append("\"");
-    remote->commandFabrikMethod("setTouchAFPosition",remote->getMethods().value("setTouchAFPosition"),param);
+    if(remote->getMethods().value("setTouchAFPosition") != 0)
+        remote->commandFabrikMethod("setTouchAFPosition",remote->getMethods().value("setTouchAFPosition"),param);
 
 }
 
@@ -871,25 +926,26 @@ void MainWindow::on_zoomInPushButton_pressed()
     //clock_t end = clock();
 
     pressedBegin = clock();
-    double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
+    //double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
     cout  << setprecision(8) << " ++++++++++++ TIME pressed+++++++:" << pressedBegin << endl;
 
     //! async Event is lost??
-
-        QByteArray param;
-        param.append("\"");
-        param.append("in");
-        param.append("\"");
-        param.append(",");
-        param.append("\"");
-        param.append("1shot");
-        param.append("\"");
-        if(ui->zoomPositionLabel->text().toInt()<100){
+    QByteArray param;
+    param.append("\"");
+    param.append("in");
+    param.append("\"");
+    param.append(",");
+    param.append("\"");
+    param.append("1shot");
+    param.append("\"");
+    if(ui->zoomPositionLabel->text().toInt()<100){
+        if(remote->getMethods().value("actZoom") != 0){
             remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
             setControlStates(false);
             //remote->getEvent("false",20);
             remote->getEventDelayed(800);
-        }
+         }
+    }
 }
 
 void MainWindow::on_zoomInPushButton_released()
@@ -917,26 +973,27 @@ void MainWindow::on_zoomInPushButton_released()
 void MainWindow::on_zoomOutPushButton_pressed()
 {
     pressedBegin = clock();
-    double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
+    //double elapsed_secs = double(pressedEnd - pressedBegin) / CLOCKS_PER_SEC;
 
-        cout  << setprecision(8) << " ++++++++++++ TIME pressedBegin+++++++:" << pressedBegin << endl;
-         //! async Event is lost??
-        //remote->getEvent("false",20);
-        QByteArray param;
-        param.append("\"");
-        param.append("out");
-        param.append("\"");
-        param.append(",");
-        param.append("\"");
-        param.append("1shot");
-        param.append("\"");
-        if(ui->zoomPositionLabel->text().toInt() > 0){
+    cout  << setprecision(8) << " ++++++++++++ TIME pressedBegin+++++++:" << pressedBegin << endl;
+     //! async Event is lost??
+    //remote->getEvent("false",20);
+    QByteArray param;
+    param.append("\"");
+    param.append("out");
+    param.append("\"");
+    param.append(",");
+    param.append("\"");
+    param.append("1shot");
+    param.append("\"");
+    if(ui->zoomPositionLabel->text().toInt() > 0){
+        if(remote->getMethods().value("actZoom") != 0){
             remote->commandFabrikMethod("actZoom",remote->getMethods().value("actZoom"),param);
             setControlStates(false);
             //remote->getEvent("false",20);
             remote->getEventDelayed(800);
-        }
-
+         }
+    }
 }
 
 void MainWindow::on_zoomOutPushButton_released()
@@ -1264,14 +1321,38 @@ ui->takePicturePushButton->setStyleSheet("{height: 90px;}");
 
 void MainWindow::on_quitPushButton_clicked(bool checked)
 {
+    Q_UNUSED(checked);
     remote->stopLiveview();
     remote->stopRecMode();
     writeSettings();
-    qApp->closeAllWindows();
+    remote->getEventDelayed(100);
+    timeoutTimer->start();
+    qApp->setOverrideCursor(Qt::WaitCursor);
+    //qApp->activePopupWidget();
+    //QWidget::nativeParentWidget();
+    //infoWidget->show();
+    infoDialog->show();
 
+    //QMessageBox::information(this,
+    //    tr(""),
+    //    tr("Shutting Down..."),0,0,0);
+}
 
+void MainWindow::on_Quit_Accepted(){
+    quitaccepted = true;
+    if(!manualdisconnect)
+        qApp->closeAllWindows();
 }
 
 void MainWindow::on_disablTimer_timeout(){
     ui->startLiveViewPushButton->setCheckable(true);
+}
+
+void MainWindow::on_remote_publishConnetionError(QString message){
+    QString mess = message;
+    //QMessageBox
+    QMessageBox::warning(this,
+        tr("Warning"),
+        tr("Check Camera/Wifi Connection\nand restart the Application!"),
+        QMessageBox::Ok);
 }

@@ -25,15 +25,7 @@
 
 }
 
-QFileDialog{
-		background-color: #222222;
-		color: white;
-}
 
-QFileDialog QLineEdit{
-		background-color: #222222;
-		color: white;
-}
 
 
 
@@ -57,6 +49,24 @@ QGraphicsView
     background-color: #222222;
 }
 
+QFileDialog{
+		background-color: #222222;
+		color: white;
+}
+
+QFileDialog QLineEdit{
+		background-color: #222222;
+		color: white;
+}
+
+QDialog#infoDialog{
+	background-color: #222222;s
+}
+
+QMessageBox{
+background-color: #222222;
+	color: black;
+}
 
 
 QPushButton{
@@ -70,6 +80,10 @@ QPushButton{
 
 QPushButton:checked{
 	background-color: #333333;
+}
+
+QPushButton:pressed{
+	background-color: #555555;
 }
 
 

@@ -13,6 +13,7 @@ class QGraphicsView;
 class QGraphicsScene;
 class QLabel;
 class QButtonGroup;
+class QWidget;
 
 //class QUrl;
 
@@ -64,6 +65,7 @@ private slots:
     void on_selfTimerComboBox_activated(QString text);
     void on_liveViewImageTouched(QPointF pos);
     void on_disablTimer_timeout();
+    void on_Quit_Accepted();
 
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
@@ -101,11 +103,15 @@ private slots:
     void on_zoomPositionChanged(const int &text);
 
     void on_quitPushButton_clicked(bool checked);
+    void on_remote_publishConnetionError(QString message);
 
 private:
 
     Ui::MainWindow *ui;
     QTimer *disablTimer;
+    QTimer *timeoutTimer;
+    QDialog *infoDialog;
+    QLabel *shutDownLabel;
 
     NetworkConnection *networkConnection;
     Remote *remote;
@@ -122,7 +128,7 @@ private:
 
     QGraphicsScene *previewScene;
     QGraphicsScene *liveviewScene;
-    //QGraphicsView * view;
+
     QString previewPath;
     QString friendlyName;
     QString pictureLocation;
@@ -138,6 +144,8 @@ private:
     QSize liveviewimgsize;
     QSize currentsize;
     bool processingstate;
+    bool quitaccepted;
+    bool manualdisconnect;
 };
 
 #endif // MAINWINDOW_H
