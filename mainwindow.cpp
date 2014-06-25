@@ -27,7 +27,10 @@
 #include "iomanip"
 #include <QMessageBox>
 
+
+
 using namespace std;
+//Q_DECLARE_METATYPE(QIntMap)
 
 //I/SurfaceView(28761): Locking canvas... stopped=false, win=android.view.SurfaceView$MyWindow@41b67540
 //I/SurfaceView(28761): Returned canvas: android.view.Surface$CompatibleCanvas@41b517a8
@@ -56,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
      ui->setupUi(this);
+
     //! Duration of ZoomButton Pressed
     //! for Future use
     pressedBegin = 0;
@@ -101,6 +105,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QScreen* screen = QApplication::primaryScreen();
     LOG_SCREENDESIGN_DEBUG << "Konstructor screen->screenGeometry():     " << screen->geometry();
     LOG_SCREENDESIGN_DEBUG << "Konstructor screen->availableGeometry();: " << screen->availableGeometry();
+    qDebug() << "Konstructor screen->availableGeometry();: " << screen->availableGeometry();
 
     connect( screen, SIGNAL(orientationChanged(Qt::ScreenOrientation)), this, SLOT(on_orientationChanged(Qt::ScreenOrientation)) );
     connect( screen, SIGNAL(primaryOrientationChanged(Qt::ScreenOrientation)), this, SLOT(on_primaryOrientationChanged(Qt::ScreenOrientation)) );
@@ -251,6 +256,9 @@ MainWindow::MainWindow(QWidget *parent) :
     LOG_MAINWINDOW_DEBUG << "availableNetworks: " << availableNetworks;
     ui->configurationComboBox->addItems(availableNetworks);
     ui->configurationComboBox->setCurrentText(networkConnection->getActiveConfiguration().name());
+
+
+    motorbasic =new MotorBasic();
 
 
 
@@ -446,14 +454,15 @@ void MainWindow::setupPortraitScreen(QRect geo){
     ui->whiteBalanceComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,6);
+    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,8);
     ui->centralGridLayout->addWidget(ui->pushButton_1,1,0);
     ui->centralGridLayout->addWidget(ui->pushButton_2,1,1);
     ui->centralGridLayout->addWidget(ui->pushButton_3,1,2);
     ui->centralGridLayout->addWidget(ui->zoomOutPushButton,1,3);
     ui->centralGridLayout->addWidget(ui->zoomInPushButton,1,4);
-
-    ui->centralGridLayout->addWidget(ui->takePicturePushButton,1,5);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,1,5);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,1,6);
+    ui->centralGridLayout->addWidget(ui->takePicturePushButton,1,7);
 
 
     QSize orientedSize;
@@ -492,14 +501,15 @@ void MainWindow::setupLandscapeScreen(QRect geo){
 
 
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,6);
+    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,8);
     ui->centralGridLayout->addWidget(ui->pushButton_1,1,0);
     ui->centralGridLayout->addWidget(ui->pushButton_2,1,1);
     ui->centralGridLayout->addWidget(ui->pushButton_3,1,2);
     ui->centralGridLayout->addWidget(ui->zoomOutPushButton,1,3);
     ui->centralGridLayout->addWidget(ui->zoomInPushButton,1,4);
-
-    ui->centralGridLayout->addWidget(ui->takePicturePushButton,1,5);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,1,5);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,1,6);
+    ui->centralGridLayout->addWidget(ui->takePicturePushButton,1,7);
 
 
     orientedInnerSize.setWidth(geo.width()-geo.width()/60);
@@ -544,15 +554,17 @@ void MainWindow::setupLandscapeScreen(QRect geo){
     ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
     */
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,6,1);
+    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,8,1);
     ui->centralGridLayout->addWidget(ui->takePicturePushButton,0,1);
 
     ui->centralGridLayout->addWidget(ui->pushButton_3,1,1);
     ui->centralGridLayout->addWidget(ui->zoomOutPushButton,2,1);
     ui->centralGridLayout->addWidget(ui->zoomInPushButton,3,1);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,4,1);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,5,1);
 
-    ui->centralGridLayout->addWidget(ui->pushButton_1,4,1);
-    ui->centralGridLayout->addWidget(ui->pushButton_2,5,1);
+    ui->centralGridLayout->addWidget(ui->pushButton_1,6,1);
+    ui->centralGridLayout->addWidget(ui->pushButton_2,7,1);
 
 
     orientedInnerSize.setWidth(geo.width() - geo.width()/60);
@@ -633,7 +645,8 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     ui->zoomOutPushButton->resize(ui->zoomOutPushButton->width(),pushbuttonsize);
     ui->takePicturePushButton->resize(ui->takePicturePushButton->width(),pushbuttonsize);
     ui->zoomPositionLabel->resize(ui->zoomPositionLabel->width(),pushbuttonsize);
-
+    ui->previousPushButton->resize(ui->previousPushButton->width(),pushbuttonsize);
+    ui->nextPushButton->resize(ui->nextPushButton->width(),pushbuttonsize);
     //ui->loadPreviewPicCheckBox->resize(pushbuttonsize,pushbuttonsize);
 
    this->resize(orientedSize);
@@ -837,6 +850,7 @@ void MainWindow::on_shutterSpeedComboBox_activated(QString text){
     index.append("\"");
     if(remote->getMethods().value("setShutterSpeed") != 0)
         remote->commandFabrikMethod("setShutterSpeed",remote->getMethods().value("setShutterSpeed"),index);
+    //remote->getEventDelayed(100);
 }
 
 void MainWindow::on_fNumberComboBox_activated(QString text){
@@ -1029,6 +1043,30 @@ void MainWindow::on_zoomPositionChanged(const int &text)
 }
 
 
+void MainWindow::on_leftPushButton_pressed(){
+    motorbasic->move("3","1");
+
+}
+
+void MainWindow::on_rightPushButton_pressed(){
+    motorbasic->move("5","1");
+}
+
+void MainWindow::on_upPushButton_pressed(){
+    motorbasic->move("11","1");
+}
+
+void MainWindow::on_downPushButton_pressed(){
+    motorbasic->move("7","1");
+}
+
+void MainWindow::on_stopMovePushButton_pressed(){
+     motorbasic->move("3","0");
+      motorbasic->move("5","0");
+       motorbasic->move("7","0");
+        motorbasic->move("11","0");
+}
+
 void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
     foreach (QString item, items) {
         if(ui->isoSpeedRateComboBox->findText(item) == -1){
@@ -1150,8 +1188,26 @@ void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
         previewScene->clear();
         previewScene->addPixmap(pixmap);
         ui->previewGraphicsView->setScene(previewScene);
-
         savePreviewFile(bytes,previePicName);
+    }
+}
+
+void MainWindow::drawPreview(QString path){
+    if(!path.isEmpty()){
+        QByteArray bytes = readPreviewFile(path);
+        previewimg.loadFromData(bytes);
+        if(!previewimg.isNull()){
+            QSize size = previewimg.size();
+            LOG_SCREENDESIGN_DEBUG << "Preview image Size: " << size;
+            QSize widgetSize = ui->previewGraphicsView->size();
+            LOG_SCREENDESIGN_DEBUG << "previewGraphicsView Size: " << widgetSize;
+            previewimg = previewimg.scaled(widgetSize,Qt::KeepAspectRatio);
+            QPixmap pixmap = QPixmap::fromImage(previewimg);
+            previewScene->clear();
+            previewScene->addPixmap(pixmap);
+            ui->previewGraphicsView->setScene(previewScene);
+            ui->previewGraphicsView->resize(widgetSize);
+        }
     }
 }
 
@@ -1170,8 +1226,26 @@ void MainWindow::savePreviewFile(QByteArray bytes,QString previePicName){
             LOG_MAINWINDOW_DEBUG << "Unable to write";
             LOG_MAINWINDOW_DEBUG << file.errorString();
         }
+        else{
+            currentpreviewfile = files.size();
+            files.insert(currentpreviewfile,path);
+        }
         file.close();
     }
+}
+
+QByteArray MainWindow::readPreviewFile(QString path){
+    QByteArray data;
+    QFile file( path );
+    if( !file.open( QIODevice::ReadOnly ) ){
+        LOG_MAINWINDOW_DEBUG << "Unable to open";
+        LOG_MAINWINDOW_DEBUG << file.errorString();
+    }
+    else{
+        data = file.readAll();
+    }
+    return data;
+
 }
 
 void MainWindow::drawLiveView(QByteArray bytes){
@@ -1236,10 +1310,19 @@ void MainWindow::readSettings()
     move(pos);
     //this->pos().setX(pos.x());
     //this->pos().setY(pos.y());
+
+    //settings.value("files").toMap();
+    QStringList filekeys = settings.value("filekeys").toStringList();
+    foreach(QString keystring,filekeys){
+        files.insert(keystring.toInt(),settings.value(keystring).toString());
+    }
+    currentpreviewfile = files.size();
 }
 
 void MainWindow::writeSettings()
 {
+
+
     QSettings settings("KlangObjekte.", "CameraRemote");
     settings.setValue("previewPath",previewPath);
     settings.setValue("loadpreviePic",ui->loadPreviewPicCheckBox->isChecked());
@@ -1253,6 +1336,25 @@ void MainWindow::writeSettings()
     //! die Breite und Position der DockWindows!!
     //! wenn sie nicht gefloated sind!!
     settings.setValue("state", saveState());
+    //settings.setValue("files",QVariant::fromValue< QIntMap>(files));
+    //QVariant::fromValue< QList<int> >(myList)
+    //QMapIterator<QString, int> i(files);
+    /*
+    while (i.hasNext()) {
+        i.next();
+        cout << i.key() << ": " << i.value() << endl;
+    }
+    settings.setValue("files",files);
+    */
+    QStringList filekeys;
+    foreach ( int key, files.keys()) {
+        QString keystring;
+        settings.setValue(keystring.setNum(key), files[key]);
+        filekeys.append(keystring);
+    }
+    settings.setValue("filekeys",filekeys);
+
+
 }
 
 
@@ -1355,4 +1457,24 @@ void MainWindow::on_remote_publishConnetionError(QString message){
         tr("Warning"),
         tr("Check Camera/Wifi Connection\nand restart the Application!"),
         QMessageBox::Ok);
+}
+
+void MainWindow::on_nextPushButton_clicked()
+{
+    QString path;
+    if(currentpreviewfile < files.size())
+        path = files.value(++currentpreviewfile);
+    else
+        path = files.value(currentpreviewfile);
+    qDebug() << "on_nextPushButton_clicked" << currentpreviewfile << path;
+
+    drawPreview(path);
+}
+
+void MainWindow::on_previousPushButton_clicked()
+{
+    QString path = files.value(--currentpreviewfile);
+    qDebug() << "on_previousPushButton_clicked" << currentpreviewfile << path;
+    drawPreview(path);
+
 }

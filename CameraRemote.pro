@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     QsLog.cpp \
     QsLogDest.cpp \
     QsLogDestConsole.cpp \
-    QsLogDestFile.cpp
+    QsLogDestFile.cpp \
+    motorbasic.cpp
 
 HEADERS  += mainwindow.h \
     remote.h \
@@ -36,7 +37,8 @@ HEADERS  += mainwindow.h \
     QsLogDest.h \
     QsLogLevel.h \
     QsLogDestConsole.h \
-    QsLogDestFile.h
+    QsLogDestFile.h \
+    motorbasic.h
 
 FORMS    += mainwindow.ui
 

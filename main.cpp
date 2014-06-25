@@ -36,10 +36,14 @@ int main(int argc, char *argv[])
     QLOG_INFO() << "Path to Logging File: " << sLogPath;
 
     QLOG_TRACE() << "Here's a" << QString::fromUtf8("trace") << "message";
+
     QLOG_DEBUG() << "Here's a" << static_cast<int>(QsLogging::DebugLevel) << "message";
+
     QLOG_WARN()  << "Uh-oh!";
+
     qDebug() << "This message won't be picked up by the logger";
     QLOG_ERROR() << "An error has occurred";
+
     qWarning() << "Neither will this one";
     QLOG_FATAL() << "Fatal error!";
 

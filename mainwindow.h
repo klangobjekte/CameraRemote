@@ -2,7 +2,8 @@
 #define MAINWINDOW_H
 #include <QMainWindow>
 #include <QUrl>
-
+#include <QMap>
+#include "motorbasic.h"
 
 class NetworkConnection;
 class Timelapse;
@@ -14,6 +15,8 @@ class QGraphicsScene;
 class QLabel;
 class QButtonGroup;
 class QWidget;
+//class Motorbasic;
+typedef QMap<int,QString> QIntMap;
 
 //class QUrl;
 
@@ -67,6 +70,12 @@ private slots:
     void on_disablTimer_timeout();
     void on_Quit_Accepted();
 
+    void on_leftPushButton_pressed();
+    void on_rightPushButton_pressed();
+    void on_upPushButton_pressed();
+    void on_downPushButton_pressed();
+    void on_stopMovePushButton_pressed();
+
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
     void addwhiteBalanceComboBoxItems(QStringList items);
@@ -89,7 +98,9 @@ private slots:
 
 
     void drawPreview(QNetworkReply *reply,QString previePicName);
+    void drawPreview(QString path);
     void drawLiveView(QByteArray data);
+    QByteArray readPreviewFile(QString path);
 
     void on_zoomInPushButton_pressed();
 
@@ -105,6 +116,10 @@ private slots:
     void on_quitPushButton_clicked(bool checked);
     void on_remote_publishConnetionError(QString message);
 
+    void on_nextPushButton_clicked();
+
+    void on_previousPushButton_clicked();
+
 private:
 
     Ui::MainWindow *ui;
@@ -116,6 +131,7 @@ private:
     NetworkConnection *networkConnection;
     Remote *remote;
     Timelapse *timelapse;
+    MotorBasic *motorbasic;
     double pressedEnd;
     double pressedBegin;
     //double elapsed_secs;
@@ -146,6 +162,13 @@ private:
     bool processingstate;
     bool quitaccepted;
     bool manualdisconnect;
+    int currentpreviewfile;
+
+
+    QIntMap files;
+
+
+
 };
 
 #endif // MAINWINDOW_H

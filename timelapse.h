@@ -27,6 +27,7 @@ private:
     Remote *_remote;
     QTimer *timer;
     QTime *time;
+    QTime *intervalTime;
 
     long _duration;
     int interval;

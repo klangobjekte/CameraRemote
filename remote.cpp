@@ -11,6 +11,7 @@
 #include <QDebug>
 
 #include <QTimer>
+#include <QTime>
 #include <QFile>
 //#include <QSslKey>
 
@@ -41,7 +42,7 @@
 #endif
 
 //! Decoded:
-//#define LOG_RESULT
+#define LOG_RESULT
 #ifdef LOG_RESULT
 #   define LOG_RESULT_DEBUG qDebug()
 #else
@@ -95,7 +96,7 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     qDebug() << "networkConnection->getUrl(): " << networkConnection->getUrl();
 
     timer = new QTimer;
-    timer->setInterval(80);
+    timer->setInterval(300);
     connect(timer,SIGNAL(timeout()), this,SLOT(buildLiveViewPic()));
 
     getEventTimerPeriodic = new QTimer;
@@ -557,12 +558,12 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         //LOG_SPECIAL_RESULT_DEBUG << "initActEnableMethods jResultArray           : " << jResultArray;
         for(int i= 0;i<jResultArray.size();i++){
             QJsonArray array = jResult.toArray().at(i).toArray();
-            LOG_SPECIAL_RESULT_DEBUG << "jResultArray.at(i).type(): "<<jResultArray.at(i).type();
-            LOG_SPECIAL_RESULT_DEBUG << "jResultArray.at(i): "<<jResultArray.at(i);
-            LOG_SPECIAL_RESULT_DEBUG << "jResult.toArray().at(i).toArray(): "<<jResult.toArray().at(i).toArray();
+            LOG_SPECIAL_RESULT_DEBUG << "jResultArray.at(i).type()             : "<<jResultArray.at(i).type();
+            LOG_SPECIAL_RESULT_DEBUG << "jResultArray.at(i)                    : "<<jResultArray.at(i);
+            LOG_SPECIAL_RESULT_DEBUG << "jResult.toArray().at(i).toArray()     : "<<jResult.toArray().at(i).toArray();
             QJsonObject jobject3 = jResultArray[i].toObject();
             QString keyanswer = jobject3.value("dg").toString();
-            LOG_SPECIAL_RESULT_DEBUG << "jobject3.value(dg): "<< keyanswer;
+            LOG_SPECIAL_RESULT_DEBUG << "jobject3.value(dg)                    : "<< keyanswer;
             //! Calculate the KEY
             QByteArray KEYDG="90adc8515a40558968fe8318b5b023fdd48d3828a2dda8905f3b93a3cd8e58dc";
             KEYDG.append(keyanswer);
@@ -588,7 +589,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             if(!getEventTimerPeriodic->isActive())
                 getEventTimerPeriodic->start();
             connected = true;
-            LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+            LOG_SPECIAL_RESULT_DEBUG << "connected                             : " << connected;
         }
         connecting = true;
         initialEventTimer->stop();
@@ -597,8 +598,8 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
 
     if(methods.key(id) == "getAvailableApiList"){
-        //LOG_SPECIAL_RESULT_DEBUG << "jResult     : " << jResult << "id: "<<  id;
-        //LOG_SPECIAL_RESULT_DEBUG << "jResultArray: " << jResultArray << "id: "<<  id;
+        //LOG_SPECIAL_RESULT_DEBUG << "jResult                               : " << jResult << "id: "<<  id;
+        //LOG_SPECIAL_RESULT_DEBUG << "jResultArray                          : " << jResultArray << "id: "<<  id;
         for(int i= 0;i<jResultArray.size();i++){
             QJsonArray array = jResult.toArray().at(i).toArray();
             for(int y = 0; y<array.size();y++){
@@ -606,7 +607,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 if(!methods.keys().contains(sresult)){
                     methods[sresult] = buildid;
 
-                    LOG_SPECIAL_RESULT_DEBUG << "getAvailableApiList append to methods: "<< methods.key(id) << buildid;
+                    LOG_SPECIAL_RESULT_DEBUG << "getAvailableApiList append to methods : "<< methods.key(id) << buildid;
                     buildid++;
                 }
             }
@@ -625,13 +626,14 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             getEventTimerPeriodic->start();
         _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
         connected = true;
-        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+        LOG_SPECIAL_RESULT_DEBUG << "connected                             : " << connected;
+
     }
 
     if(methods.key(id) == QString("stopRecMode")){
         emit publishDiconnected();
         connected = false;
-        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+        LOG_SPECIAL_RESULT_DEBUG << "connected                             : " << connected;
     }
 
     if(methods.value("setCameraFunction") == id){
@@ -645,7 +647,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             getEventTimerPeriodic->start();
         _networkConnection->notifyConnectionStatus(_CONNECTIONSTATE_CONNECTING);
         connected = true;
-        LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+        LOG_SPECIAL_RESULT_DEBUG << "connected                             : " << connected;
     }
 
     if(methods.key(id) == "startLiveview"){
@@ -684,9 +686,32 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 QString picurl = array.at(y).toString();
                 buildPreviewPicName(picurl);
                 picmanager->get(QNetworkRequest(QUrl(picurl)));
-                LOG_SPECIAL_RESULT_DEBUG << "array.at(y).toString(): "<<picurl;
+                LOG_SPECIAL_RESULT_DEBUG << "array.at(y).toString()                : "<<picurl;
             }
         }
+    }
+    if(methods.key(id) == "setShutterSpeed"){
+        //getEvent();
+    }
+
+    if(methods.key(id) == "setIsoSpeedRate"){
+        //getEvent();
+    }
+
+    if(methods.key(id) == "setFNumber"){
+        //getEvent();
+    }
+
+    if(methods.key(id) == "setExposureMode"){
+        //getEvent();
+    }
+
+    if(methods.key(id) == "setSelfTimer"){
+        //getEvent();
+    }
+
+    if(methods.key(id) == "setPostviewImageSize"){
+        //getEvent();
     }
 
     for(int i =0;i<jResultArray.size();i++){
@@ -698,7 +723,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
                 availableMetods.append(var.toString());
                 if(!methods.keys().contains(var.toString())){
                     methods[var.toString()] = buildid;
-                    //LOG_SPECIAL_RESULT_DEBUG << "getAvailableApiList append to methods: "<< methods.key(buildid) << buildid;
+                    //LOG_SPECIAL_RESULT_DEBUG << "getAvailableApiList append to methods :  "<< methods.key(buildid) << buildid;
 
                     buildid++;
                 }
@@ -741,7 +766,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
         if(jobject2.value(QString("type")) == QString("cameraStatus")){
             camerastatus = jobject2.value(QString("cameraStatus")).toString();
-            LOG_SPECIAL_RESULT_DEBUG << "cameraStatus: " << camerastatus;
+            LOG_SPECIAL_RESULT_DEBUG << "cameraStatus                          : " << camerastatus;
             if(!connected)
                 emit publishCameraStatus(camerastatus);
             if(camerastatus == QString("IDLE")){
@@ -767,9 +792,9 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
         if(jobject2.value(QString("type")) == QString("liveviewStatus")){
             liveviewstatus = jobject2.value(QString("liveviewStatus")).toBool();
-            LOG_RESULT_DEBUG << "liveviewStatus: " << liveviewstatus;
-            LOG_SPECIAL_RESULT_DEBUG << "liveviewStatus: " << liveviewstatus;
-            LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+            LOG_RESULT_DEBUG << "liveviewStatus                        :  " << liveviewstatus;
+            LOG_SPECIAL_RESULT_DEBUG << "liveviewStatus                        : " << liveviewstatus;
+            LOG_SPECIAL_RESULT_DEBUG << "connected                             : " << connected;
         }
         if(jobject2.value(QString("type")) == QString("exposureMode")){
             QVariantList vlist = jobject2.value("exposureModeCandidates").toArray().toVariantList();
@@ -892,11 +917,11 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             if(jobject2.value("checkAvailability") == bool(true)){
                 //whiteBalanceModes.clear();
 
-                LOG_SPECIAL_RESULT_DEBUG << "whiteBalance: " << jobject2.value("checkAvailability");
+                LOG_SPECIAL_RESULT_DEBUG << "whiteBalance                          : " << jobject2.value("checkAvailability");
                 currentWhiteBalanceMode = jobject2.value("currentWhiteBalanceMode").toString();
                 if(!currentWhiteBalanceMode.isEmpty() && !whiteBalanceModes.contains(currentWhiteBalanceMode))
                     whiteBalanceModes.append(currentWhiteBalanceMode);
-                LOG_SPECIAL_RESULT_DEBUG << "currentWhiteBalanceMode: " << currentWhiteBalanceMode;
+                LOG_SPECIAL_RESULT_DEBUG << "currentWhiteBalanceMode               : " << currentWhiteBalanceMode;
                 emit publishAvailableWhiteBalanceModes(whiteBalanceModes);
                 emit publishCurrentWhiteBalanceModes(currentWhiteBalanceMode);
             }
@@ -957,6 +982,9 @@ void Remote::getCommand(int id){
         }
         return;
     }
+
+    //commandFabrikMethod("startIntervalStillRec",100);
+    //commandFabrikMethod("getAvailableFocusMode",101);
 
 
 
@@ -1156,7 +1184,7 @@ void Remote::stopRecMode(int id){
     connecting = false;
     //getEventTimerPeriodic->stop();
     _networkConnection->notifyConnectionStatus();
-    LOG_SPECIAL_RESULT_DEBUG << "connected: " << connected;
+    LOG_SPECIAL_RESULT_DEBUG << "connected                             : " << connected;
 }
 
 void Remote::startLiveview(int id){

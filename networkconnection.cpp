@@ -62,13 +62,13 @@ NetworkConnection::NetworkConnection()
 
 
     QNetworkInterface *interface = new QNetworkInterface;
-    LOG_NETWORKCONNECTION_DEBUG << "\ninterface->allAddresses(): "<< interface->allAddresses();
+    LOG_NETWORKCONNECTION_DEBUG << "\ninterface->allAddresses()             : "<< interface->allAddresses();
     networkConfigurationManager = new QNetworkConfigurationManager;
     const bool canStartIAP = (networkConfigurationManager->capabilities()
                                  & QNetworkConfigurationManager::CanStartAndStopInterfaces);
 
     QList<QNetworkConfiguration> activeConfigs = networkConfigurationManager->allConfigurations();
-    LOG_NETWORKCONNECTION_DEBUG << "\nactiveConfigs.count()"  << activeConfigs.count();
+    LOG_NETWORKCONNECTION_DEBUG << "\nactiveConfigs.count()                   "  << activeConfigs.count();
     //if(activeConfigs.count() == 0){
         //networkConfigurationManager->updateConfigurations();
     //}
@@ -105,7 +105,7 @@ NetworkConnection::NetworkConnection()
 
 
     if (activeConfigs.count() > 0){
-        LOG_NETWORKCONNECTION_DEBUG << "Active Configurations: ";
+        LOG_NETWORKCONNECTION_DEBUG << "Active Configurations                : ";
         foreach (QNetworkConfiguration config, activeConfigs) {
             LOG_NETWORKCONNECTION_DEBUG<< config.bearerTypeName() << config.name() << config.bearerType();
             _availableNetworks.append(config.name());
@@ -157,7 +157,7 @@ void NetworkConnection::onUpdateCompleted(){
     _availableNetworks.clear();
     foreach (QNetworkConfiguration config, activeConfigs) {
          _availableNetworks.append(config.name());
-         LOG_NETWORKCONNECTION_DEBUG<< "onUpdateCompleted activeConfigs: " << config.bearerTypeName() << config.name() << config.type();
+         LOG_NETWORKCONNECTION_DEBUG<< "onUpdateCompleted activeConfigs       : " << config.bearerTypeName() << config.name() << config.type();
          //if(config.name().contains("DIRECT-IDE")){
          //  activeConfiguration =  config;
 
@@ -228,31 +228,31 @@ void NetworkConnection::onUpdateCompleted(){
                 networkSession = new QNetworkSession(cfg, this);
                 networkSession->open();
                 networkSession->waitForOpened(-1);
-                LOG_NETWORKCONNECTION_DEBUG << "Network Session State:" << networkSession->state();
+                LOG_NETWORKCONNECTION_DEBUG << "Network Session State                 : " << networkSession->state();
             }
 
         }
-        LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface(): " << networkSession->interface() << "\n\n";
+        LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface()           : " << networkSession->interface() << "\n\n";
 
     }
     else
-        LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface(): \n\n";
+        LOG_NETWORKCONNECTION_DEBUG << "networkSession->interface()           : \n\n";
     publishDeviceFound(_availableNetworks);
 
 }
 
 void NetworkConnection::onConfigurationAdded(QNetworkConfiguration configration){
-    LOG_NETWORKCONNECTION_DEBUG << "onConfigurationAdded: " << configration.name();
+    LOG_NETWORKCONNECTION_DEBUG << "onConfigurationAdded                  : " << configration.name();
 
 
 }
 
 void NetworkConnection::onConfigurationChanged(QNetworkConfiguration configration){
-    LOG_NETWORKCONNECTION_DEBUG << "onConfigurationChanged: " << configration.name();
+    LOG_NETWORKCONNECTION_DEBUG << "onConfigurationChanged                : " << configration.name();
 }
 
 void NetworkConnection::onconfigurationRemoved(QNetworkConfiguration configration){
-      LOG_NETWORKCONNECTION_DEBUG << "onconfigurationRemoved: " << configration.name();
+      LOG_NETWORKCONNECTION_DEBUG << "onconfigurationRemoved                : " << configration.name();
 }
 
 void NetworkConnection::setActiveNetwork(QString networkName){
@@ -268,14 +268,14 @@ void NetworkConnection::setActiveNetwork(QString networkName){
 }
 
 void NetworkConnection::notifyConnectionStatus(int status,QString message){
-    LOG_NETWORKCONNECTION_DEBUG << "NetworkConnection::notifyConnectionStatus" << status << message;
+    LOG_NETWORKCONNECTION_DEBUG << "notifyConnectionStatus                : " << status << message;
     emit publishConnectionStatus(status,message);
 }
 
 void NetworkConnection::readPendingDatagrams()
 {
     //onUpdateCompleted();
-    LOG_NETWORKCONNECTION_DEBUG << "readPendingDatagrams: udpSocket->localAddress()" << udpSocket->localAddress();
+    LOG_NETWORKCONNECTION_DEBUG << "readPendingDatagrams localAddress()   : " << udpSocket->localAddress();
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket->pendingDatagramSize());
@@ -283,21 +283,21 @@ void NetworkConnection::readPendingDatagrams()
         quint16 senderPort;
         udpSocket->readDatagram(datagram.data(), datagram.size(),
                                 &sender, &senderPort);
-        LOG_NETWORKCONNECTION_DEBUG << "sender: " << sender;
-        LOG_NETWORKCONNECTION_DEBUG << "senderPort: " << senderPort;
+        LOG_NETWORKCONNECTION_DEBUG << "sender                                : " << sender;
+        LOG_NETWORKCONNECTION_DEBUG << "senderPort                            : " << senderPort;
         decodeDatagramm(datagram);
         if(httpresponse.value("NTS") == "ssdp:alive" &&
             httpresponse.value("NT") == "urn:schemas-sony-com:service:ScalarWebAPI:1"){
             downloadManager->get(QNetworkRequest(QUrl(httpresponse.value("LOCATION"))));
-            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client: Received alive from " << httpresponse.value("USN");
+            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client Received alive from      : " << httpresponse.value("USN");
             emit publishConnectionStatus(_CONNECTIONSTATE_SSDP_ALIVE_RECEIVED);
         }
         else if(httpresponse.value("NTS") == "ssdp:byebye"){
-            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client: Received byebye from " << httpresponse.value("USN");
+            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client Received byebye from      : " << httpresponse.value("USN");
             emit publishConnectionStatus(_CONNECTIONSTATE_DISCONNECTED);
         }
         else {
-            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client: Received unknown subtype: " << httpresponse.value("NTS");
+            LOG_NETWORKCONNECTION_DEBUG << "SSDP Client Received unknown subtype   : " << httpresponse.value("NTS");
         }
     }
 }
