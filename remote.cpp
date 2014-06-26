@@ -94,9 +94,9 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
 
 
     qDebug() << "networkConnection->getUrl(): " << networkConnection->getUrl();
-
+    liveviewrate = 80;
     timer = new QTimer;
-    timer->setInterval(300);
+    timer->setInterval(liveviewrate);
     connect(timer,SIGNAL(timeout()), this,SLOT(buildLiveViewPic()));
 
     getEventTimerPeriodic = new QTimer;
@@ -1015,12 +1015,15 @@ void Remote::onLiveViewManagerReadyRead(){
 #endif
 }
 
+
+//! Call by Timer
 void Remote::buildLiveViewPic(){
     //qDebug() << "\n++++++++++++++++++++++++++++++++++++++";
     //qDebug() << "buildLiveViewPic";
     //qDebug()<< "offset" << offset << "start: " << start << "end: " << end;
     QByteArray array;
     int jpegSize = 34048;
+//#define __USE_STANDARD_HEADER
 #ifdef  __USE_STANDARD_HEADER
     int commonHeaderLength = 1 + 1 + 2 + 4;
     int payloadHeaderLength = 4 + 3 + 1 + 4 + 1 + 115;
@@ -1042,8 +1045,10 @@ void Remote::buildLiveViewPic(){
 #endif
 
     bool found = false;
+    bool foundstart = false;
+    bool foundend = false;
     if(!inputStream.isEmpty()){
-
+        //! suche nach Bildanfang ab Stelle offset
         while(!found && offset<inputStream.length()-1 ){
 #ifdef Q_OS_ANDROID
             if(inputStream.at(offset) == 255  && inputStream.at(offset+1) == 216){
@@ -1052,11 +1057,15 @@ void Remote::buildLiveViewPic(){
 #endif
                 start = offset;
                 found = true;
+                foundstart = true;
             }
             offset++;
-        }
+        }//while
         found = false;
+        int arrayiter=0;
+        //! suche nach Bildende ab Stelle offset
         while(!found && offset<inputStream.length()-1){
+
 #ifdef Q_OS_ANDROID
             if(inputStream.at(offset) == 255 && inputStream.at(offset+1) == 217){
 #else
@@ -1064,21 +1073,25 @@ void Remote::buildLiveViewPic(){
 #endif
                 end = offset;
                 found = true;
+                foundend = true;
             }
+            array[arrayiter] = inputStream.at(offset-1);
+            arrayiter++;
             offset++;
-        }
+        }//while
+        //! Bild gefunden
         if(found){
             jpegSize = end-start;
-            for(int i=0,y=start;i < jpegSize; i++,y++){
-                array[i] = inputStream.at(y);
-            }
+            //for(int i=0,y=start;i < jpegSize; i++,y++){
+            //    array[i] = inputStream.at(y);
+            //}
             emit publishLiveViewBytes(array);
-            if(offset > (jpegSize*16)){
+            if(offset > (jpegSize*1000/liveviewrate*3)){
                 inputStream.clear();
                 offset = 0;
                 start = 0;
                 end = 0;
-                //qDebug() << "Buffer Cleared";
+                qDebug() << "Buffer Cleared";
             }
         }
     }
@@ -1189,8 +1202,8 @@ void Remote::stopRecMode(int id){
 
 void Remote::startLiveview(int id){
     commandFabrikMethod("startLiveview",id);
-    timer->start();
     inputStream.clear();
+    timer->start();
     offset = 0;
     start=0;
     end=0;

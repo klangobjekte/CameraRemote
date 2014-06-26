@@ -304,6 +304,7 @@ private:
     int connectionErrorCounterTimeOut;
     int connectionErrorCounterOffset;
     bool getAvailableWhiteBalanceInProgress;
+    int liveviewrate;
 
 
 };
