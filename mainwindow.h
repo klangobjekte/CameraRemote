@@ -32,7 +32,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     //bool eventFilter(QObject *object, QEvent *event);
-
+    void setStackekWidgetPage_1();
+    void setStackekWidgetPage_2();
+    void setStackekWidgetPage_3();
 public slots:
     void onConnectionStatusChanged(int status,QString message = QString());
     void onCameraStatusChanged(QString state);
@@ -74,6 +76,8 @@ private slots:
     void on_rightPushButton_pressed();
     void on_upPushButton_pressed();
     void on_downPushButton_pressed();
+    void on_stopMoveVPushButton_pressed();
+    void on_stopMoveHPushButton_pressed();
     void on_stopMovePushButton_pressed();
 
     void addIsoSpeedRateComboBoxItems(QStringList items);

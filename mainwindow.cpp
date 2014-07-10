@@ -46,7 +46,7 @@ using namespace std;
 #   define LOG_MAINWINDOW_DEBUG nullDebug()
 #endif
 
-//#define LOG_SCREENDESIGN
+#define LOG_SCREENDESIGN
 #ifdef LOG_SCREENDESIGN
 #   define LOG_SCREENDESIGN_DEBUG qDebug()
 #else
@@ -361,24 +361,51 @@ void MainWindow::on_buttonGroup_buttonClicked(int index){
             ui->stackedWidget->setCurrentIndex(index);
             switch (index) {
             case 0:
-                ui->pushButton_1->setVisible(false);
-                ui->pushButton_2->setVisible(true);
-                ui->pushButton_3->setVisible(true);
+                setStackekWidgetPage_1();
                 break;
             case 1:
-                ui->pushButton_2->setVisible(false);
-                ui->pushButton_1->setVisible(true);
-                ui->pushButton_3->setVisible(true);
+                setStackekWidgetPage_2();
                 break;
-
-               case 2:
-                ui->pushButton_3->setVisible(false);
-                ui->pushButton_1->setVisible(true);
-                ui->pushButton_2->setVisible(false);
+             case 2:
+               setStackekWidgetPage_3();
                 break;
             default:
                 break;
             }
+}
+
+void MainWindow::setStackekWidgetPage_1(){
+
+    QSize mysize = size();
+    QScreen* screen = QApplication::primaryScreen();
+        on_GeometryChanged(screen->availableGeometry());
+         resize(mysize);
+         ui->pushButton_1->setVisible(false);
+         ui->pushButton_2->setVisible(true);
+         ui->pushButton_3->setVisible(true);
+}
+
+void MainWindow::setStackekWidgetPage_2(){
+
+    QSize mysize = size();
+    QScreen* screen = QApplication::primaryScreen();
+        on_GeometryChanged(screen->availableGeometry());
+         resize(mysize);
+         ui->pushButton_1->setVisible(true);
+         ui->pushButton_2->setVisible(false);
+         ui->pushButton_3->setVisible(true);
+}
+
+void MainWindow::setStackekWidgetPage_3(){
+
+    QSize mysize = size();
+    QScreen* screen = QApplication::primaryScreen();
+        on_GeometryChanged(screen->availableGeometry());
+        resize(mysize);
+
+        ui->pushButton_1->setVisible(true);
+        ui->pushButton_2->setVisible(true);
+        ui->pushButton_3->setVisible(false);
 }
 
 void MainWindow::on_primaryOrientationChanged(Qt::ScreenOrientation orientation){
@@ -441,38 +468,72 @@ void MainWindow::setupPortraitScreen(QRect geo){
     ui->LiveviewGraphicsView->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     ui->previewGraphicsView->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 
-    ui->pushButton_1->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
-    ui->pushButton_2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
-    ui->pushButton_3->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
-    ui->zoomInPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
-    ui->zoomOutPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
-    ui->takePicturePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
-
     ui->fNumberComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->shutterSpeedComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->isoSpeedRateComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->whiteBalanceComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,8);
-    ui->centralGridLayout->addWidget(ui->pushButton_1,1,0);
-    ui->centralGridLayout->addWidget(ui->pushButton_2,1,1);
-    ui->centralGridLayout->addWidget(ui->pushButton_3,1,2);
-    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,1,3);
-    ui->centralGridLayout->addWidget(ui->zoomInPushButton,1,4);
-    ui->centralGridLayout->addWidget(ui->previousPushButton,1,5);
-    ui->centralGridLayout->addWidget(ui->nextPushButton,1,6);
-    ui->centralGridLayout->addWidget(ui->takePicturePushButton,1,7);
+    ui->pushButton_1->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->pushButton_2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->pushButton_3->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->zoomInPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->zoomOutPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->takePicturePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->leftPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->rightPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->upPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->downPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->stopMovePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
+
+
+    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,7);
+
+    ui->centralGridLayout->addWidget(ui->leftPushButton,1,0);
+    ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,1,1);
+    ui->centralGridLayout->addWidget(ui->rightPushButton,1,2);
+
+    ui->centralGridLayout->addWidget(ui->upPushButton,1,3);
+    ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,1,4);
+    ui->centralGridLayout->addWidget(ui->downPushButton,1,5);
+
+    ui->centralGridLayout->addWidget(ui->stopMovePushButton,1,6);
+
+    if(ui->stackedWidget->currentIndex()==0){
+        //ui->centralGridLayout->addWidget(ui->pushButton_1,2,0);
+        ui->centralGridLayout->addWidget(ui->pushButton_2,2,0);
+        ui->centralGridLayout->addWidget(ui->pushButton_3,2,1);
+    }
+
+    if(ui->stackedWidget->currentIndex()==1){
+        ui->centralGridLayout->addWidget(ui->pushButton_1,2,0);
+        //ui->centralGridLayout->addWidget(ui->pushButton_2,2,1);
+        ui->centralGridLayout->addWidget(ui->pushButton_3,2,1);
+    }
+
+    if(ui->stackedWidget->currentIndex()==2){
+        ui->centralGridLayout->addWidget(ui->pushButton_1,2,1);
+        ui->centralGridLayout->addWidget(ui->pushButton_2,2,0);
+        //ui->centralGridLayout->addWidget(ui->pushButton_3,2,2);
+    }
+
+    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,2,2);
+    ui->centralGridLayout->addWidget(ui->zoomInPushButton,2,3);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,2,4);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,2,5);
+    ui->centralGridLayout->addWidget(ui->takePicturePushButton,2,6);
 
     QSize orientedSize;
     QSize orientedInnerSize;
-
 
     orientedInnerSize.setWidth(geo.width());
     orientedInnerSize.setHeight(geo.height()-statusBarSize);
     orientedSize.setWidth(geo.width());
     orientedSize.setHeight(geo.height());
+
     QSize viewSize;
     viewSize.setHeight((orientedInnerSize.height()-pushbuttonsize));
     viewSize.setWidth(geo.width());
@@ -499,17 +560,57 @@ void MainWindow::setupLandscapeScreen(QRect geo){
     ui->centralWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     ui->centralGridLayoutWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
 
+    ui->fNumberComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->shutterSpeedComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->isoSpeedRateComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->whiteBalanceComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
+    ui->pushButton_1->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->pushButton_2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->pushButton_3->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->zoomInPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->zoomOutPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->takePicturePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->leftPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->rightPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->upPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->downPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->stopMovePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,8);
-    ui->centralGridLayout->addWidget(ui->pushButton_1,1,0);
-    ui->centralGridLayout->addWidget(ui->pushButton_2,1,1);
-    ui->centralGridLayout->addWidget(ui->pushButton_3,1,2);
-    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,1,3);
-    ui->centralGridLayout->addWidget(ui->zoomInPushButton,1,4);
-    ui->centralGridLayout->addWidget(ui->previousPushButton,1,5);
-    ui->centralGridLayout->addWidget(ui->nextPushButton,1,6);
-    ui->centralGridLayout->addWidget(ui->takePicturePushButton,1,7);
+    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,7);
+
+    ui->centralGridLayout->addWidget(ui->leftPushButton,1,0);
+    ui->centralGridLayout->addWidget(ui->rightPushButton,1,2);
+    ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,1,1);
+    ui->centralGridLayout->addWidget(ui->upPushButton,1,3);
+    ui->centralGridLayout->addWidget(ui->downPushButton,1,5);
+    ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,1,4);
+    ui->centralGridLayout->addWidget(ui->stopMovePushButton,1,6);
+
+    if(ui->stackedWidget->currentIndex()==0){
+        ui->centralGridLayout->addWidget(ui->pushButton_2,2,0);
+        ui->centralGridLayout->addWidget(ui->pushButton_3,2,1);
+    }
+
+    if(ui->stackedWidget->currentIndex()==1){
+        ui->centralGridLayout->addWidget(ui->pushButton_1,2,0);
+        ui->centralGridLayout->addWidget(ui->pushButton_3,2,1);
+    }
+
+    if(ui->stackedWidget->currentIndex()==2){
+        ui->centralGridLayout->addWidget(ui->pushButton_1,2,1);
+        ui->centralGridLayout->addWidget(ui->pushButton_2,2,0);
+    }
+
+    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,2,2);
+    ui->centralGridLayout->addWidget(ui->zoomInPushButton,2,3);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,2,4);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,2,5);
+    ui->centralGridLayout->addWidget(ui->takePicturePushButton,2,6);
+
 
 
     orientedInnerSize.setWidth(geo.width()-geo.width()/60);
@@ -540,31 +641,72 @@ void MainWindow::setupLandscapeScreen(QRect geo){
     ui->previewGraphicsView->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
 
 
+    ui->fNumberComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
+    ui->shutterSpeedComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
+    ui->isoSpeedRateComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
+    ui->whiteBalanceComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
+    ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
+
+    ui->leftPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->rightPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->upPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->downPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->stopMovePushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+
+
     ui->pushButton_1->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->pushButton_2->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->pushButton_3->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->zoomInPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->zoomOutPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->takePicturePushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
-    /*
-    ui->fNumberComboBox->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
-    ui->shutterSpeedComboBox->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
-    ui->isoSpeedRateComboBox->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
-    ui->whiteBalanceComboBox->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
-    ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
-    */
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,8,1);
-    ui->centralGridLayout->addWidget(ui->takePicturePushButton,0,1);
 
-    ui->centralGridLayout->addWidget(ui->pushButton_3,1,1);
-    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,2,1);
-    ui->centralGridLayout->addWidget(ui->zoomInPushButton,3,1);
-    ui->centralGridLayout->addWidget(ui->previousPushButton,4,1);
-    ui->centralGridLayout->addWidget(ui->nextPushButton,5,1);
 
-    ui->centralGridLayout->addWidget(ui->pushButton_1,6,1);
-    ui->centralGridLayout->addWidget(ui->pushButton_2,7,1);
+
+
+    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,7,1);
+
+    ui->centralGridLayout->addWidget(ui->leftPushButton,0,1);
+    ui->centralGridLayout->addWidget(ui->rightPushButton,2,1);
+    ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,1,1);
+    ui->centralGridLayout->addWidget(ui->upPushButton,3,1);
+    ui->centralGridLayout->addWidget(ui->downPushButton,5,1);
+    ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,4,1);
+    ui->centralGridLayout->addWidget(ui->stopMovePushButton,6,1);
+
+
+    ui->centralGridLayout->addWidget(ui->takePicturePushButton,0,2);
+    //ui->centralGridLayout->addWidget(ui->pushButton_3,1,1);
+    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,1,2);
+    ui->centralGridLayout->addWidget(ui->zoomInPushButton,2,2);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,3,2);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,4,2);
+
+    //ui->centralGridLayout->addWidget(ui->pushButton_3,1,1);
+    //ui->centralGridLayout->addWidget(ui->pushButton_1,6,1);
+    //ui->centralGridLayout->addWidget(ui->pushButton_2,7,1);
+
+    if(ui->stackedWidget->currentIndex()==0){
+        //ui->centralGridLayout->addWidget(ui->pushButton_1,2,2);
+        ui->centralGridLayout->addWidget(ui->pushButton_2,5,2);
+        ui->centralGridLayout->addWidget(ui->pushButton_3,6,2);
+    }
+
+    if(ui->stackedWidget->currentIndex()==1){
+        ui->centralGridLayout->addWidget(ui->pushButton_1,5,2);
+        //ui->centralGridLayout->addWidget(ui->pushButton_2,2,2);
+        ui->centralGridLayout->addWidget(ui->pushButton_3,6,2);
+    }
+
+    if(ui->stackedWidget->currentIndex()==2){
+        ui->centralGridLayout->addWidget(ui->pushButton_2,5,2);
+        ui->centralGridLayout->addWidget(ui->pushButton_1,6,2);
+
+        //ui->centralGridLayout->addWidget(ui->pushButton_3,2,2);
+    }
 
 
     orientedInnerSize.setWidth(geo.width() - geo.width()/60);
@@ -596,7 +738,8 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     this->statusBar()->setMaximumHeight(statusBarSize);
     this->statusBar()->resize(statusBar()->width(),statusBarSize);
 
-
+    int miniHeight = pushbuttonsize/4;
+    int maxHeigh = pushbuttonsize/2;
 
     ui->LiveviewGraphicsView->resize(innerorientedSize.width(),viewSize.height()-fontsize);
     ui->previewGraphicsView->resize(innerorientedSize.width(),viewSize.height()-fontsize);
@@ -633,10 +776,115 @@ void MainWindow::resizeWindow(QSize  orientedSize,
 
 
     //centralGridLayoutWidget
-    ui->centralGridLayout->setRowMinimumHeight(1,pushbuttonsize);
-    ui->centralGridLayout->setVerticalSpacing(0);
+    ui->centralGridLayout->setRowMinimumHeight(1,miniHeight);
+    ui->centralGridLayout->setVerticalSpacing(1);
     ui->centralGridLayoutWidget->resize(innerorientedSize);
     ui->centralWidget->resize(innerorientedSize);
+
+    //ui->fNumberComboBox->setMinimumWidth(miniHeight);
+    //ui->isoSpeedRateComboBox->setMinimumWidth(miniHeight);
+    //ui->zoomPositionLabel->setMinimumWidth(miniHeight);
+    //ui->shutterSpeedComboBox->setMinimumWidth(miniHeight);
+    //ui->whiteBalanceComboBox->setMinimumWidth(miniHeight);
+
+    ui->leftPushButton->setMinimumWidth(miniHeight);
+    ui->rightPushButton->setMinimumWidth(miniHeight);
+    ui->stopMoveHPushButton->setMinimumWidth(miniHeight);
+    ui->upPushButton->setMinimumWidth(miniHeight);
+    ui->downPushButton->setMinimumWidth(miniHeight);
+    ui->stopMoveVPushButton->setMinimumWidth(miniHeight);
+    ui->stopMovePushButton->setMinimumWidth(miniHeight);
+
+    ui->pushButton_1->setMinimumWidth(miniHeight);
+    ui->pushButton_2->setMinimumWidth(miniHeight);
+    ui->pushButton_3->setMinimumWidth(miniHeight);
+    ui->zoomInPushButton->setMinimumWidth(miniHeight);
+    ui->zoomOutPushButton->setMinimumWidth(miniHeight);
+    ui->takePicturePushButton->setMinimumWidth(miniHeight);
+    ui->zoomPositionLabel->setMinimumWidth(miniHeight);
+    ui->previousPushButton->setMinimumWidth(miniHeight);
+    ui->nextPushButton->setMinimumWidth(miniHeight);
+
+    //ui->fNumberComboBox->setMaximumWidth(maxHeigh);
+    //ui->isoSpeedRateComboBox->setMaximumWidth(maxHeigh);
+    //ui->zoomPositionLabel->setMaximumWidth(maxHeigh);
+    //ui->shutterSpeedComboBox->setMaximumWidth(maxHeigh);
+    //ui->whiteBalanceComboBox->setMaximumWidth(maxHeigh);
+
+    ui->leftPushButton->setMinimumWidth(maxHeigh);
+    ui->rightPushButton->setMinimumWidth(maxHeigh);
+    ui->stopMoveHPushButton->setMinimumWidth(maxHeigh);
+    ui->upPushButton->setMinimumWidth(maxHeigh);
+    ui->downPushButton->setMinimumWidth(maxHeigh);
+    ui->stopMoveVPushButton->setMinimumWidth(maxHeigh);
+    ui->stopMovePushButton->setMinimumWidth(maxHeigh);
+
+    ui->pushButton_1->setMaximumWidth(maxHeigh);
+    ui->pushButton_2->setMaximumWidth(maxHeigh);
+    ui->pushButton_3->setMaximumWidth(maxHeigh);
+    ui->zoomInPushButton->setMaximumWidth(maxHeigh);
+    ui->zoomOutPushButton->setMaximumWidth(maxHeigh);
+    ui->takePicturePushButton->setMaximumWidth(maxHeigh);
+    ui->zoomPositionLabel->setMaximumWidth(maxHeigh);
+    ui->previousPushButton->setMaximumWidth(maxHeigh);
+    ui->nextPushButton->setMaximumWidth(maxHeigh);
+
+
+    ui->fNumberComboBox->setMinimumHeight(miniHeight);
+    ui->isoSpeedRateComboBox->setMinimumHeight(miniHeight);
+    ui->zoomPositionLabel->setMinimumHeight(miniHeight);
+    ui->shutterSpeedComboBox->setMinimumHeight(miniHeight);
+    ui->whiteBalanceComboBox->setMinimumHeight(miniHeight);
+
+    ui->leftPushButton->setMinimumHeight(miniHeight);
+    ui->rightPushButton->setMinimumHeight(miniHeight);
+    ui->stopMoveHPushButton->setMinimumHeight(miniHeight);
+    ui->upPushButton->setMinimumHeight(miniHeight);
+    ui->downPushButton->setMinimumHeight(miniHeight);
+    ui->stopMoveVPushButton->setMinimumHeight(miniHeight);
+    ui->stopMovePushButton->setMinimumHeight(miniHeight);
+
+    ui->pushButton_1->setMinimumHeight(miniHeight);
+    ui->pushButton_2->setMinimumHeight(miniHeight);
+    ui->pushButton_3->setMinimumHeight(miniHeight);
+    ui->zoomInPushButton->setMinimumHeight(miniHeight);
+    ui->zoomOutPushButton->setMinimumHeight(miniHeight);
+    ui->takePicturePushButton->setMinimumHeight(miniHeight);
+    ui->zoomPositionLabel->setMinimumHeight(miniHeight);
+    ui->previousPushButton->setMinimumHeight(miniHeight);
+    ui->nextPushButton->setMinimumHeight(miniHeight);
+
+    ui->fNumberComboBox->setMaximumHeight(maxHeigh);
+    ui->isoSpeedRateComboBox->setMaximumHeight(maxHeigh);
+    ui->zoomPositionLabel->setMaximumHeight(maxHeigh);
+    ui->shutterSpeedComboBox->setMaximumHeight(maxHeigh);
+    ui->whiteBalanceComboBox->setMaximumHeight(maxHeigh);
+
+    ui->leftPushButton->setMaximumHeight(maxHeigh);
+    ui->rightPushButton->setMaximumHeight(maxHeigh);
+    ui->stopMoveHPushButton->setMaximumHeight(maxHeigh);
+    ui->upPushButton->setMaximumHeight(maxHeigh);
+    ui->downPushButton->setMaximumHeight(maxHeigh);
+    ui->stopMoveVPushButton->setMaximumHeight(maxHeigh);
+    ui->stopMovePushButton->setMaximumHeight(maxHeigh);
+
+    ui->pushButton_1->setMaximumHeight(maxHeigh);
+    ui->pushButton_2->setMaximumHeight(maxHeigh);
+    ui->pushButton_3->setMaximumHeight(maxHeigh);
+    ui->zoomInPushButton->setMaximumHeight(maxHeigh);
+    ui->zoomOutPushButton->setMaximumHeight(maxHeigh);
+    ui->takePicturePushButton->setMaximumHeight(maxHeigh);
+    ui->zoomPositionLabel->setMaximumHeight(maxHeigh);
+    ui->previousPushButton->setMaximumHeight(maxHeigh);
+    ui->nextPushButton->setMaximumHeight(maxHeigh);
+    /*
+    ui->leftPushButton->resize(ui->leftPushButton->width(),pushbuttonsize);
+    ui->rightPushButton->resize(ui->rightPushButton->width(),pushbuttonsize);
+    ui->stopMoveHPushButton->resize(ui->stopMoveHPushButton->width(),pushbuttonsize);
+    ui->upPushButton->resize(ui->upPushButton->width(),pushbuttonsize);
+    ui->downPushButton->resize(ui->downPushButton->width(),pushbuttonsize);
+    ui->stopMoveVPushButton->resize(ui->stopMoveVPushButton->width(),pushbuttonsize);
+    ui->stopMovePushButton->resize(ui->stopMovePushButton->width(),pushbuttonsize);
 
     ui->pushButton_1->resize(ui->pushButton_1->width(),pushbuttonsize);
     ui->pushButton_2->resize(ui->pushButton_1->width(),pushbuttonsize);
@@ -647,7 +895,7 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     ui->zoomPositionLabel->resize(ui->zoomPositionLabel->width(),pushbuttonsize);
     ui->previousPushButton->resize(ui->previousPushButton->width(),pushbuttonsize);
     ui->nextPushButton->resize(ui->nextPushButton->width(),pushbuttonsize);
-    //ui->loadPreviewPicCheckBox->resize(pushbuttonsize,pushbuttonsize);
+*/
 
    this->resize(orientedSize);
 }
@@ -1060,12 +1308,23 @@ void MainWindow::on_downPushButton_pressed(){
     motorbasic->move("7","1");
 }
 
-void MainWindow::on_stopMovePushButton_pressed(){
+void MainWindow::on_stopMoveHPushButton_pressed(){
      motorbasic->move("3","0");
       motorbasic->move("5","0");
-       motorbasic->move("7","0");
-        motorbasic->move("11","0");
 }
+
+void MainWindow::on_stopMoveVPushButton_pressed(){
+      motorbasic->move("7","0");
+       motorbasic->move("11","0");
+}
+
+void MainWindow::on_stopMovePushButton_pressed(){
+      motorbasic->move("7","0");
+       motorbasic->move("11","0");
+       motorbasic->move("3","0");
+        motorbasic->move("5","0");
+}
+
 
 void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
     foreach (QString item, items) {

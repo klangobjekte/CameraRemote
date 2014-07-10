@@ -23,5 +23,10 @@
         <file>img/device_nex.png</file>
         <file>img/checkbox_off.png</file>
         <file>img/checkbox_on.png</file>
+        <file>img/btn_tilt_down_normal.png</file>
+        <file>img/btn_tilt_up_normal.png</file>
+        <file>img/btn_pan_right_normal.png</file>
+        <file>img/btn_pan_left_normal.png</file>
+        <file>img/btn_pan_stop_normal.png</file>
     </qresource>
 </RCC>
