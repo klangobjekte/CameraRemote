@@ -9,6 +9,10 @@ QT       += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets \
                                     network
 
+QMAKE_MAC_SDK = macosx10.9
+#QMAKE_MAC_SDK = iphoneos8.0
+#QMAKE_MAC_SDK = iphoneos8.1
+
 TARGET = CameraRemote
 TEMPLATE = app
 
@@ -24,7 +28,9 @@ SOURCES += main.cpp\
     QsLogDest.cpp \
     QsLogDestConsole.cpp \
     QsLogDestFile.cpp \
-    motorbasic.cpp
+    motorbasic.cpp \
+    liveviewthread.cpp \
+    ringbuffer.cpp
 
 HEADERS  += mainwindow.h \
     remote.h \
@@ -38,7 +44,12 @@ HEADERS  += mainwindow.h \
     QsLogLevel.h \
     QsLogDestConsole.h \
     QsLogDestFile.h \
-    motorbasic.h
+    motorbasic.h \
+    liveviewthread.h \
+    ringbuffer.h \
+    qringbuffer.h \
+    common.h \
+    myconstants.h
 
 FORMS    += mainwindow.ui
 

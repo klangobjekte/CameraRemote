@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QMap>
 #include "cameraremotedefinitions.h"
+#include "liveviewthread.h"
 
 
 class QNetworkAccessManager;
@@ -81,7 +82,9 @@ class Remote : public QObject
 {
     Q_OBJECT
 public:
-    explicit Remote(NetworkConnection *networkConnection, QObject *parent = 0);
+    explicit Remote(NetworkConnection *networkConnection,
+                    LiveViewConsumer *liveViewConsumer,
+                    QObject *parent = 0);
     ~Remote();
 
     void setActiveNetworkConnection();
@@ -184,7 +187,7 @@ public:
     void getCommand(int id);
 
 signals:
-    void publishDiconnected();
+    void publishDisconnected();
     void publishConnetionError(QString message);
 
     void publishLoadPreview(QNetworkReply* reply,QString previePicName);
@@ -248,7 +251,7 @@ public slots:
 
 
 private slots:
-    void on_getEventTimerTimeout();
+    void on_getEventTimer_timeout();
     void onManagerFinished(QNetworkReply* reply);
     void onManagerReadyRead();
     void onPicmanagerFinished(QNetworkReply* reply);
@@ -258,7 +261,8 @@ private slots:
 private:
     void buildPreviewPicName(QString url);
 
-
+    LiveViewConsumer *_liveViewConsumer;
+    LiveViewProducer *liveViewProducer;
     NetworkConnection *_networkConnection;
     QNetworkAccessManager *picmanager;
     QNetworkAccessManager *manager;

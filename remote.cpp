@@ -26,7 +26,7 @@
 #endif
 
 
-#define LOG_SPECIAL_RESULT
+//#define LOG_SPECIAL_RESULT
 #ifdef LOG_SPECIAL_RESULT
 #   define LOG_SPECIAL_RESULT_DEBUG qDebug()
 #else
@@ -42,14 +42,14 @@
 #endif
 
 //! Decoded:
-#define LOG_RESULT
+//#define LOG_RESULT
 #ifdef LOG_RESULT
 #   define LOG_RESULT_DEBUG qDebug()
 #else
 #   define LOG_RESULT_DEBUG nullDebug()
 #endif
 
-#define LOG_REQUEST
+//#define LOG_REQUEST
 #ifdef LOG_REQUEST
 #   define LOG_REQUEST_DEBUG qDebug()
 #else
@@ -69,8 +69,9 @@
 
 
 
-Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
-    QObject(parent)
+Remote::Remote(NetworkConnection *networkConnection,LiveViewConsumer *liveViewConsumer, QObject *parent) :
+    QObject(parent),
+    _liveViewConsumer(liveViewConsumer)
 {
     _networkConnection = networkConnection;
     connectionErrorCounterTimeOut = 40;
@@ -91,6 +92,7 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     start=0;
     end=0;
     _loadpreviewpic = true;
+    timelapsmode = false;
 
 
     qDebug() << "networkConnection->getUrl(): " << networkConnection->getUrl();
@@ -100,15 +102,16 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     connect(timer,SIGNAL(timeout()), this,SLOT(buildLiveViewPic()));
 
     getEventTimerPeriodic = new QTimer;
+    getEventTimerPeriodic->setSingleShot(false);
     getEventTimerPeriodic->setInterval(10000);
     connect(getEventTimerPeriodic,SIGNAL(timeout()),
-            this,SLOT(on_getEventTimerTimeout()));
+            this,SLOT(on_getEventTimer_timeout()));
 
     getEventTimerSingleshot = new QTimer;
     getEventTimerSingleshot->setInterval(6000);
     getEventTimerSingleshot->setSingleShot(true);
     connect(getEventTimerSingleshot,SIGNAL(timeout()),
-            this,SLOT(on_getEventTimerTimeout()));
+            this,SLOT(on_getEventTimer_timeout()));
 
 
 
@@ -133,9 +136,14 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     connect(picmanager, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(onPicmanagerFinished(QNetworkReply*)));
 
+#ifdef _USEPRODUCERTHREAD
+    liveViewProducer = new LiveViewProducer(_networkConnection,this);
+#else
     liveViewManager = new QNetworkAccessManager;
     liveViewManager->setConfiguration(networkConnection->getActiveConfiguration());
 
+
+#endif
 
     //! init the static methoods - map
     methods["Intital Empty Reply"] = 0;
@@ -160,6 +168,11 @@ Remote::Remote(NetworkConnection *networkConnection,QObject *parent) :
     methods["awaitTakePicture"] = 19;
     methods["getEvent Type 66"] = 66;
     methods["getEvent Type 77"] = 77;
+
+#ifdef _USEPRODUCERTHREAD
+    connect(liveViewProducer,SIGNAL(bufferLoaded()),
+            _liveViewConsumer,SLOT(start()));
+#endif
 }
 
 Remote::~Remote(){
@@ -168,7 +181,10 @@ Remote::~Remote(){
     delete timer;
     delete getEventTimerPeriodic;
     delete getEventTimerSingleshot;
+    #ifdef _USEPRODUCERTHREAD
+#else
     delete liveViewManager;
+ #endif
     delete picmanager;
     delete manager;
 }
@@ -176,7 +192,10 @@ Remote::~Remote(){
 void Remote::setActiveNetworkConnection(){
     manager->setConfiguration(_networkConnection->getActiveConfiguration());
     picmanager->setConfiguration(_networkConnection->getActiveConfiguration());
+#ifdef _USEPRODUCERTHREAD
+#else
     liveViewManager->setConfiguration(_networkConnection->getActiveConfiguration());
+#endif
 }
 
 void Remote::initialEvent(){
@@ -185,7 +204,6 @@ void Remote::initialEvent(){
             connectionstatus != _CONNECTIONSTATE_CAMERA_DETECTED)
     {
         getEvent("false",66);
-
    }
 }
 
@@ -200,9 +218,9 @@ void Remote::getEventDelayed(int ms){
 }
 
 
-void Remote::on_getEventTimerTimeout(){
-        if(!timelapsmode){
-            qDebug() << "on_getEventTimerTimeout ";
+void Remote::on_getEventTimer_timeout(){
+    qDebug() << "on_getEventTimer_timeout timelapsmode:" << timelapsmode;
+    if(!timelapsmode){
             getEvent("false",77);
         }
 }
@@ -479,8 +497,11 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
     if(reply->errorString() == QString("The specified configuration cannot be used.")){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR: The specified configuration cannot be used";
+
         if(getEventTimerPeriodic->isActive())
+
             getEventTimerPeriodic->stop();
+
         if(!initialEventTimer->isActive())
             initialEventTimer->start();
         connected = false;
@@ -490,8 +511,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     }
     else if(reply->errorString() == QString("Network unreachable")){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR: Network unreachable";
+
         if(getEventTimerPeriodic->isActive())
             getEventTimerPeriodic->stop();
+
         if(!initialEventTimer->isActive())
             initialEventTimer->start();
         connected = false;
@@ -501,8 +524,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     }
     else if(reply->errorString() == QString("Socket operation timed out")){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR: Socket operation timed out";
+
         if(getEventTimerPeriodic->isActive())
             getEventTimerPeriodic->stop();
+
         if(!initialEventTimer->isActive())
             initialEventTimer->start();
         connected = false;
@@ -512,8 +537,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     }
     else if(reply->errorString() == QString("Host  not found")){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR: Host  not found";
+
         if(getEventTimerPeriodic->isActive())
             getEventTimerPeriodic->stop();
+
         if(!initialEventTimer->isActive())
             initialEventTimer->start();
         connected = false;
@@ -523,8 +550,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     }
     else if(reply->errorString().contains("is unknown")){
         LOG_CATCHH_ERROR_DEBUG << methods.key(id) <<"CATCH ERROR: Protocol \"\" is unknown";
+
         if(getEventTimerPeriodic->isActive())
             getEventTimerPeriodic->stop();
+
         if(!initialEventTimer->isActive())
             initialEventTimer->start();
         connected = false;
@@ -631,7 +660,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
     }
 
     if(methods.key(id) == QString("stopRecMode")){
-        emit publishDiconnected();
+        emit publishDisconnected();
         connected = false;
         LOG_SPECIAL_RESULT_DEBUG << "connected                             : " << connected;
     }
@@ -655,8 +684,20 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             liveViewRequest = jResultArray.at(i).toString();
             qDebug() << "liveViewRequest                       :  " << liveViewRequest;
             //liveViewRequest = "http://192.168.122.1:8080/liveview/liveviewstream.JPG?%211234%21http%2dget%3a%2a%3aimage%2fjpeg%3a%2a%21%21%21%21%21";
+
+#ifdef _USEPRODUCERTHREAD
+            liveViewProducer->setLiveViewRequest(liveViewRequest);
+            //if(!liveViewProducer->isRunning())
+            liveViewProducer->start();
+            //_liveViewConsumer->start();
+
+#else
             streamReply = liveViewManager->get(QNetworkRequest(QUrl(liveViewRequest)));
+            qDebug()<< "streamReply->readBufferSize(): " << streamReply->readBufferSize();
             connect(streamReply, SIGNAL(readyRead()), this, SLOT(onLiveViewManagerReadyRead()));
+//streamReply->readyRead();
+#endif
+
         }
     }
 
@@ -982,24 +1023,23 @@ void Remote::getCommand(int id){
         }
         return;
     }
-
     //commandFabrikMethod("startIntervalStillRec",100);
     //commandFabrikMethod("getAvailableFocusMode",101);
-
-
-
-
 }
 
 void Remote::onLiveViewManagerReadyRead(){
+    //qDebug() << "onLiveViewManagerReadyRead";
+    //qDebug() << "streamReply->bytesAvailable(): "<< streamReply->bytesAvailable();
+    qint64 maxlen = streamReply->bytesAvailable();
     startLiveviewInProgress = false;
     liveViewStreamAlive = false;
     if(streamReply->isRunning())
     {
         liveViewStreamAlive = true;
     }
-    inputStream.append(streamReply->readAll());
-
+    //inputStream.append(streamReply->readAll());
+    //QDataStream in(streamReply->readAll());
+    _liveViewConsumer->setInputStream(streamReply);
 #ifdef __STORESTREAM
         QFile file("test.mjpeg");
         if (!file.open(QIODevice::WriteOnly)) {
@@ -1033,9 +1073,35 @@ void Remote::buildLiveViewPic(){
 
     for(int i=0;i<commonHeaderLength;i++)
         commonHeader[i] = inputStream[i];
+    if (commonHeader.isNull() || commonHeader.length() != commonHeaderLength) {
+              qDebug() << "Cannot read stream for common header.";
+          }
+          if (commonHeader[0] != (char) 0xFF) {
+              qDebug() << "Unexpected data format. (Start byte)";
+          }
+          if (commonHeader[1] != (char) 0x01) {
+              qDebug() << "Unexpected data format. (Payload byte)";
+          }
+
 
     for(int i=0;i<payloadHeaderLength;i++)
         payloadHeader[i] = inputStream[i+commonHeaderLength];
+    if (payloadHeader.isNull() || payloadHeader.length() != payloadHeaderLength) {
+        qDebug() << "Cannot read stream for payload header.";
+    }
+    if (payloadHeader[0] != (char) 0x24
+            || payloadHeader[1] != (char) 0x35
+            || payloadHeader[2] != (char) 0x68
+            || payloadHeader[3] != (char) 0x79) {
+        qDebug() << "Unexpected data format. (Start code)";
+    }
+
+    jpegSize = bytesToInt(payloadHeader, 4, 3);
+    int paddingSize = bytesToInt(payloadHeader, 7, 1);
+
+       // Payload Data
+       //byte[] jpegData = readBytes(mInputStream, jpegSize);
+       //byte[] paddingData = readBytes(mInputStream, paddingSize);
 
     for(int i=0;i < jpegSize; i++){
         //array.append(inputStream.at(i));
@@ -1203,7 +1269,8 @@ void Remote::stopRecMode(int id){
 void Remote::startLiveview(int id){
     commandFabrikMethod("startLiveview",id);
     inputStream.clear();
-    timer->start();
+    //timer->start();
+    //_liveViewConsumer->start();
     offset = 0;
     start=0;
     end=0;
@@ -1212,6 +1279,7 @@ void Remote::startLiveview(int id){
 void Remote::stopLiveview(int id){
     commandFabrikMethod("stopLiveview",id);
     timer->stop();
+    //_liveViewConsumer->quit();
 
     liveviewstatus = false;
     liveViewStreamAlive = false;

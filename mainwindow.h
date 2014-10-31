@@ -5,6 +5,7 @@
 #include <QMap>
 #include "motorbasic.h"
 
+
 class NetworkConnection;
 class Timelapse;
 class Remote;
@@ -15,6 +16,7 @@ class QGraphicsScene;
 class QLabel;
 class QButtonGroup;
 class QWidget;
+class LiveViewConsumer;
 //class Motorbasic;
 typedef QMap<int,QString> QIntMap;
 
@@ -69,16 +71,26 @@ private slots:
     void on_postViewImageSizeComboBox_activated(QString text);
     void on_selfTimerComboBox_activated(QString text);
     void on_liveViewImageTouched(QPointF pos);
-    void on_disablTimer_timeout();
+    void on_disableTimer_timeout();
     void on_Quit_Accepted();
 
     void on_leftPushButton_pressed();
     void on_rightPushButton_pressed();
     void on_upPushButton_pressed();
     void on_downPushButton_pressed();
-    void on_stopMoveVPushButton_pressed();
-    void on_stopMoveHPushButton_pressed();
+
+    void on_leftPushButton_released();
+    void on_rightPushButton_released();
+    void on_upPushButton_released();
+    void on_downPushButton_released();
+
     void on_stopMovePushButton_pressed();
+
+    void on_manualFocusInPushButton_pressed();
+    void on_manualFocusOutPushButton_pressed();
+    void on_manualFocusInPushButton_released();
+    void on_manualFocusOutPushButton_released();
+
 
     void addIsoSpeedRateComboBoxItems(QStringList items);
     void addfNumberComboBoxItems(QStringList items);
@@ -127,12 +139,13 @@ private slots:
 private:
 
     Ui::MainWindow *ui;
-    QTimer *disablTimer;
+    QTimer *disableTimer;
     QTimer *timeoutTimer;
     QDialog *infoDialog;
     QLabel *shutDownLabel;
 
     NetworkConnection *networkConnection;
+    LiveViewConsumer *liveViewConsumer;
     Remote *remote;
     Timelapse *timelapse;
     MotorBasic *motorbasic;

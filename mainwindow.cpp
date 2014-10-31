@@ -26,6 +26,7 @@
 #include "iostream"
 #include "iomanip"
 #include <QMessageBox>
+#include "liveviewthread.h"
 
 
 
@@ -46,7 +47,7 @@ using namespace std;
 #   define LOG_MAINWINDOW_DEBUG nullDebug()
 #endif
 
-#define LOG_SCREENDESIGN
+//#define LOG_SCREENDESIGN
 #ifdef LOG_SCREENDESIGN
 #   define LOG_SCREENDESIGN_DEBUG qDebug()
 #else
@@ -59,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
      ui->setupUi(this);
-
+     liveViewConsumer = new LiveViewConsumer;
     //! Duration of ZoomButton Pressed
     //! for Future use
     pressedBegin = 0;
@@ -124,17 +125,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     buttonGroup = new QButtonGroup(this);
-    buttonGroup->addButton(ui->pushButton_1);
-    buttonGroup->addButton(ui->pushButton_2);
-    buttonGroup->addButton(ui->pushButton_3);
-    buttonGroup->setId(ui->pushButton_1,0);
-    buttonGroup->setId(ui->pushButton_2,1);
-    buttonGroup->setId(ui->pushButton_3,2);
+    buttonGroup->addButton(ui->cameraPushButton);
+    buttonGroup->addButton(ui->toolsPushButton);
+    buttonGroup->addButton(ui->previewPushButton);
+    buttonGroup->setId(ui->cameraPushButton,0);
+    buttonGroup->setId(ui->toolsPushButton,1);
+    buttonGroup->setId(ui->previewPushButton,2);
     connect(buttonGroup,SIGNAL(buttonClicked(int)),
             this,SLOT(on_buttonGroup_buttonClicked(int)));
 
     // to get a geometryChangedEvent
-    ui->pushButton_1->setVisible(false);
+    ui->cameraPushButton->setVisible(false);
     ui->stackedWidget->setCurrentIndex(0);
 
     //QStringList testlist;
@@ -155,11 +156,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     networkConnection->init();
 
-    disablTimer = new QTimer;
-    disablTimer->setSingleShot(true);
-    disablTimer->setInterval(1000);
-    connect(disablTimer,SIGNAL(timeout()),
-            this,SLOT(on_disablTimer_timeout()));
+    disableTimer = new QTimer;
+    disableTimer->setSingleShot(true);
+    disableTimer->setInterval(1000);
+    connect(disableTimer,SIGNAL(timeout()),
+            this,SLOT(on_disableTimer_timeout()));
 
     timeoutTimer = new QTimer;
     timeoutTimer->setSingleShot(true);
@@ -175,11 +176,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     //! [Create Object Camera Remote]
-    remote = new Remote(networkConnection,this);
+    remote = new Remote(networkConnection,liveViewConsumer,this);
     connect(remote, SIGNAL(publishLoadPreview(QNetworkReply*,QString)),
             this, SLOT(drawPreview(QNetworkReply*,QString)));
 
-    connect(remote,SIGNAL(publishLiveViewBytes(QByteArray)),
+    //connect(remote,SIGNAL(publishLiveViewBytes(QByteArray)),
+    //        this,SLOT(drawLiveView(QByteArray)));
+
+    connect(liveViewConsumer,SIGNAL(publishLiveViewBytes(QByteArray)),
             this,SLOT(drawLiveView(QByteArray)));
 
     connect(remote,SIGNAL(publishCameraStatus(QString)),
@@ -227,7 +231,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(remote,SIGNAL(publishZoomPosition(int)),
             this,SLOT(on_zoomPositionChanged(int)));
 
-    connect(remote,SIGNAL(publishDiconnected()),
+    connect(remote,SIGNAL(publishDisconnected()),
             this,SLOT(on_Quit_Accepted()));
     connect(remote,SIGNAL(publishConnetionError(QString)),
             this,SLOT(on_remote_publishConnetionError(QString)));
@@ -306,7 +310,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event){
     //qDebug() << "event: " << event->type() << "object " << object->objectName();
-//#if ! defined (Q_OS_IOS) && ! defined (Q_OS_ANDROID)
     if (event->type() == QEvent::Resize){
         //qDebug() << "event: " << event->type() << "object " << object->objectName();
         if(!(this->size() == currentsize)){
@@ -380,9 +383,9 @@ void MainWindow::setStackekWidgetPage_1(){
     QScreen* screen = QApplication::primaryScreen();
         on_GeometryChanged(screen->availableGeometry());
          resize(mysize);
-         ui->pushButton_1->setVisible(false);
-         ui->pushButton_2->setVisible(true);
-         ui->pushButton_3->setVisible(true);
+         ui->cameraPushButton->setVisible(false);
+         ui->toolsPushButton->setVisible(true);
+         ui->previewPushButton->setVisible(true);
 }
 
 void MainWindow::setStackekWidgetPage_2(){
@@ -391,9 +394,9 @@ void MainWindow::setStackekWidgetPage_2(){
     QScreen* screen = QApplication::primaryScreen();
         on_GeometryChanged(screen->availableGeometry());
          resize(mysize);
-         ui->pushButton_1->setVisible(true);
-         ui->pushButton_2->setVisible(false);
-         ui->pushButton_3->setVisible(true);
+         ui->cameraPushButton->setVisible(true);
+         ui->toolsPushButton->setVisible(false);
+         ui->previewPushButton->setVisible(true);
 }
 
 void MainWindow::setStackekWidgetPage_3(){
@@ -403,9 +406,9 @@ void MainWindow::setStackekWidgetPage_3(){
         on_GeometryChanged(screen->availableGeometry());
         resize(mysize);
 
-        ui->pushButton_1->setVisible(true);
-        ui->pushButton_2->setVisible(true);
-        ui->pushButton_3->setVisible(false);
+        ui->cameraPushButton->setVisible(true);
+        ui->toolsPushButton->setVisible(true);
+        ui->previewPushButton->setVisible(false);
 }
 
 void MainWindow::on_primaryOrientationChanged(Qt::ScreenOrientation orientation){
@@ -474,57 +477,63 @@ void MainWindow::setupPortraitScreen(QRect geo){
     ui->whiteBalanceComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
-    ui->pushButton_1->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
-    ui->pushButton_2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
-    ui->pushButton_3->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->cameraPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->toolsPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->previewPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomInPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomOutPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->takePicturePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->leftPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->rightPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
-    ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    //ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->upPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->downPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
-    ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    //ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->stopMovePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
+     int row = 0;
 
+    ui->centralGridLayout->addWidget(ui->stackedWidget,row,0,1,7);
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,7);
-
-    ui->centralGridLayout->addWidget(ui->leftPushButton,1,0);
-    ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,1,1);
-    ui->centralGridLayout->addWidget(ui->rightPushButton,1,2);
-
-    ui->centralGridLayout->addWidget(ui->upPushButton,1,3);
-    ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,1,4);
-    ui->centralGridLayout->addWidget(ui->downPushButton,1,5);
-
-    ui->centralGridLayout->addWidget(ui->stopMovePushButton,1,6);
 
     if(ui->stackedWidget->currentIndex()==0){
-        //ui->centralGridLayout->addWidget(ui->pushButton_1,2,0);
-        ui->centralGridLayout->addWidget(ui->pushButton_2,2,0);
-        ui->centralGridLayout->addWidget(ui->pushButton_3,2,1);
+        //ui->centralGridLayout->addWidget(ui->cameraPushButton,2,0);
+        ui->centralGridLayout->addWidget(ui->toolsPushButton,row+1,0);
+        ui->centralGridLayout->addWidget(ui->previewPushButton,row+2,0);
     }
 
     if(ui->stackedWidget->currentIndex()==1){
-        ui->centralGridLayout->addWidget(ui->pushButton_1,2,0);
-        //ui->centralGridLayout->addWidget(ui->pushButton_2,2,1);
-        ui->centralGridLayout->addWidget(ui->pushButton_3,2,1);
+        ui->centralGridLayout->addWidget(ui->cameraPushButton,row+1,0);
+        //ui->centralGridLayout->addWidget(ui->toolsPushButton,2,1);
+        ui->centralGridLayout->addWidget(ui->previewPushButton,row+2,0);
     }
 
     if(ui->stackedWidget->currentIndex()==2){
-        ui->centralGridLayout->addWidget(ui->pushButton_1,2,1);
-        ui->centralGridLayout->addWidget(ui->pushButton_2,2,0);
-        //ui->centralGridLayout->addWidget(ui->pushButton_3,2,2);
+        ui->centralGridLayout->addWidget(ui->cameraPushButton,row+1,0);
+        ui->centralGridLayout->addWidget(ui->toolsPushButton,row+2,0);
+        //ui->centralGridLayout->addWidget(ui->previewPushButton,2,2);
     }
 
-    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,2,2);
-    ui->centralGridLayout->addWidget(ui->zoomInPushButton,2,3);
-    ui->centralGridLayout->addWidget(ui->previousPushButton,2,4);
-    ui->centralGridLayout->addWidget(ui->nextPushButton,2,5);
-    ui->centralGridLayout->addWidget(ui->takePicturePushButton,2,6);
+
+    ui->centralGridLayout->addWidget(ui->leftPushButton,row+2,1);
+    //ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,1,1);
+    ui->centralGridLayout->addWidget(ui->rightPushButton,row+2,3);
+
+    ui->centralGridLayout->addWidget(ui->upPushButton,row+1,2);
+    //ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,1,4);
+    ui->centralGridLayout->addWidget(ui->downPushButton,row+3,2);
+
+    ui->centralGridLayout->addWidget(ui->stopMovePushButton,row+2,2);
+
+    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+1,4);
+    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+1,5);
+
+
+    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,row+3,4);
+    ui->centralGridLayout->addWidget(ui->zoomInPushButton,row+3,5);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,row+2,4);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,row+2,5);
+    ui->centralGridLayout->addWidget(ui->takePicturePushButton,row+2,6);
 
     QSize orientedSize;
     QSize orientedInnerSize;
@@ -543,9 +552,6 @@ void MainWindow::setupPortraitScreen(QRect geo){
 
 void MainWindow::setupLandscapeScreen(QRect geo){
     LOG_SCREENDESIGN_DEBUG << "++++++++ setupLandscapeScreen ++++++++";
-
-
-
     QSize orientedSize;
     QSize orientedInnerSize;
     QSize viewSize;
@@ -566,50 +572,60 @@ void MainWindow::setupLandscapeScreen(QRect geo){
     ui->whiteBalanceComboBox->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomPositionLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
-    ui->pushButton_1->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
-    ui->pushButton_2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
-    ui->pushButton_3->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->cameraPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->toolsPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->previewPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomInPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->zoomOutPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->takePicturePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->leftPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->rightPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
-    ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    //ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->upPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->downPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
-    ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    //ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
     ui->stopMovePushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->manualFocusInPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    ui->manualFocusOutPushButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,1,7);
+    int row = 0;
 
-    ui->centralGridLayout->addWidget(ui->leftPushButton,1,0);
-    ui->centralGridLayout->addWidget(ui->rightPushButton,1,2);
-    ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,1,1);
-    ui->centralGridLayout->addWidget(ui->upPushButton,1,3);
-    ui->centralGridLayout->addWidget(ui->downPushButton,1,5);
-    ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,1,4);
-    ui->centralGridLayout->addWidget(ui->stopMovePushButton,1,6);
+    ui->centralGridLayout->addWidget(ui->stackedWidget,row,0,1,7);
+
+
 
     if(ui->stackedWidget->currentIndex()==0){
-        ui->centralGridLayout->addWidget(ui->pushButton_2,2,0);
-        ui->centralGridLayout->addWidget(ui->pushButton_3,2,1);
+        ui->centralGridLayout->addWidget(ui->toolsPushButton,row+1,0);
+        ui->centralGridLayout->addWidget(ui->previewPushButton,row+2,0);
     }
 
     if(ui->stackedWidget->currentIndex()==1){
-        ui->centralGridLayout->addWidget(ui->pushButton_1,2,0);
-        ui->centralGridLayout->addWidget(ui->pushButton_3,2,1);
+        ui->centralGridLayout->addWidget(ui->cameraPushButton,row+1,0);
+        ui->centralGridLayout->addWidget(ui->previewPushButton,row+2,0);
     }
 
     if(ui->stackedWidget->currentIndex()==2){
-        ui->centralGridLayout->addWidget(ui->pushButton_1,2,1);
-        ui->centralGridLayout->addWidget(ui->pushButton_2,2,0);
+        ui->centralGridLayout->addWidget(ui->cameraPushButton,row+1,0);
+        ui->centralGridLayout->addWidget(ui->toolsPushButton,row+2,0);
     }
 
-    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,2,2);
-    ui->centralGridLayout->addWidget(ui->zoomInPushButton,2,3);
-    ui->centralGridLayout->addWidget(ui->previousPushButton,2,4);
-    ui->centralGridLayout->addWidget(ui->nextPushButton,2,5);
-    ui->centralGridLayout->addWidget(ui->takePicturePushButton,2,6);
+
+    ui->centralGridLayout->addWidget(ui->leftPushButton,row+2,1);
+    //ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,row+2,);
+    ui->centralGridLayout->addWidget(ui->rightPushButton,row+2,3);
+    ui->centralGridLayout->addWidget(ui->upPushButton,row+1,2);
+    ui->centralGridLayout->addWidget(ui->downPushButton,row+3,2);
+    //ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,row+2,4);
+    ui->centralGridLayout->addWidget(ui->stopMovePushButton,row+2,2);
+
+    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+1,4);
+    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+1,5);
+
+    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,row+3,4);
+    ui->centralGridLayout->addWidget(ui->zoomInPushButton,row+3,5);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,row+2,4);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,row+2,5);
+    ui->centralGridLayout->addWidget(ui->takePicturePushButton,row+2,6);
 
 
 
@@ -649,63 +665,68 @@ void MainWindow::setupLandscapeScreen(QRect geo){
 
     ui->leftPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->rightPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
-    ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    //ui->stopMoveHPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->upPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->downPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
-    ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    //ui->stopMoveVPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->stopMovePushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->manualFocusInPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    //ui->manualFocusOutPushButton->ssetSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
 
 
-    ui->pushButton_1->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
-    ui->pushButton_2->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
-    ui->pushButton_3->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->cameraPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->toolsPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    ui->previewPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->zoomInPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->zoomOutPushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     ui->takePicturePushButton->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
 
 
 
+    int row = 0;
+
+    ui->centralGridLayout->addWidget(ui->stackedWidget,row,0,8,1);
+
+    ui->centralGridLayout->addWidget(ui->leftPushButton,row+1,1);
+    ui->centralGridLayout->addWidget(ui->rightPushButton,row+1,3);
+    //ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,1,1);
+    ui->centralGridLayout->addWidget(ui->upPushButton,row,2);
+    ui->centralGridLayout->addWidget(ui->downPushButton,row+2,2);
+    //ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,4,1);
+    ui->centralGridLayout->addWidget(ui->stopMovePushButton,row+1,2);
 
 
-    ui->centralGridLayout->addWidget(ui->stackedWidget,0,0,7,1);
+    ui->centralGridLayout->addWidget(ui->takePicturePushButton,row+7,2);
+    //ui->centralGridLayout->addWidget(ui->previewPushButton,1,1);
+    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,row+5,1);
+    ui->centralGridLayout->addWidget(ui->zoomInPushButton,row+5,3);
+    ui->centralGridLayout->addWidget(ui->previousPushButton,row+4,1);
+    ui->centralGridLayout->addWidget(ui->nextPushButton,row+4,3);
 
-    ui->centralGridLayout->addWidget(ui->leftPushButton,0,1);
-    ui->centralGridLayout->addWidget(ui->rightPushButton,2,1);
-    ui->centralGridLayout->addWidget(ui->stopMoveHPushButton,1,1);
-    ui->centralGridLayout->addWidget(ui->upPushButton,3,1);
-    ui->centralGridLayout->addWidget(ui->downPushButton,5,1);
-    ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,4,1);
-    ui->centralGridLayout->addWidget(ui->stopMovePushButton,6,1);
+    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+3,1);
+    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+3,3);
 
-
-    ui->centralGridLayout->addWidget(ui->takePicturePushButton,0,2);
-    //ui->centralGridLayout->addWidget(ui->pushButton_3,1,1);
-    ui->centralGridLayout->addWidget(ui->zoomOutPushButton,1,2);
-    ui->centralGridLayout->addWidget(ui->zoomInPushButton,2,2);
-    ui->centralGridLayout->addWidget(ui->previousPushButton,3,2);
-    ui->centralGridLayout->addWidget(ui->nextPushButton,4,2);
-
-    //ui->centralGridLayout->addWidget(ui->pushButton_3,1,1);
-    //ui->centralGridLayout->addWidget(ui->pushButton_1,6,1);
-    //ui->centralGridLayout->addWidget(ui->pushButton_2,7,1);
+    //ui->centralGridLayout->addWidget(ui->previewPushButton,1,1);
+    //ui->centralGridLayout->addWidget(ui->cameraPushButton,6,1);
+    //ui->centralGridLayout->addWidget(ui->toolsPushButton,7,1);
 
     if(ui->stackedWidget->currentIndex()==0){
-        //ui->centralGridLayout->addWidget(ui->pushButton_1,2,2);
-        ui->centralGridLayout->addWidget(ui->pushButton_2,5,2);
-        ui->centralGridLayout->addWidget(ui->pushButton_3,6,2);
+        //ui->centralGridLayout->addWidget(ui->cameraPushButton,2,2);
+        ui->centralGridLayout->addWidget(ui->toolsPushButton,row+6,1);
+        ui->centralGridLayout->addWidget(ui->previewPushButton,row+6,2);
     }
 
     if(ui->stackedWidget->currentIndex()==1){
-        ui->centralGridLayout->addWidget(ui->pushButton_1,5,2);
-        //ui->centralGridLayout->addWidget(ui->pushButton_2,2,2);
-        ui->centralGridLayout->addWidget(ui->pushButton_3,6,2);
+        ui->centralGridLayout->addWidget(ui->cameraPushButton,row+7,1);
+        //ui->centralGridLayout->addWidget(ui->toolsPushButton,2,2);
+        ui->centralGridLayout->addWidget(ui->previewPushButton,row+7,2);
     }
 
     if(ui->stackedWidget->currentIndex()==2){
-        ui->centralGridLayout->addWidget(ui->pushButton_2,5,2);
-        ui->centralGridLayout->addWidget(ui->pushButton_1,6,2);
+        ui->centralGridLayout->addWidget(ui->toolsPushButton,row+7,1);
+        ui->centralGridLayout->addWidget(ui->cameraPushButton,row+7,2);
 
-        //ui->centralGridLayout->addWidget(ui->pushButton_3,2,2);
+        //ui->centralGridLayout->addWidget(ui->previewPushButton,2,2);
     }
 
 
@@ -789,15 +810,18 @@ void MainWindow::resizeWindow(QSize  orientedSize,
 
     ui->leftPushButton->setMinimumWidth(miniHeight);
     ui->rightPushButton->setMinimumWidth(miniHeight);
-    ui->stopMoveHPushButton->setMinimumWidth(miniHeight);
+    //ui->stopMoveHPushButton->setMinimumWidth(miniHeight);
     ui->upPushButton->setMinimumWidth(miniHeight);
     ui->downPushButton->setMinimumWidth(miniHeight);
-    ui->stopMoveVPushButton->setMinimumWidth(miniHeight);
+    //ui->stopMoveVPushButton->setMinimumWidth(miniHeight);
     ui->stopMovePushButton->setMinimumWidth(miniHeight);
+    ui->manualFocusInPushButton->setMinimumWidth(miniHeight);
+    ui->manualFocusOutPushButton->setMinimumHeight(miniHeight);
 
-    ui->pushButton_1->setMinimumWidth(miniHeight);
-    ui->pushButton_2->setMinimumWidth(miniHeight);
-    ui->pushButton_3->setMinimumWidth(miniHeight);
+
+    ui->cameraPushButton->setMinimumWidth(miniHeight);
+    ui->toolsPushButton->setMinimumWidth(miniHeight);
+    ui->previewPushButton->setMinimumWidth(miniHeight);
     ui->zoomInPushButton->setMinimumWidth(miniHeight);
     ui->zoomOutPushButton->setMinimumWidth(miniHeight);
     ui->takePicturePushButton->setMinimumWidth(miniHeight);
@@ -811,17 +835,19 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     //ui->shutterSpeedComboBox->setMaximumWidth(maxHeigh);
     //ui->whiteBalanceComboBox->setMaximumWidth(maxHeigh);
 
-    ui->leftPushButton->setMinimumWidth(maxHeigh);
-    ui->rightPushButton->setMinimumWidth(maxHeigh);
-    ui->stopMoveHPushButton->setMinimumWidth(maxHeigh);
-    ui->upPushButton->setMinimumWidth(maxHeigh);
-    ui->downPushButton->setMinimumWidth(maxHeigh);
-    ui->stopMoveVPushButton->setMinimumWidth(maxHeigh);
-    ui->stopMovePushButton->setMinimumWidth(maxHeigh);
+    ui->leftPushButton->setMaximumWidth(maxHeigh);
+    ui->rightPushButton->setMaximumWidth(maxHeigh);
+    //ui->stopMoveHPushButton->setMaximumWidth(maxHeigh);
+    ui->upPushButton->setMaximumWidth(maxHeigh);
+    ui->downPushButton->setMaximumWidth(maxHeigh);
+    //ui->stopMoveVPushButton->setMaximumWidth(maxHeigh);
+    ui->stopMovePushButton->setMaximumWidth(maxHeigh);
+    ui->manualFocusInPushButton->setMaximumWidth(maxHeigh);
+    ui->manualFocusOutPushButton->setMaximumWidth(maxHeigh);
 
-    ui->pushButton_1->setMaximumWidth(maxHeigh);
-    ui->pushButton_2->setMaximumWidth(maxHeigh);
-    ui->pushButton_3->setMaximumWidth(maxHeigh);
+    ui->cameraPushButton->setMaximumWidth(maxHeigh);
+    ui->toolsPushButton->setMaximumWidth(maxHeigh);
+    ui->previewPushButton->setMaximumWidth(maxHeigh);
     ui->zoomInPushButton->setMaximumWidth(maxHeigh);
     ui->zoomOutPushButton->setMaximumWidth(maxHeigh);
     ui->takePicturePushButton->setMaximumWidth(maxHeigh);
@@ -838,15 +864,17 @@ void MainWindow::resizeWindow(QSize  orientedSize,
 
     ui->leftPushButton->setMinimumHeight(miniHeight);
     ui->rightPushButton->setMinimumHeight(miniHeight);
-    ui->stopMoveHPushButton->setMinimumHeight(miniHeight);
+    //ui->stopMoveHPushButton->setMinimumHeight(miniHeight);
     ui->upPushButton->setMinimumHeight(miniHeight);
     ui->downPushButton->setMinimumHeight(miniHeight);
-    ui->stopMoveVPushButton->setMinimumHeight(miniHeight);
+    //ui->stopMoveVPushButton->setMinimumHeight(miniHeight);
     ui->stopMovePushButton->setMinimumHeight(miniHeight);
+    ui->manualFocusInPushButton->setMinimumHeight(miniHeight);
+    ui->manualFocusOutPushButton->setMinimumHeight(miniHeight);
 
-    ui->pushButton_1->setMinimumHeight(miniHeight);
-    ui->pushButton_2->setMinimumHeight(miniHeight);
-    ui->pushButton_3->setMinimumHeight(miniHeight);
+    ui->cameraPushButton->setMinimumHeight(miniHeight);
+    ui->toolsPushButton->setMinimumHeight(miniHeight);
+    ui->previewPushButton->setMinimumHeight(miniHeight);
     ui->zoomInPushButton->setMinimumHeight(miniHeight);
     ui->zoomOutPushButton->setMinimumHeight(miniHeight);
     ui->takePicturePushButton->setMinimumHeight(miniHeight);
@@ -862,15 +890,18 @@ void MainWindow::resizeWindow(QSize  orientedSize,
 
     ui->leftPushButton->setMaximumHeight(maxHeigh);
     ui->rightPushButton->setMaximumHeight(maxHeigh);
-    ui->stopMoveHPushButton->setMaximumHeight(maxHeigh);
+    //ui->stopMoveHPushButton->setMaximumHeight(maxHeigh);
     ui->upPushButton->setMaximumHeight(maxHeigh);
     ui->downPushButton->setMaximumHeight(maxHeigh);
-    ui->stopMoveVPushButton->setMaximumHeight(maxHeigh);
+    //ui->stopMoveVPushButton->setMaximumHeight(maxHeigh);
     ui->stopMovePushButton->setMaximumHeight(maxHeigh);
 
-    ui->pushButton_1->setMaximumHeight(maxHeigh);
-    ui->pushButton_2->setMaximumHeight(maxHeigh);
-    ui->pushButton_3->setMaximumHeight(maxHeigh);
+    ui->manualFocusInPushButton->setMaximumHeight(maxHeigh);
+    ui->manualFocusOutPushButton->setMaximumHeight(maxHeigh);
+
+    ui->cameraPushButton->setMaximumHeight(maxHeigh);
+    ui->toolsPushButton->setMaximumHeight(maxHeigh);
+    ui->previewPushButton->setMaximumHeight(maxHeigh);
     ui->zoomInPushButton->setMaximumHeight(maxHeigh);
     ui->zoomOutPushButton->setMaximumHeight(maxHeigh);
     ui->takePicturePushButton->setMaximumHeight(maxHeigh);
@@ -886,9 +917,9 @@ void MainWindow::resizeWindow(QSize  orientedSize,
     ui->stopMoveVPushButton->resize(ui->stopMoveVPushButton->width(),pushbuttonsize);
     ui->stopMovePushButton->resize(ui->stopMovePushButton->width(),pushbuttonsize);
 
-    ui->pushButton_1->resize(ui->pushButton_1->width(),pushbuttonsize);
-    ui->pushButton_2->resize(ui->pushButton_1->width(),pushbuttonsize);
-    ui->pushButton_3->resize(ui->pushButton_1->width(),pushbuttonsize);
+    ui->cameraPushButton->resize(ui->cameraPushButton->width(),pushbuttonsize);
+    ui->toolsPushButton->resize(ui->cameraPushButton->width(),pushbuttonsize);
+    ui->previewPushButton->resize(ui->cameraPushButton->width(),pushbuttonsize);
     ui->zoomInPushButton->resize(ui->zoomInPushButton->width(),pushbuttonsize);
     ui->zoomOutPushButton->resize(ui->zoomOutPushButton->width(),pushbuttonsize);
     ui->takePicturePushButton->resize(ui->takePicturePushButton->width(),pushbuttonsize);
@@ -1017,8 +1048,8 @@ void MainWindow::on_takePicturePushButton_clicked(){
 
 void MainWindow::on_startLiveViewPushButton_clicked(bool checked){
     ui->startLiveViewPushButton->setCheckable(false);
-    disablTimer->setInterval(2000);
-    disablTimer->start();
+    disableTimer->setInterval(2000);
+    disableTimer->start();
     qDebug()  << "on_startLiveViewPushButton_clicked    :   checked: "  << checked << "liveviewStatus:  " << remote->liveviewStatus();
     if(!checked){
             remote->stopLiveview();
@@ -1293,37 +1324,61 @@ void MainWindow::on_zoomPositionChanged(const int &text)
 
 void MainWindow::on_leftPushButton_pressed(){
     motorbasic->move("3","1");
+}
 
+void MainWindow::on_leftPushButton_released(){
+    motorbasic->move("3","0");
 }
 
 void MainWindow::on_rightPushButton_pressed(){
     motorbasic->move("5","1");
 }
 
+void MainWindow::on_rightPushButton_released(){
+    motorbasic->move("5","0");
+}
+
 void MainWindow::on_upPushButton_pressed(){
     motorbasic->move("11","1");
+}
+
+void MainWindow::on_upPushButton_released(){
+    motorbasic->move("11","0");
 }
 
 void MainWindow::on_downPushButton_pressed(){
     motorbasic->move("7","1");
 }
 
-void MainWindow::on_stopMoveHPushButton_pressed(){
-     motorbasic->move("3","0");
-      motorbasic->move("5","0");
+void MainWindow::on_downPushButton_released(){
+    motorbasic->move("7","0");
 }
 
-void MainWindow::on_stopMoveVPushButton_pressed(){
-      motorbasic->move("7","0");
-       motorbasic->move("11","0");
-}
 
 void MainWindow::on_stopMovePushButton_pressed(){
       motorbasic->move("7","0");
-       motorbasic->move("11","0");
-       motorbasic->move("3","0");
-        motorbasic->move("5","0");
+      motorbasic->move("11","0");
+      motorbasic->move("3","0");
+      motorbasic->move("5","0");
 }
+
+
+void MainWindow::on_manualFocusInPushButton_pressed(){
+    motorbasic->move("13","1");
+}
+
+void MainWindow::on_manualFocusInPushButton_released(){
+         motorbasic->move("13","0");
+}
+
+void MainWindow::on_manualFocusOutPushButton_pressed(){
+         motorbasic->move("15","1");
+}
+
+void MainWindow::on_manualFocusOutPushButton_released(){
+         motorbasic->move("15","0");
+}
+
 
 
 void MainWindow::addIsoSpeedRateComboBoxItems(QStringList items){
@@ -1509,6 +1564,7 @@ QByteArray MainWindow::readPreviewFile(QString path){
 
 void MainWindow::drawLiveView(QByteArray bytes){
     //LOG_SCREENDESIGN_DEBUG << "drawLiveView";
+    //qDebug() << "drawLiveView";
     ui->startLiveViewPushButton->setChecked(true);
 #ifdef __STORE__SINGLE_PREVIEW_PICS
     static int number = 0;
@@ -1639,14 +1695,14 @@ void MainWindow::writeSettings()
 
 
 /*
-    ui->pushButton_1->setMaximumHeight(pushbuttonsize);
-    ui->pushButton_2->setMaximumHeight(pushbuttonsize);
-    ui->pushButton_3->setMaximumHeight(pushbuttonsize);
+    ui->cameraPushButton->setMaximumHeight(pushbuttonsize);
+    ui->toolsPushButton->setMaximumHeight(pushbuttonsize);
+    ui->previewPushButton->setMaximumHeight(pushbuttonsize);
     ui->takePicturePushButton->setMaximumHeight(pushbuttonsize);
 
-    ui->pushButton_1->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
-    ui->pushButton_2->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
-    ui->pushButton_3->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+    ui->cameraPushButton->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+    ui->toolsPushButton->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
+    ui->previewPushButton->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
     ui->takePicturePushButton->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
 */
 
@@ -1657,20 +1713,20 @@ void MainWindow::writeSettings()
     ui->isoSpeedRateComboBox->resize(ui->isoSpeedRateComboBox->width(), fontsize+1);
     //ui->exposureModeComboBox->resize(ui->exposureModeComboBox->width(), fontsize+1);
     ui->zoomPositionLabel->resize(ui->zoomPositionLabel->width(),fontsize+1);
-    ui->pushButton_1->setIconSize(QSize(ui->pushButton_1->iconSize().width(),pushbuttonsize));
-    ui->pushButton_2->setIconSize(QSize(ui->pushButton_2->iconSize().width(),pushbuttonsize));
-    ui->pushButton_3->setIconSize(QSize(ui->pushButton_3->iconSize().width(),pushbuttonsize));
+    ui->cameraPushButton->setIconSize(QSize(ui->cameraPushButton->iconSize().width(),pushbuttonsize));
+    ui->toolsPushButton->setIconSize(QSize(ui->toolsPushButton->iconSize().width(),pushbuttonsize));
+    ui->previewPushButton->setIconSize(QSize(ui->previewPushButton->iconSize().width(),pushbuttonsize));
     ui->zoomInPushButton->setIconSize(QSize(ui->zoomInPushButton->iconSize().width(),pushbuttonsize));
     ui->zoomOutPushButton->setIconSize(QSize(ui->zoomOutPushButton->iconSize().width(),pushbuttonsize));
     ui->takePicturePushButton->setIconSize(QSize(ui->takePicturePushButton->iconSize().width(),pushbuttonsize));
     */
 //int dpi=QPaintDevice::physicalDpiX();
-//ui->pushButton_1->setMaximumHeight(pushbuttonsize);
+//ui->cameraPushButton->setMaximumHeight(pushbuttonsize);
 
 /*
-ui->pushButton_1->setStyleSheet("{height: 90px;}");
-ui->pushButton_2->setStyleSheet("{height: 90px;}");
-ui->pushButton_3->setStyleSheet("{height: 90px;}");
+ui->cameraPushButton->setStyleSheet("{height: 90px;}");
+ui->toolsPushButton->setStyleSheet("{height: 90px;}");
+ui->previewPushButton->setStyleSheet("{height: 90px;}");
 ui->zoomInPushButton->setStyleSheet("{height: 90px;}");
 ui->zoomOutPushButton->setStyleSheet("{height: 90px;}");
 ui->takePicturePushButton->setStyleSheet("{height: 90px;}");
@@ -1705,7 +1761,7 @@ void MainWindow::on_Quit_Accepted(){
         qApp->closeAllWindows();
 }
 
-void MainWindow::on_disablTimer_timeout(){
+void MainWindow::on_disableTimer_timeout(){
     ui->startLiveViewPushButton->setCheckable(true);
 }
 

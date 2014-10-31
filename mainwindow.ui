@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>521</width>
-    <height>691</height>
+    <width>553</width>
+    <height>695</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -86,6 +86,7 @@ QPushButton:pressed{
 	background-color: #555555;
 }
 
+
 QPushButton#leftPushButton{
 	background-image: url(:img/btn_pan_left_normal.png);
 }
@@ -94,9 +95,7 @@ QPushButton#rightPushButton{
 	background-image: url(:img/btn_pan_right_normal.png);
 }
 
-QPushButton#stopMoveHPushButton{
-	background-image: url(:img/btn_pan_stop_normal.png);
-}
+
 
 QPushButton#upPushButton{
 	background-image: url(:img/btn_tilt_up_normal.png);
@@ -106,32 +105,21 @@ QPushButton#downPushButton{
 	background-image: url(:img/btn_tilt_down_normal.png);
 }
 
-QPushButton#stopMoveVPushButton{
-	background-image: url(:img/btn_pan_stop_normal.png);
-}
 
 QPushButton#stopMovePushButton{
 	background-image: url(:img/btn_pan_stop_normal.png);
 }
 
-QPushButton#pushButton_1{
+QPushButton#cameraPushButton{
 	background-image: url(:/img/device_nex.png);
 }
 
-QPushButton#pushButton_2{
+QPushButton#toolsPushButton{
 	background-image: url(:/img/btn_settings_normal.png);
 }
 
-QPushButton#pushButton_2:checked{
-	background-image: url(:/img/btn_settings_disable.png);
-}
-
-QPushButton#pushButton_3{
+QPushButton#previewPushButton{
 	background-image: url(:/img/btn_postview_common_normal.png);
-}
-
-QPushButton#pushButton_3:checked{
-	background-image: url(:/img/btn_postview_common_disable.png);
 }
 
 
@@ -276,7 +264,7 @@ QCheckBox#loadPreviewPicCheckBox{
      <rect>
       <x>10</x>
       <y>0</y>
-      <width>604</width>
+      <width>541</width>
       <height>631</height>
      </rect>
     </property>
@@ -284,8 +272,96 @@ QCheckBox#loadPreviewPicCheckBox{
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="previewPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <kerning>false</kerning>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normalon>:/img/btn_postview_common_normal.png</normalon>
+        </iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QPushButton" name="toolsPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <kerning>false</kerning>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normalon>:/img/btn_settings_normal.png</normalon>
+        </iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item row="2" column="0">
-      <widget class="QPushButton" name="pushButton_1">
+      <widget class="QPushButton" name="cameraPushButton">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -341,52 +417,8 @@ QCheckBox#loadPreviewPicCheckBox{
        </property>
       </widget>
      </item>
-     <item row="2" column="2">
-      <widget class="QPushButton" name="pushButton_3">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <kerning>false</kerning>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normalon>:/img/btn_postview_common_normal.png</normalon>
-        </iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>52</width>
-         <height>22</height>
-        </size>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="4">
-      <widget class="QPushButton" name="zoomInPushButton">
+     <item row="1" column="2">
+      <widget class="QPushButton" name="upPushButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -407,48 +439,11 @@ QCheckBox#loadPreviewPicCheckBox{
        </property>
        <property name="text">
         <string/>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>52</width>
-         <height>22</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="3">
-      <widget class="QPushButton" name="zoomOutPushButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>52</width>
-         <height>22</height>
-        </size>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="leftPushButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -466,33 +461,17 @@ QCheckBox#loadPreviewPicCheckBox{
          <width>16777215</width>
          <height>100</height>
         </size>
-       </property>
-       <property name="font">
-        <font>
-         <kerning>false</kerning>
-        </font>
        </property>
        <property name="text">
         <string/>
        </property>
-       <property name="icon">
-        <iconset>
-         <normalon>:/img/btn_settings_normal.png</normalon>
-        </iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>52</width>
-         <height>22</height>
-        </size>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
+       <property name="autoRepeat">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="2" column="5">
-      <widget class="QPushButton" name="previousPushButton">
+     <item row="3" column="2">
+      <widget class="QPushButton" name="downPushButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -512,7 +491,32 @@ QCheckBox#loadPreviewPicCheckBox{
         </size>
        </property>
        <property name="text">
-        <string>-</string>
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QPushButton" name="rightPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>
@@ -1080,7 +1084,38 @@ QCheckBox#loadPreviewPicCheckBox{
        </widget>
       </widget>
      </item>
-     <item row="2" column="7">
+     <item row="2" column="2">
+      <widget class="QPushButton" name="stopMovePushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="sizeIncrement">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="6">
       <widget class="QPushButton" name="takePicturePushButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -1120,7 +1155,7 @@ QCheckBox#loadPreviewPicCheckBox{
        </property>
       </widget>
      </item>
-     <item row="2" column="6">
+     <item row="3" column="5">
       <widget class="QPushButton" name="nextPushButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -1145,8 +1180,8 @@ QCheckBox#loadPreviewPicCheckBox{
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QPushButton" name="leftPushButton">
+     <item row="3" column="4">
+      <widget class="QPushButton" name="previousPushButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -1166,15 +1201,12 @@ QCheckBox#loadPreviewPicCheckBox{
         </size>
        </property>
        <property name="text">
-        <string/>
-       </property>
-       <property name="autoRepeat">
-        <bool>false</bool>
+        <string>-</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QPushButton" name="rightPushButton">
+     <item row="2" column="5">
+      <widget class="QPushButton" name="zoomInPushButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -1195,137 +1227,57 @@ QCheckBox#loadPreviewPicCheckBox{
        </property>
        <property name="text">
         <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="4">
+      <widget class="QPushButton" name="zoomOutPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
        </property>
       </widget>
      </item>
      <item row="1" column="4">
-      <widget class="QPushButton" name="upPushButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
-        </size>
-       </property>
+      <widget class="QPushButton" name="manualFocusInPushButton">
        <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="3">
-      <widget class="QPushButton" name="downPushButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QPushButton" name="stopMoveHPushButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
+        <string>In</string>
        </property>
       </widget>
      </item>
      <item row="1" column="5">
-      <widget class="QPushButton" name="stopMoveVPushButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
-        </size>
-       </property>
+      <widget class="QPushButton" name="manualFocusOutPushButton">
        <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="6">
-      <widget class="QPushButton" name="stopMovePushButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="sizeIncrement">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
+        <string>Out</string>
        </property>
       </widget>
      </item>
@@ -1340,7 +1292,7 @@ QCheckBox#loadPreviewPicCheckBox{
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>521</width>
+     <width>553</width>
      <height>22</height>
     </rect>
    </property>
