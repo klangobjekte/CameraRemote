@@ -1,10 +1,11 @@
 #ifndef MYSONSTANTS_H
 #define MYSONSTANTS_H
 
-const unsigned int bufferLCount = 3;
+const unsigned int bufferLoadCount = 3;
 // The Size of the Ringbuffer
-const unsigned int  gRingBufferSize = 1024 * 34*bufferLCount;
+const unsigned int  gRingBufferSize = 1024 * 34*bufferLoadCount;
 const unsigned int estJpegSize = 36000;
+
 
 const unsigned int consumerBufferLen = gRingBufferSize - estJpegSize;
 const unsigned int producerLoadSize = gRingBufferSize - estJpegSize;

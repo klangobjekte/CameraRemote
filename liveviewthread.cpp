@@ -10,12 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-QSemaphore freeSpace(1);
+QSemaphore freeSpace(producerLoadSize);
 QSemaphore usedSpace;
-
-//const int DataSize = 100000;
-//const int BufferSize = 8192;
-//char buffer[BufferSize];
+unsigned int realLoadSize =0;
 
 
 RingBuffer *ringBuffer = new RingBuffer(gRingBufferSize);
@@ -69,10 +66,18 @@ void LiveViewProducer::onLiveViewManagerReadyRead(){
     if(replycount > 0){
         //qDebug() << liveReply->read(replycount);
         replyBuffer.append(liveReply->read(replycount));
+        qint64 loadlength =0;
         if(replyBuffer.size() >= producerLoadSize){
+            realLoadSize = replyBuffer.size();
             freeSpace.acquire();
-            qint64 loadlength = ringBuffer->addData((void*)replyBuffer.data(),replyBuffer.size());
+            //for(int i= 0;i<replyBuffer.size();i++){
+            //    loadlength += ringBuffer->addData((void*)replyBuffer.data()[i],1);
+
+            //}
+            loadlength = ringBuffer->addData((void*)replyBuffer.data(),replyBuffer.size());
             qDebug() <<  "replyBuffer.size(): " << replyBuffer.size() << "loadlength: " << loadlength ;
+            //qDebug() <<  "loadlength: " << loadlength ;
+
             replyBuffer.remove(0,loadlength);
 
             qDebug() <<  "replyBuffer.size(): " << replyBuffer.size();
@@ -84,8 +89,8 @@ void LiveViewProducer::onLiveViewManagerReadyRead(){
 
             usedSpace.release();
             emit bufferLoaded();
-        }
-    }
+        }//replyBuffersize
+    }// replycount
 #endif
     //exit();
 }
@@ -211,13 +216,14 @@ void LiveViewConsumer::buildLiveView(){
 
     usedSpace.acquire();
     //usedSpace.acquire(ringBuffer->Buffered_Bytes());
-    qint64 loadedBytes = ringBuffer->getData(consumerP,consumerBufferLen);
+    qint64 loadedBytes = ringBuffer->getData(consumerP,realLoadSize);
     qDebug() << "loadedBytes: " << loadedBytes;
     //inputStream.setRawData(consumerP,consumerBufferLen);
     inputStream.append(consumerP,loadedBytes);
-    if(loadedBytes < consumerBufferLen){
-       loadedBytes = ringBuffer->getData(consumerP,consumerBufferLen-loadedBytes);
-        inputStream.append(consumerP,loadedBytes);
+    if(loadedBytes < realLoadSize){
+       loadedBytes = ringBuffer->getData(consumerP,realLoadSize-loadedBytes);
+        qDebug() << "loadedBytes 2: " << loadedBytes;
+       inputStream.append(consumerP,loadedBytes);
 
     }
 
@@ -226,7 +232,7 @@ void LiveViewConsumer::buildLiveView(){
         //! search in  tmp Buffer
         while (offset< (inputStream.length() -1)) {
             //! suche nach Bildanfang ab Stelle offset
-            while(!foundstart && offset< (inputStream.length() -1) ){
+            while(!foundstart && offset < (inputStream.length() -1) ){
                 if (inputStream.at(offset) == (char) 0xFF && inputStream.at(offset+1) == (char) 0x01) {
                     qDebug() << "Start byte Found at " << offset;
                     if (inputStream.at(offset+8) == (char) 0x24
@@ -238,18 +244,11 @@ void LiveViewConsumer::buildLiveView(){
                             qDebug() << "Payloadheader Found at " << offset+8;
                     }
                 }
-
-
-
-
-    #ifdef Q_OS_ANDROID
-                if(inputStream.at(offset) == 255  && inputStream.at(offset+1) == 216){
-    #else
-                if(inputStream.at(offset) == -1  && inputStream.at(offset+1) == -40){
-    #endif
+                // osx: -1,40 Android: 255,216
+                if(inputStream.at(offset) == (char) 0xff  && inputStream.at(offset+1) == (char)0xd8){
                     starttime = offset;
-                    //found = true;
                     foundstart = true;
+                    qDebug() << "start Found";
                 }
                 offset++;
             }//while
@@ -257,14 +256,11 @@ void LiveViewConsumer::buildLiveView(){
             int arrayiter=0;
             //! suche nach Bildende ab Stelle offset
             while(foundstart && !foundend && offset<(inputStream.length()-1)){
-
-    #ifdef Q_OS_ANDROID
-                if(inputStream.at(offset) == 255 && inputStream.at(offset+1) == 217){
-    #else
-                if(inputStream.at(offset) == -1 && inputStream.at(offset+1) == -39){
-    #endif
+                // osx: -1,39 Android: 255,217
+                if(inputStream.at(offset) == (char)0xff && inputStream.at(offset+1) == (char)0xd9){
                     endtime = offset;
                     foundend = true;
+                    qDebug() << "end Found";
                 }
                 array[arrayiter] = inputStream.at(offset-1);
                 arrayiter++;
@@ -273,6 +269,7 @@ void LiveViewConsumer::buildLiveView(){
 
             //! Bild gefunden
             if(foundstart && foundend){
+                emit publishLiveViewBytes(array);
                 jpegSize = endtime-starttime;
                 qDebug() << "Picture Found           " <<"\n"
                          << "Starttime:              " << starttime << "\n"
@@ -283,7 +280,7 @@ void LiveViewConsumer::buildLiveView(){
                          << "jpegSize from Header:   " << hjpegSize << "\n"
                          << "paddingSize:            " << paddingSize << "\n"
                          << "jpegSize full size:     " << endtime;
-                emit publishLiveViewBytes(array);
+
                 found = false;
                 foundend = false;
                 foundstart = false;
@@ -292,14 +289,6 @@ void LiveViewConsumer::buildLiveView(){
                 qDebug() << "inputStream new size:   " << inputStream.size() << "\n";
                 //qDebug() << "publishLiveViewBytes";
             }
-            /*
-            if(offset >= (inputStream.size()-1)){
-                //inputStream.clear();
-                offset = 0;
-                //starttime = 0;
-                //endtime = 0;
-                //qDebug() << "Buffer Cleared";
-            }*/
             freeSpace.release();
         } // while search in tmp buffer;
 

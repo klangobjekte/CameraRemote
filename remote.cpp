@@ -1278,7 +1278,7 @@ void Remote::startLiveview(int id){
 
 void Remote::stopLiveview(int id){
     commandFabrikMethod("stopLiveview",id);
-    timer->stop();
+    //timer->stop();
     //_liveViewConsumer->quit();
 
     liveviewstatus = false;
