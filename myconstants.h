@@ -17,6 +17,6 @@ const  qint64 producerLoadSize = gRingBufferSize - estJpegSize;
 const unsigned int sleepTime = 20;
 //#define _USESTREAM
 #define _USEPRODUCERTHREAD
-//#define __USE_STANDARD_HEADER
+#define __USE_STANDARD_HEADER
 
 #endif // MYSONSTANTS_H

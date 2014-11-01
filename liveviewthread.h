@@ -36,7 +36,7 @@ private:
     NetworkConnection *_networkConnection;
 
     QString _liveViewRequest;
-    QByteArray replyBuffer;
+    //QByteArray replyBuffer;
 
 
 };
@@ -66,6 +66,16 @@ private:
     int offset;
     uint64_t starttime;
     uint64_t endtime;
+    uint64_t foundstartOffset;
+    int arrayiter;
+
+    bool foundstart;
+    bool foundend;
+    bool carry;
+
+    int jpegSize ;//34048;
+    int hjpegSize ;
+    int paddingSize ;
 
     bool liveViewStreamAlive;
     //char *consumerP;

@@ -8,7 +8,7 @@ extern int bytesToInt(QByteArray byteData, int startIndex, int count);
 extern RingBuffer *ringBuffer;
 extern const unsigned int gRingBufferSize;
 extern const unsigned int  bufferLoadCount;
-extern unsigned int realLoadSize;
+extern unsigned int gRealLoadSize;
 extern QSemaphore freeSpace;
 extern QSemaphore usedSpace;
 
