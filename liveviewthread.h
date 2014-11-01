@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QThread>
-#include <QMutex>
+
 #include <QDebug>
 //#include <QSemaphore>
 #include <QTime>
@@ -28,9 +28,10 @@ private slots:
     void onLiveViewManagerReadyRead();
 signals:
     void bufferLoaded();
+    void newByteReached();
 
 private:
-    QNetworkAccessManager *liveViewManager;
+    //QNetworkAccessManager *liveViewManager;
     QNetworkReply *liveReply;
     NetworkConnection *_networkConnection;
 
@@ -52,11 +53,14 @@ signals:
     void publishLiveViewBytes(QByteArray bytes);
 
 public slots:
+    void awakeConsumer();
+    void sleepConsumer();
 
 private:
     //RingBuffer *ringBuffer;
 
     QNetworkReply *_reply;
+
     void buildLiveView();
     virtual void run();
     int offset;
@@ -64,7 +68,7 @@ private:
     uint64_t endtime;
 
     bool liveViewStreamAlive;
-    char *consumerP;
+    //char *consumerP;
 
 #ifdef _USESTREAM
     QDataStream inputStream;

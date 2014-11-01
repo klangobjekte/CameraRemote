@@ -3,6 +3,8 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QUrl>
+#include <QWaitCondition>
+#include <QMutex>
 //#include "ringbuffer.h"
 #include "networkconnection.h"
 
@@ -10,10 +12,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-QSemaphore freeSpace(producerLoadSize);
+
+#define LOG_LIVEVIETHREAD
+#ifdef LOG_LIVEVIETHREAD
+#   define LOG_LIVEVIETHREAD_DEBUG qDebug()
+#else
+#   define LOG_LIVEVIETHREAD_DEBUG nullDebug()
+#endif
+
+
+QSemaphore freeSpace(1);
 QSemaphore usedSpace;
 unsigned int realLoadSize =0;
-
+//QWaitCondition bufferIsNotFull;
+QWaitCondition bufferIsNotEmpty;
+QMutex mutex;
 
 RingBuffer *ringBuffer = new RingBuffer(gRingBufferSize);
 
@@ -37,60 +50,63 @@ LiveViewProducer::LiveViewProducer(
 }
 
 void LiveViewProducer::run(){
-    qDebug() << "\n++++++++++++++++++++++++++++++++++++++";
-    qDebug() << "LiveViewProducer run\n" << _liveViewRequest;
+    LOG_LIVEVIETHREAD_DEBUG << "\n++++++++++++++++++++++++++++++++++++++";
+    LOG_LIVEVIETHREAD_DEBUG << "LiveViewProducer run\n" << _liveViewRequest;
     QByteArray ba("test");
     //for (char c : ba) {
-    //    qDebug() << QString("0x%1").arg((int)c, 0, 16);
+    //    LOG_LIVEVIETHREAD_DEBUG << QString("0x%1").arg((int)c, 0, 16);
     //}
 
-    liveViewManager = new QNetworkAccessManager;
-    liveViewManager->setConfiguration(_networkConnection->getActiveConfiguration());
+    QNetworkAccessManager liveViewManager;// = new QNetworkAccessManager;
+    liveViewManager.setConfiguration(_networkConnection->getActiveConfiguration());
     QUrl localurl(_liveViewRequest);
     QNetworkRequest request(localurl);
-    liveReply = liveViewManager->get(request);
+    liveReply = liveViewManager.get(request);
+    //QMetaObject::invokeMethod(liveReply,SLOT(onLiveViewManagerReadyRead()));
     connect(liveReply, SIGNAL(readyRead()), this, SLOT(onLiveViewManagerReadyRead()));
-    //freeSpace.acquire();
-    exec();
+    emit bufferLoaded();
+    QThread::exec();
 }
 
 void LiveViewProducer::onLiveViewManagerReadyRead(){
-    //qDebug() << "onLiveViewManagerReadyRead";
-    //qDebug() << "liveReply->bytesAvailable(): "<< liveReply->bytesAvailable();
+
+    //emit newByteReached();
+   // LOG_LIVEVIETHREAD_DEBUG << "onLiveViewManagerReadyRead";
+    //LOG_LIVEVIETHREAD_DEBUG << "liveReply->bytesAvailable(): "<< liveReply->bytesAvailable();
 #ifdef _USESTREAM
     // TODO
 #else
+    //forever{
+        qint64 replycount = liveReply->bytesAvailable();
+        if(replycount > 0){
+            LOG_LIVEVIETHREAD_DEBUG << "onLiveViewManagerReadyRead replycount : " << replycount;
 
-    qint64 replycount = liveReply->bytesAvailable();
-    //qDebug() << "replycount before: " << replycount;
-    if(replycount > 0){
-        //qDebug() << liveReply->read(replycount);
-        replyBuffer.append(liveReply->read(replycount));
-        qint64 loadlength =0;
-        if(replyBuffer.size() >= producerLoadSize){
-            realLoadSize = replyBuffer.size();
-            freeSpace.acquire();
-            //for(int i= 0;i<replyBuffer.size();i++){
-            //    loadlength += ringBuffer->addData((void*)replyBuffer.data()[i],1);
+            //LOG_LIVEVIETHREAD_DEBUG << liveReply->read(replycount);
+            replyBuffer.append(liveReply->read(replycount));
+            qint64 loadlength =0;
+            if(replyBuffer.size() >= producerLoadSize){
+                realLoadSize = replyBuffer.size();
 
-            //}
-            loadlength = ringBuffer->addData((void*)replyBuffer.data(),replyBuffer.size());
-            qDebug() <<  "replyBuffer.size(): " << replyBuffer.size() << "loadlength: " << loadlength ;
-            //qDebug() <<  "loadlength: " << loadlength ;
+                loadlength = ringBuffer->addData((void*)replyBuffer.data(),realLoadSize);
+                LOG_LIVEVIETHREAD_DEBUG <<  "replyBuffer.size(): " << replyBuffer.size() << "loadlength: " << loadlength ;
+                //LOG_LIVEVIETHREAD_DEBUG <<  "loadlength: " << loadlength ;
 
-            replyBuffer.remove(0,loadlength);
-
-            qDebug() <<  "replyBuffer.size(): " << replyBuffer.size();
-            if(replyBuffer.size() > 0){
-                loadlength = ringBuffer->addData((void*)replyBuffer.data(),replyBuffer.size());
                 replyBuffer.remove(0,loadlength);
-                qDebug() <<  "replyBuffer.size() 2: " << replyBuffer.size();
-            }
 
-            usedSpace.release();
-            emit bufferLoaded();
-        }//replyBuffersize
-    }// replycount
+                //LOG_LIVEVIETHREAD_DEBUG <<  "replyBuffer.size(): " << replyBuffer.size();
+                if(realLoadSize > 0){
+                    loadlength = ringBuffer->addData((void*)replyBuffer.data(),replyBuffer.size());
+                    replyBuffer.remove(0,loadlength);
+                    LOG_LIVEVIETHREAD_DEBUG <<  "replyBuffer.size() 2: " << replyBuffer.size();
+                }
+
+                //usedSpace.release();
+            bufferIsNotEmpty.wakeAll();
+            }//replyBuffersize
+        }// replycount
+
+    //}//forever
+
 #endif
     //exit();
 }
@@ -113,26 +129,35 @@ LiveViewConsumer::LiveViewConsumer(QObject *parent) :
      offset=0;
      starttime=0;
      endtime=0;
-     consumerP=0;
-     consumerP=new char[consumerBufferLen+1];
+     //consumerP=0;
+
      // use it
      //delete[] buff;
 }
 
 
 void LiveViewConsumer::run(){
-    qDebug() << "\n++++++++++++++++++++++++++++++++++++++";
-    qDebug() << "LiveViewConsumer run";
+    LOG_LIVEVIETHREAD_DEBUG << "\n++++++++++++++++++++++++++++++++++++++";
+    LOG_LIVEVIETHREAD_DEBUG << "LiveViewConsumer run";
     while(true){
         buildLiveView();
         msleep(sleepTime);
     }
 }
 
+void LiveViewConsumer::awakeConsumer(){
+    if(!isRunning())
+        start();
+}
+
+void LiveViewConsumer::sleepConsumer(){
+    wait();
+}
+
 void LiveViewConsumer::buildLiveView(){
-    //qDebug() << "\n++++++++++++++++++++++++++++++++++++++";
-    //qDebug() << "buildLiveViewPic";
-    //qDebug()<< "offset" << offset << "starttime: " << starttime << "endtime: " << endtime;
+    //LOG_LIVEVIETHREAD_DEBUG << "\n++++++++++++++++++++++++++++++++++++++";
+    //LOG_LIVEVIETHREAD_DEBUG << "buildLiveViewPic";
+    //LOG_LIVEVIETHREAD_DEBUG<< "offset" << offset << "starttime: " << starttime << "endtime: " << endtime;
     QByteArray array;
 #ifdef _USESTREAM
     // TODO ?
@@ -158,15 +183,15 @@ void LiveViewConsumer::buildLiveView(){
         commonHeader[i] = inputStream[i];
 #endif
     if (commonHeader.isNull() || commonHeader.length() != commonHeaderLength) {
-              qDebug() << "Cannot read stream for common header.";
+              LOG_LIVEVIETHREAD_DEBUG << "Cannot read stream for common header.";
               return;
           }
           if (commonHeader[0] != (char) 0xFF) {
-              qDebug() << "Unexpected data format. (Start byte)";
+              LOG_LIVEVIETHREAD_DEBUG << "Unexpected data format. (Start byte)";
               return;
           }
           if (commonHeader[1] != (char) 0x01) {
-              qDebug() << "Unexpected data format. (Payload byte)";
+              LOG_LIVEVIETHREAD_DEBUG << "Unexpected data format. (Payload byte)";
               return;
           }
 
@@ -174,14 +199,14 @@ void LiveViewConsumer::buildLiveView(){
     for(int i=0;i<payloadHeaderLength;i++)
         payloadHeader[i] = inputStream[i+commonHeaderLength];
     if (payloadHeader.isNull() || payloadHeader.length() != payloadHeaderLength) {
-        qDebug() << "Cannot read stream for payload header.";
+        LOG_LIVEVIETHREAD_DEBUG << "Cannot read stream for payload header.";
         return;
     }
     if (payloadHeader[0] != (char) 0x24
             || payloadHeader[1] != (char) 0x35
             || payloadHeader[2] != (char) 0x68
             || payloadHeader[3] != (char) 0x79) {
-        qDebug() << "Unexpected data format. (Start code)";
+        LOG_LIVEVIETHREAD_DEBUG << "Unexpected data format. (Start code)";
         return;
     }
 
@@ -210,45 +235,57 @@ void LiveViewConsumer::buildLiveView(){
     starttime = 0;
     endtime = 0;
 
-    qDebug() << "consumerBufferLen: " << consumerBufferLen;
-    //qDebug() << "ringBuffer->Free_Space():     " << ringBuffer->Free_Space();
-    //qDebug() << "ringBuffer->Buffered_Bytes(): " <<ringBuffer->Buffered_Bytes();
+    //LOG_LIVEVIETHREAD_DEBUG << "consumerBufferLen: " << consumerBufferLen;
+    //LOG_LIVEVIETHREAD_DEBUG << "ringBuffer->Free_Space():     " << ringBuffer->Free_Space();
+    //LOG_LIVEVIETHREAD_DEBUG << "ringBuffer->Buffered_Bytes(): " <<ringBuffer->Buffered_Bytes();
 
-    usedSpace.acquire();
-    //usedSpace.acquire(ringBuffer->Buffered_Bytes());
+
+    mutex.lock();
+    bufferIsNotEmpty.wait(&mutex);
+    //consumerP=new char[realLoadSize+1];
+    char consumerP[realLoadSize+1];
     qint64 loadedBytes = ringBuffer->getData(consumerP,realLoadSize);
-    qDebug() << "loadedBytes: " << loadedBytes;
+    LOG_LIVEVIETHREAD_DEBUG << "Consumer loadedBytes: " << loadedBytes;
     //inputStream.setRawData(consumerP,consumerBufferLen);
-    inputStream.append(consumerP,loadedBytes);
+    if(loadedBytes >0){
+        inputStream.append(consumerP,loadedBytes);
+    }
+    //delete[] consumerP;
+    //consumerP =0;
     if(loadedBytes < realLoadSize){
+        //consumerP=new char[realLoadSize-loadedBytes+1];
+        char consumerP[realLoadSize-loadedBytes+1];
        loadedBytes = ringBuffer->getData(consumerP,realLoadSize-loadedBytes);
-        qDebug() << "loadedBytes 2: " << loadedBytes;
-       inputStream.append(consumerP,loadedBytes);
-
+        LOG_LIVEVIETHREAD_DEBUG << "loadedBytes 2: " << loadedBytes;
+        if(loadedBytes >0){
+            inputStream.append(consumerP,loadedBytes);
+        }
+        //delete[] consumerP;
+        //consumerP =0;
     }
 
     if(!inputStream.isEmpty()){
-        //qDebug() << "!inputStream.isEmpty()" << inputStream.size();
+        //LOG_LIVEVIETHREAD_DEBUG << "!inputStream.isEmpty()" << inputStream.size();
         //! search in  tmp Buffer
         while (offset< (inputStream.length() -1)) {
             //! suche nach Bildanfang ab Stelle offset
             while(!foundstart && offset < (inputStream.length() -1) ){
                 if (inputStream.at(offset) == (char) 0xFF && inputStream.at(offset+1) == (char) 0x01) {
-                    qDebug() << "Start byte Found at " << offset;
+                    LOG_LIVEVIETHREAD_DEBUG << "Start byte Found at " << offset;
                     if (inputStream.at(offset+8) == (char) 0x24
                             && inputStream.at(offset+9) == (char) 0x35
                             && inputStream.at(offset+10) == (char) 0x68
                             && inputStream.at(offset+11) == (char) 0x79) {
                             hjpegSize = bytesToInt(inputStream, 12, 3);
                             paddingSize = bytesToInt(inputStream, 15, 1);
-                            qDebug() << "Payloadheader Found at " << offset+8;
+                            LOG_LIVEVIETHREAD_DEBUG << "Payloadheader Found at " << offset+8;
                     }
                 }
                 // osx: -1,40 Android: 255,216
                 if(inputStream.at(offset) == (char) 0xff  && inputStream.at(offset+1) == (char)0xd8){
                     starttime = offset;
                     foundstart = true;
-                    qDebug() << "start Found";
+                    LOG_LIVEVIETHREAD_DEBUG << "start Found";
                 }
                 offset++;
             }//while
@@ -260,7 +297,7 @@ void LiveViewConsumer::buildLiveView(){
                 if(inputStream.at(offset) == (char)0xff && inputStream.at(offset+1) == (char)0xd9){
                     endtime = offset;
                     foundend = true;
-                    qDebug() << "end Found";
+                    LOG_LIVEVIETHREAD_DEBUG << "end Found";
                 }
                 array[arrayiter] = inputStream.at(offset-1);
                 arrayiter++;
@@ -269,9 +306,9 @@ void LiveViewConsumer::buildLiveView(){
 
             //! Bild gefunden
             if(foundstart && foundend){
-                emit publishLiveViewBytes(array);
+
                 jpegSize = endtime-starttime;
-                qDebug() << "Picture Found           " <<"\n"
+                LOG_LIVEVIETHREAD_DEBUG << "Picture Found           " <<"\n"
                          << "Starttime:              " << starttime << "\n"
                          << "endtime:                " << endtime << "\n"
                          << "offset:                 " << offset << "\n"
@@ -280,20 +317,21 @@ void LiveViewConsumer::buildLiveView(){
                          << "jpegSize from Header:   " << hjpegSize << "\n"
                          << "paddingSize:            " << paddingSize << "\n"
                          << "jpegSize full size:     " << endtime;
-
+                emit publishLiveViewBytes(array);
                 found = false;
                 foundend = false;
                 foundstart = false;
                 inputStream.remove(0,endtime);
                 offset = 0;
-                qDebug() << "inputStream new size:   " << inputStream.size() << "\n";
-                //qDebug() << "publishLiveViewBytes";
+                LOG_LIVEVIETHREAD_DEBUG << "inputStream new size:   " << inputStream.size() << "\n";
+                //LOG_LIVEVIETHREAD_DEBUG << "publishLiveViewBytes";
             }
-            freeSpace.release();
+            //freeSpace.release();
         } // while search in tmp buffer;
 
 
     }// !inputStream.isEmpty()
+    mutex.unlock();
    #endif
 
 }
@@ -302,7 +340,7 @@ void LiveViewConsumer::setInputStream(QNetworkReply *reply ){
     static qint64 border=0;
     _reply = reply;
     qint64 maxlen = _reply->bytesAvailable();
-    //qDebug() << "maxlen before: " << maxlen;
+    //LOG_LIVEVIETHREAD_DEBUG << "maxlen before: " << maxlen;
     char *bytearrayP=0;
     bytearrayP = new char[maxlen];
     //liveReply->readAll();
@@ -318,7 +356,7 @@ void LiveViewConsumer::setInputStream(QNetworkReply *reply ){
 
     border+=maxlen;
     if (border >= gRingBufferSize){
-    //qDebug() << "maxlen after: " << maxlen;
+    //LOG_LIVEVIETHREAD_DEBUG << "maxlen after: " << maxlen;
     //if(ringBuffer->Free_Space() < maxlen){
         if(!isRunning()){
             this->start();

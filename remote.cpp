@@ -171,7 +171,9 @@ Remote::Remote(NetworkConnection *networkConnection,LiveViewConsumer *liveViewCo
 
 #ifdef _USEPRODUCERTHREAD
     connect(liveViewProducer,SIGNAL(bufferLoaded()),
-            _liveViewConsumer,SLOT(start()));
+            _liveViewConsumer,SLOT(awakeConsumer()),Qt::DirectConnection);
+    connect(liveViewProducer,SIGNAL(newByteReached()),
+            _liveViewConsumer,SLOT(sleepConsumer()),Qt::DirectConnection);
 #endif
 }
 

@@ -4,11 +4,12 @@
 const unsigned int bufferLoadCount = 3;
 // The Size of the Ringbuffer
 const unsigned int estJpegSize = 34816;
+//const unsigned int estJpegSize = 36000;
 //const unsigned int  gRingBufferSize = 1024 * 34*bufferLoadCount;
 const unsigned int  gRingBufferSize = estJpegSize*bufferLoadCount;
 
-const unsigned int consumerBufferLen = gRingBufferSize - estJpegSize;
-const unsigned int producerLoadSize = gRingBufferSize - estJpegSize;
+const  qint64 consumerBufferLen = gRingBufferSize - estJpegSize;
+const  qint64 producerLoadSize = gRingBufferSize - estJpegSize;
 
 // The datasize of the Producer
 //const unsigned int dataSize = gRingBufferSize*3;

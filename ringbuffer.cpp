@@ -1,7 +1,17 @@
 #include "ringbuffer.h"
+#include "cameraremotedefinitions.h"
 #include <QDebug>
 
-RingBuffer::RingBuffer( unsigned int buffSize, QObject *parent) :
+
+//#define LOG_RINGBUFFER
+#ifdef LOG_RINGBUFFER
+#   define LOG_RINGBUFFER_DEBUG qDebug()
+#else
+#   define LOG_RINGBUFFER_DEBUG nullDebug()
+#endif
+
+
+RingBuffer::RingBuffer( qint64 buffSize, QObject *parent) :
     QObject(parent)
 {
     //_buffer = (unsigned char*)buffer;
@@ -20,12 +30,12 @@ qint64 RingBuffer::addData(const void* data,  qint64 len )
 {
 
     qint64 _len = len;
-    if ( _len > (unsigned int)_bufferSize ){
-        _len = (unsigned int)_bufferSize;
+    if ( _len > (qint64)_bufferSize ){
+        _len = (qint64)_bufferSize;
     }
-    qDebug() << "addData " << _len;
-    //memcpy( outData, _consumePointer, _len );
-    memmove(_producePointer, data, (size_t)_len );
+    LOG_RINGBUFFER_DEBUG << "addData " << _len;
+    memcpy( _producePointer, data, (size_t)_len );
+    //memmove(_producePointer, data, (size_t)_len );
     _producePointer += _len;
     _dataInBuffer += _len;
     updateState();
@@ -37,13 +47,13 @@ qint64 RingBuffer::addData(const void* data,  qint64 len )
 qint64 RingBuffer::getData( void* outData, qint64 len )
 {
     qint64 _len = len;
-    if ( len > (unsigned int)_maxConsume ){
-        _len = (unsigned int)_maxConsume;
+    if ( len > (qint64)_maxConsume ){
+        _len = (qint64)_maxConsume;
     }
-    qDebug() << "getData " << _len;
+    LOG_RINGBUFFER_DEBUG << "getData " << _len;
 
-    //memcpy( outData, _consumePointer, _len );
-    memmove( outData, _consumePointer, _len );
+    memcpy( outData, _consumePointer, _len );
+    //memmove( outData, _consumePointer, _len );
     _consumePointer += _len;
     _dataInBuffer -= _len;
     updateState();
@@ -52,9 +62,9 @@ qint64 RingBuffer::getData( void* outData, qint64 len )
 
 // Tries to skip len bytes. After the call,
 // 'len' contains the realized skip.
-void RingBuffer::skipData( unsigned int& len )
+void RingBuffer::skipData( qint64& len )
 {
-    unsigned int requestedSkip = len;
+    qint64 requestedSkip = len;
     for ( int i=0; i<2; ++i ) // This may wrap  so try it twice
     {
         int skip = (int)len;
@@ -71,15 +81,15 @@ void RingBuffer::skipData( unsigned int& len )
 void RingBuffer::updateState()
 {
     if (_consumePointer == _buffEnd){
-        qDebug() << "_consumePointer == _buffEnd";
+        LOG_RINGBUFFER_DEBUG << "_consumePointer == _buffEnd";
         _consumePointer = &_buffer[0];}
 
     if (_producePointer == _buffEnd){
-        qDebug() << "_producePointer == _buffEnd";
+        LOG_RINGBUFFER_DEBUG << "_producePointer == _buffEnd";
         _producePointer = &_buffer[0];}
 
     if (_producePointer == _consumePointer){
-        qDebug() << "_producePointer == _consumePointer";
+        LOG_RINGBUFFER_DEBUG << "_producePointer == _consumePointer";
         if ( _dataInBuffer > 0 ){
             _bufferSize = 0;
             _maxConsume = _buffEnd - _consumePointer;

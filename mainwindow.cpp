@@ -184,7 +184,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //        this,SLOT(drawLiveView(QByteArray)));
 
     connect(liveViewConsumer,SIGNAL(publishLiveViewBytes(QByteArray)),
-            this,SLOT(drawLiveView(QByteArray)),Qt::BlockingQueuedConnection);
+            this,SLOT(drawLiveView(QByteArray)));
 
     connect(remote,SIGNAL(publishCameraStatus(QString)),
             this,SLOT(onCameraStatusChanged(QString)));
@@ -1564,7 +1564,7 @@ QByteArray MainWindow::readPreviewFile(QString path){
 
 void MainWindow::drawLiveView(QByteArray bytes){
     //LOG_SCREENDESIGN_DEBUG << "drawLiveView";
-    qDebug() << "drawLiveView";
+    //qDebug() << "drawLiveView";
     ui->startLiveViewPushButton->setChecked(true);
 #ifdef __STORE__SINGLE_PREVIEW_PICS
     static int number = 0;
