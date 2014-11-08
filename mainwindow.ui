@@ -543,8 +543,8 @@ QCheckBox#loadPreviewPicCheckBox{
           <rect>
            <x>-10</x>
            <y>0</y>
-           <width>546</width>
-           <height>551</height>
+           <width>551</width>
+           <height>471</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="controlGridLayout">
@@ -554,81 +554,6 @@ QCheckBox#loadPreviewPicCheckBox{
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="1" column="5">
-           <widget class="QLabel" name="zoomPositionLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QComboBox" name="fNumberComboBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-            <property name="maxVisibleItems">
-             <number>20</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QComboBox" name="shutterSpeedComboBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
-              <kerning>false</kerning>
-             </font>
-            </property>
-            <property name="maxVisibleItems">
-             <number>20</number>
-            </property>
-            <property name="insertPolicy">
-             <enum>QComboBox::InsertAtTop</enum>
-            </property>
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0" colspan="2">
            <widget class="QComboBox" name="whiteBalanceComboBox">
             <property name="sizePolicy">
@@ -657,6 +582,22 @@ QCheckBox#loadPreviewPicCheckBox{
             </property>
             <property name="maxVisibleItems">
              <number>20</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="5">
+           <widget class="QComboBox" name="focusModeComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maxVisibleItems">
+             <number>6</number>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QComboBox::AdjustToContents</enum>
             </property>
            </widget>
           </item>
@@ -691,7 +632,63 @@ QCheckBox#loadPreviewPicCheckBox{
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="6">
+          <item row="1" column="3">
+           <widget class="QComboBox" name="fNumberComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="maxVisibleItems">
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QComboBox" name="shutterSpeedComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
+              <kerning>false</kerning>
+             </font>
+            </property>
+            <property name="maxVisibleItems">
+             <number>6</number>
+            </property>
+            <property name="insertPolicy">
+             <enum>QComboBox::InsertAtTop</enum>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="7">
            <widget class="QGraphicsView" name="LiveviewGraphicsView">
             <property name="enabled">
              <bool>false</bool>
@@ -713,6 +710,25 @@ QCheckBox#loadPreviewPicCheckBox{
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="6">
+           <widget class="QLabel" name="zoomPositionLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>10</width>
+              <height>10</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Zoom</string>
             </property>
            </widget>
           </item>

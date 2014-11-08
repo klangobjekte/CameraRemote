@@ -28,9 +28,20 @@
 #include <QMessageBox>
 #include "liveviewthread.h"
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+//#include <opencv2/opencv.hpp>
+
+
+
+
 
 
 using namespace std;
+using namespace cv;
+
 //Q_DECLARE_METATYPE(QIntMap)
 
 //I/SurfaceView(28761): Locking canvas... stopped=false, win=android.view.SurfaceView$MyWindow@41b67540
@@ -204,6 +215,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(remote,SIGNAL(publishAvailableExposureModes(QStringList)),
             this,SLOT(addexposureModeComboBoxItems(QStringList)));
 
+    connect(remote,SIGNAL(publishAvailableFocusModeCandidates(QStringList)),
+            this,SLOT(addfocuModeComboBoxItems(QStringList)));
+
+
+
+
     connect(remote,SIGNAL(publishAvailablePostviewImageSizeCandidates(QStringList)),
             this,SLOT(addPostViewImageSizeComboBoxItems(QStringList)));
 
@@ -222,12 +239,17 @@ MainWindow::MainWindow(QWidget *parent) :
             this,SLOT(whiteBalanceComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentExposureMode(QString)),
             this,SLOT(exposureModeComboBox_setCurrentText(QString)));
+
+    connect(remote,SIGNAL(publishCurrentFocusMode(QString)),
+            this,SLOT(focusModeComoBox_setCurrentText(QString)));
+
     connect(remote,SIGNAL(publishLiveViewStatus(bool)),
             this,SLOT(startLiveViewPushButton_setChecked(bool)));
     connect(remote,SIGNAL(publishCurrentSelfTimer(QString)),
             this,SLOT(selfTimerComboBox_setCurrentText(QString)));
     connect(remote,SIGNAL(publishCurrentPostviewImageSize(QString)),
             this,SLOT(postViewImageSizeComboBox_setCurrentText(QString)));
+
     connect(remote,SIGNAL(publishZoomPosition(int)),
             this,SLOT(on_zoomPositionChanged(int)));
 
@@ -282,6 +304,11 @@ MainWindow::MainWindow(QWidget *parent) :
     readSettings();
     ui->chooseFolderPushButton->setText(previewPath);
     remote->initialEvent();
+
+
+
+
+
 }
 
 MainWindow::~MainWindow()
@@ -1162,6 +1189,16 @@ void MainWindow::on_exposureModeComboBox_activated(QString text){
         remote->commandFabrikMethod("setExposureMode",remote->getMethods().value("setExposureMode"),param);
 }
 
+void MainWindow::on_focusModeComboBox_activated(QString text){
+    QByteArray param;
+    param.append("\"");
+    param.append(text);
+    param.append("\"");
+    if(remote->getMethods().value("setFocusMode") != 0)
+        remote->commandFabrikMethod("setFocusMode",remote->getMethods().value("setFocusMode"),param);
+}
+
+
 void MainWindow::on_selfTimerComboBox_activated(QString text){
     //int para = text.toInt();
     QByteArray param;
@@ -1422,6 +1459,14 @@ void MainWindow::addexposureModeComboBoxItems(QStringList items){
     }
 }
 
+void MainWindow::addfocuModeComboBoxItems(QStringList items){
+    foreach (QString item, items) {
+        if(ui->focusModeComboBox->findText(item) == -1){
+            ui->focusModeComboBox->addItem(item);
+        }
+    }
+}
+
 void MainWindow::addSelfTimerComboBoxItems(QStringList items){
     foreach (QString item, items) {
         if(ui->selfTimerComboBox->findText(item) == -1){
@@ -1471,6 +1516,10 @@ void MainWindow::exposureModeComboBox_setCurrentText(QString text){
     ui->exposureModeComboBox->setCurrentText(text);
 }
 
+void MainWindow::focusModeComoBox_setCurrentText(QString text){
+    ui->focusModeComboBox->setCurrentText(text);
+}
+
 void MainWindow::startLiveViewPushButton_setChecked(bool status){
     qDebug() << "startLiveViewPushButton_setChecked " << status;
     ui->startLiveViewPushButton->setChecked(status);
@@ -1508,8 +1557,19 @@ void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
 
 void MainWindow::drawPreview(QString path){
     if(!path.isEmpty()){
-        QByteArray bytes = readPreviewFile(path);
-        previewimg.loadFromData(bytes);
+
+
+        Mat image;
+        image =  imread(path.toStdString());
+        flip(image,image,0);
+        cvtColor(image,image,CV_BGR2RGB);
+        //namedWindow("Original Image"); // define the window
+        //imshow("Original Image", image); // show the image
+        QImage img= QImage((const unsigned char*)(image.data),
+                 image.cols,image.rows,QImage::Format_RGB888);
+        previewimg = img;
+
+
         if(!previewimg.isNull()){
             QSize size = previewimg.size();
             LOG_SCREENDESIGN_DEBUG << "Preview image Size: " << size;
@@ -1582,8 +1642,29 @@ void MainWindow::drawLiveView(QByteArray bytes){
     }
     number++;
     LOG_MAINWINDOW_DEBUG << "number: " << number;
+#endif 
+//#define __USE_OPENCV
+#ifdef __USE_OPENCV
+    //QByteArray imagearray;
+    //imagearray.append((const  char*)image.data);
+    //liveviewimg.loadFromData(imagearray);
+    //Mat image;
+    //image =  imread(path.toStdString());
+    //image = imdecode(bytes.data(),1);
+    vector<unsigned char> vectorBuffer(
+        bytes.begin(), bytes.end());
+    Mat data_mat(vectorBuffer,true);
+    Mat image(imdecode(data_mat,1));
+    flip(image,image,1);
+    //cv::Mat mat(height,rows,CV_8UC3,string.data());
+    //image(imdecode(data_mat,1)); //put 0 if you want greyscale
+    QImage qimg= QImage((const unsigned char*)(image.data),
+             image.cols,image.rows,QImage::Format_RGB888);
+    cvtColor(image,image,CV_BGR2RGB);
+    liveviewimg = qimg;
+#else
+    liveviewimg.loadFromData(bytes);
 #endif
-        liveviewimg.loadFromData(bytes);
         if(!liveviewimg.isNull()){
             liveviewimgsize = liveviewimg.size();
             //LOG_SCREENDESIGN_DEBUG << "LiveView image Size: " << size;

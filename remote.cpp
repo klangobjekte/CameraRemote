@@ -170,10 +170,10 @@ Remote::Remote(NetworkConnection *networkConnection,LiveViewConsumer *liveViewCo
     methods["getEvent Type 77"] = 77;
 
 #ifdef _USEPRODUCERTHREAD
-    connect(liveViewProducer,SIGNAL(bufferLoaded()),
+    connect(liveViewProducer,SIGNAL(publishProducerStarted()),
             _liveViewConsumer,SLOT(awakeConsumer()),Qt::DirectConnection);
-    connect(liveViewProducer,SIGNAL(newByteReached()),
-            _liveViewConsumer,SLOT(sleepConsumer()),Qt::DirectConnection);
+    connect(liveViewProducer,SIGNAL(publishLiveViewStreamStatus(bool)),
+            this,SLOT(setLiveViewStatus(bool)),Qt::DirectConnection);
 #endif
 }
 
@@ -222,7 +222,7 @@ void Remote::getEventDelayed(int ms){
 
 void Remote::on_getEventTimer_timeout(){
     qDebug() << "on_getEventTimer_timeout timelapsmode:" << timelapsmode;
-    if(!timelapsmode){
+    if(!timelapsmode ){
             getEvent("false",77);
         }
 }
@@ -689,8 +689,10 @@ void Remote::onManagerFinished(QNetworkReply* reply){
 
 #ifdef _USEPRODUCERTHREAD
             liveViewProducer->setLiveViewRequest(liveViewRequest);
-            //if(!liveViewProducer->isRunning())
-            liveViewProducer->start();
+            if(!liveViewProducer->isRunning()){
+                liveViewProducer->start();
+                startLiveviewInProgress = true;
+            }
             //_liveViewConsumer->start();
 
 #else
@@ -734,11 +736,11 @@ void Remote::onManagerFinished(QNetworkReply* reply){
         }
     }
     if(methods.key(id) == "setShutterSpeed"){
-        //getEvent();
+        getEvent();
     }
 
     if(methods.key(id) == "setIsoSpeedRate"){
-        //getEvent();
+        getEvent();
     }
 
     if(methods.key(id) == "setFNumber"){
@@ -852,6 +854,7 @@ void Remote::onManagerFinished(QNetworkReply* reply){
             LOG_RESULT_DEBUG << "currentExposureMode: " << jobject2.value("currentExposureMode").toString();
             emit publishCurrentExposureMode(jobject2.value("currentExposureMode").toString());
         }
+        //{"type":"postviewImageSize","postviewImageSizeCandidates":["Original","2M"],"currentPostviewImageSize":"2M"}
         if(jobject2.value(QString("type")) == QString("postviewImageSize")){
             QVariantList vlist = jobject2.value("postviewImageSizeCandidates").toArray().toVariantList();
             QStringList slist;
@@ -982,6 +985,25 @@ void Remote::onManagerFinished(QNetworkReply* reply){
              LOG_RESULT_DEBUG << "currentTouchCoordinates: " << vlist;
              emit publishTouchAFPositionSet(touchAFPositionSet);
         }
+
+        //{"type":"focusMode","focusModeCandidates":["AF-S","AF-C","DMF","MF"],"currentFocusMode":"AF-S"}
+        if(jobject2.value(QString("type")) == (QString("focusMode"))){
+            QVariantList vlist = jobject2.value("focusModeCandidates").toArray().toVariantList();
+            QStringList slist;
+            foreach (QVariant var, vlist) {
+                slist.append(var.toString());
+            }
+            LOG_RESULT_DEBUG << "focusModeCandidates: " << slist;
+            emit publishAvailableFocusModeCandidates(slist);
+            LOG_RESULT_DEBUG << "currentFocusMode: " << jobject2.value("currentFocusMode").toString();
+            emit publishCurrentFocusMode(jobject2.value("currentFocusMode").toString());
+        }
+
+
+
+
+
+
     }
 }
 
@@ -1003,8 +1025,8 @@ void Remote::getCommand(int id){
 
     if(connected
         && !liveViewStreamAlive
-        && !timelapsmode
-    && !startLiveviewInProgress)
+        && !timelapsmode//)
+        && !startLiveviewInProgress)
     {
         startLiveviewInProgress = true;
         startLiveview();
@@ -1032,7 +1054,7 @@ void Remote::getCommand(int id){
 void Remote::onLiveViewManagerReadyRead(){
     //qDebug() << "onLiveViewManagerReadyRead";
     //qDebug() << "streamReply->bytesAvailable(): "<< streamReply->bytesAvailable();
-    qint64 maxlen = streamReply->bytesAvailable();
+
     startLiveviewInProgress = false;
     liveViewStreamAlive = false;
     if(streamReply->isRunning())
@@ -1041,7 +1063,7 @@ void Remote::onLiveViewManagerReadyRead(){
     }
     //inputStream.append(streamReply->readAll());
     //QDataStream in(streamReply->readAll());
-    _liveViewConsumer->setInputStream(streamReply);
+   // _liveViewConsumer->setInputStream(streamReply);
 #ifdef __STORESTREAM
         QFile file("test.mjpeg");
         if (!file.open(QIODevice::WriteOnly)) {
@@ -1069,7 +1091,6 @@ void Remote::buildLiveViewPic(){
 #ifdef  __USE_STANDARD_HEADER
     int commonHeaderLength = 1 + 1 + 2 + 4;
     int payloadHeaderLength = 4 + 3 + 1 + 4 + 1 + 115;
-    int paddingsize = 0;
     QByteArray commonHeader;
     QByteArray payloadHeader;
 
@@ -1099,7 +1120,7 @@ void Remote::buildLiveViewPic(){
     }
 
     jpegSize = bytesToInt(payloadHeader, 4, 3);
-    int paddingSize = bytesToInt(payloadHeader, 7, 1);
+    //int paddingSize = bytesToInt(payloadHeader, 7, 1);
 
        // Payload Data
        //byte[] jpegData = readBytes(mInputStream, jpegSize);
@@ -1115,6 +1136,7 @@ void Remote::buildLiveViewPic(){
     bool found = false;
     bool foundstart = false;
     bool foundend = false;
+
     if(!inputStream.isEmpty()){
         //! suche nach Bildanfang ab Stelle offset
         while(!found && offset<inputStream.length()-1 ){
@@ -1272,7 +1294,6 @@ void Remote::startLiveview(int id){
     commandFabrikMethod("startLiveview",id);
     inputStream.clear();
     //timer->start();
-    //_liveViewConsumer->start();
     offset = 0;
     start=0;
     end=0;
@@ -1281,8 +1302,8 @@ void Remote::startLiveview(int id){
 void Remote::stopLiveview(int id){
     commandFabrikMethod("stopLiveview",id);
     //timer->stop();
-    //_liveViewConsumer->quit();
-
+    _liveViewConsumer->exit();
+    liveViewProducer->stop();
     liveviewstatus = false;
     liveViewStreamAlive = false;
 }
@@ -1475,4 +1496,7 @@ bool Remote::liveviewStatus(){
     return liveviewstatus;
 }
 
-
+void Remote::setLiveViewStatus(bool status){
+    liveviewstatus = status;
+    liveViewStreamAlive = status;
+}

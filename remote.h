@@ -213,6 +213,9 @@ signals:
     void publishAvailablePostviewImageSizeCandidates(QStringList result);
     void publishCurrentPostviewImageSize(QString result);
 
+    void publishAvailableFocusModeCandidates(QStringList result);
+    void publishCurrentFocusMode(QString result);
+
     void publishAvailablselfTimerCandidates(QStringList result);
     void publishCurrentSelfTimer(QString result);
 
@@ -247,6 +250,7 @@ public slots:
     void getEvent(QByteArray param = QByteArray("false"), int id = 9);
     void setLoadPreviewPic(int state);
     void startRecMode(int id = 11);
+    void setLiveViewStatus(bool status);
 
 
 

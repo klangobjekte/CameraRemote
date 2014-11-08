@@ -13,8 +13,12 @@ const  qint64 producerLoadSize = gRingBufferSize - estJpegSize;
 
 // The datasize of the Producer
 //const unsigned int dataSize = gRingBufferSize*3;
-
-const unsigned int sleepTime = 20;
+//#ifdef Q_OS_ANDROID || __ANDROID__
+#if defined(ANDROID) || defined(__ANDROID__) || defined(__ANDROID__)
+const unsigned int sleepTime = 0;
+#else
+const unsigned int sleepTime = 5;
+#endif
 //#define _USESTREAM
 #define _USEPRODUCERTHREAD
 #define __USE_STANDARD_HEADER

@@ -67,6 +67,7 @@ private slots:
     void on_shutterSpeedComboBox_activated(QString text);
     void on_fNumberComboBox_activated(QString text);
     void on_whiteBalanceComboBox_activated(QString text);
+    void on_focusModeComboBox_activated(QString text);
     void on_exposureModeComboBox_activated(QString text);
     void on_postViewImageSizeComboBox_activated(QString text);
     void on_selfTimerComboBox_activated(QString text);
@@ -97,6 +98,7 @@ private slots:
     void addwhiteBalanceComboBoxItems(QStringList items);
     void addshutterSpeedComboBox_2Items(QStringList items);
     void addexposureModeComboBoxItems(QStringList items);
+    void addfocuModeComboBoxItems(QStringList items);
     void addSelfTimerComboBoxItems(QStringList items);
     void addPostViewImageSizeComboBoxItems(QStringList items);
     void addConfigurationComboBoxItems(QStringList items);
@@ -107,6 +109,7 @@ private slots:
     void fNumberComboBox_setCurrentText(QString text);
     void whiteBalanceComboBox_setCurrentText(QString text);
     void exposureModeComboBox_setCurrentText(QString text);
+    void focusModeComoBox_setCurrentText(QString text);
     void startLiveViewPushButton_setChecked(bool status);
     void selfTimerComboBox_setCurrentText(QString text);
     void postViewImageSizeComboBox_setCurrentText(QString text);

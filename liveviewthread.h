@@ -23,12 +23,14 @@ public:
     explicit LiveViewProducer(NetworkConnection *networkConnection,QObject *parent);
     void run();
     void setLiveViewRequest(QString liveViewRequest);
+    void stop();
 
 private slots:
     void onLiveViewManagerReadyRead();
 signals:
-    void bufferLoaded();
+    void publishProducerStarted();
     void newByteReached();
+    void publishLiveViewStreamStatus(bool);
 
 private:
     //QNetworkAccessManager *liveViewManager;
@@ -36,6 +38,7 @@ private:
     NetworkConnection *_networkConnection;
 
     QString _liveViewRequest;
+    bool liveViewStreamAlive;
     //QByteArray replyBuffer;
 
 
@@ -51,6 +54,7 @@ public:
 
 signals:
     void publishLiveViewBytes(QByteArray bytes);
+
 
 public slots:
     void awakeConsumer();
@@ -77,7 +81,7 @@ private:
     int hjpegSize ;
     int paddingSize ;
 
-    bool liveViewStreamAlive;
+    //bool liveViewStreamAlive;
     //char *consumerP;
 
 #ifdef _USESTREAM
