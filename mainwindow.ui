@@ -96,7 +96,6 @@ QPushButton#rightPushButton{
 }
 
 
-
 QPushButton#upPushButton{
 	background-image: url(:img/btn_tilt_up_normal.png);
 }
@@ -108,6 +107,23 @@ QPushButton#downPushButton{
 
 QPushButton#stopMovePushButton{
 	background-image: url(:img/btn_pan_stop_normal.png);
+}
+
+
+QPushButton#previousPushButton{
+	background-image:url(:img/btn_minus_normal.png);
+}
+
+QPushButton#nextPushButton{
+	background-image:url(:img/btn_plus_normal.png);
+}
+
+QPushButton#manualFocusInPushButton{
+	background-image:url(:img/btn_manuelL_tele_normal.png);
+}
+
+QPushButton#manualFocusOutPushButton{
+	background-image:url(:img/btn_manuelL_wide_normal.png);
 }
 
 QPushButton#cameraPushButton{
@@ -419,6 +435,9 @@ QCheckBox#loadPreviewPicCheckBox{
      </item>
      <item row="1" column="2">
       <widget class="QPushButton" name="upPushButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -1131,46 +1150,6 @@ QCheckBox#loadPreviewPicCheckBox{
        </property>
       </widget>
      </item>
-     <item row="2" column="6">
-      <widget class="QPushButton" name="takePicturePushButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
-         <kerning>false</kerning>
-        </font>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">default.qss</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>52</width>
-         <height>22</height>
-        </size>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="5">
       <widget class="QPushButton" name="nextPushButton">
        <property name="sizePolicy">
@@ -1192,7 +1171,7 @@ QCheckBox#loadPreviewPicCheckBox{
         </size>
        </property>
        <property name="text">
-        <string>+</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -1217,7 +1196,7 @@ QCheckBox#loadPreviewPicCheckBox{
         </size>
        </property>
        <property name="text">
-        <string>-</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -1283,17 +1262,81 @@ QCheckBox#loadPreviewPicCheckBox{
        </property>
       </widget>
      </item>
-     <item row="1" column="4">
-      <widget class="QPushButton" name="manualFocusInPushButton">
+     <item row="1" column="6" rowspan="2">
+      <widget class="QPushButton" name="takePicturePushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Grande,Lucida,Verdana,sans-serif</family>
+         <kerning>false</kerning>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">default.qss</string>
+       </property>
        <property name="text">
-        <string>In</string>
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>52</width>
+         <height>22</height>
+        </size>
        </property>
       </widget>
      </item>
      <item row="1" column="5">
-      <widget class="QPushButton" name="manualFocusOutPushButton">
+      <widget class="QPushButton" name="manualFocusInPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Out</string>
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="4">
+      <widget class="QPushButton" name="manualFocusOutPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>

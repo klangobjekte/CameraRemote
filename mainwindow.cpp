@@ -28,10 +28,13 @@
 #include <QMessageBox>
 #include "liveviewthread.h"
 
+#ifdef Q_OS_MAC
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-
+using namespace cv;
+//#define __USEOPENCV__
+#endif
 //#include <opencv2/opencv.hpp>
 
 
@@ -40,7 +43,7 @@
 
 
 using namespace std;
-using namespace cv;
+
 
 //Q_DECLARE_METATYPE(QIntMap)
 
@@ -552,8 +555,9 @@ void MainWindow::setupPortraitScreen(QRect geo){
 
     ui->centralGridLayout->addWidget(ui->stopMovePushButton,row+2,2);
 
-    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+1,4);
-    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+1,5);
+    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+1,4);
+    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+1,5);
+
 
 
     ui->centralGridLayout->addWidget(ui->zoomOutPushButton,row+3,4);
@@ -645,8 +649,9 @@ void MainWindow::setupLandscapeScreen(QRect geo){
     //ui->centralGridLayout->addWidget(ui->stopMoveVPushButton,row+2,4);
     ui->centralGridLayout->addWidget(ui->stopMovePushButton,row+2,2);
 
-    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+1,4);
-    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+1,5);
+    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+1,4);
+    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+1,5);
+
 
     ui->centralGridLayout->addWidget(ui->zoomOutPushButton,row+3,4);
     ui->centralGridLayout->addWidget(ui->zoomInPushButton,row+3,5);
@@ -730,8 +735,9 @@ void MainWindow::setupLandscapeScreen(QRect geo){
     ui->centralGridLayout->addWidget(ui->previousPushButton,row+4,1);
     ui->centralGridLayout->addWidget(ui->nextPushButton,row+4,3);
 
-    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+3,1);
-    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+3,3);
+    ui->centralGridLayout->addWidget(ui->manualFocusOutPushButton,row+3,1);
+    ui->centralGridLayout->addWidget(ui->manualFocusInPushButton,row+3,3);
+
 
     //ui->centralGridLayout->addWidget(ui->previewPushButton,1,1);
     //ui->centralGridLayout->addWidget(ui->cameraPushButton,6,1);
@@ -1558,18 +1564,22 @@ void MainWindow::drawPreview(QNetworkReply *reply,QString previePicName){
 void MainWindow::drawPreview(QString path){
     if(!path.isEmpty()){
 
-
+#ifdef __USEOPENCV__
         Mat image;
         image =  imread(path.toStdString());
-        flip(image,image,0);
+        flip(image,image,1);
         cvtColor(image,image,CV_BGR2RGB);
         //namedWindow("Original Image"); // define the window
         //imshow("Original Image", image); // show the image
         QImage img= QImage((const unsigned char*)(image.data),
                  image.cols,image.rows,QImage::Format_RGB888);
+
+#else
+
+        QImage img(path);
+
+#endif
         previewimg = img;
-
-
         if(!previewimg.isNull()){
             QSize size = previewimg.size();
             LOG_SCREENDESIGN_DEBUG << "Preview image Size: " << size;

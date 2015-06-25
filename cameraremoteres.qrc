@@ -28,5 +28,9 @@
         <file>img/btn_pan_right_normal.png</file>
         <file>img/btn_pan_left_normal.png</file>
         <file>img/btn_pan_stop_normal.png</file>
+        <file>img/btn_minus_normal.png</file>
+        <file>img/btn_plus_normal.png</file>
+        <file>img/btn_manuelL_tele_normal.png</file>
+        <file>img/btn_manuelL_wide_normal.png</file>
     </qresource>
 </RCC>
